@@ -11,9 +11,7 @@ export function SiteHeader() {
         <Link href="/reports">Reports</Link>
         <Link href="/report/new">Report an obstacle</Link>
         <Link href="/map">Map</Link>
-        <span className="nav-soon" aria-disabled="true">
-          Routes (Phase 5)
-        </span>
+        <Link href="/routes">Plan a route</Link>
       </nav>
     </header>
   );

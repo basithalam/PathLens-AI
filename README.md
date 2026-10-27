@@ -166,9 +166,11 @@ Evidence comparison (Phase 3): `POST /api/comparisons`, `GET /api/comparisons/{i
 
 Accessibility map (Phase 4): `GET /api/map/reports` (viewport bounding box with obstacle/verification filters) and `GET /api/map/summary`. The `/map` page uses Leaflet with OpenStreetMap tiles and attribution, reloads reports when the viewport moves, shows markers whose letter and text (not colour alone) encode verification status, and keeps a synchronized list beside the map. Granting location permission recentres the map; denying it leaves manual panning fully usable. PostGIS geometry is still deferred: viewport queries use the latitude/longitude columns until the Docker PostGIS database is used.
 
+Route recommendation (Phase 5): `POST /api/routes/recommend` and `GET /api/routes/{id}`. Real route geometry, distance, and duration come from OSRM (`Routing:OsrmBaseUrl`, `Routing:Profile=foot`); if the provider fails, the API returns `502` and the UI shows no route rather than inventing one. Each candidate is evaluated against nearby reports (known obstacles within 50 m), evidence freshness, and the share of the route with no nearby evidence — unknown is reported as unknown, never as clear — and ranked by an explainable rule (fewest known obstacles, then shortest). Recommendations are persisted and can be reopened by id. The `/routes` page lets you type or click start/destination on the map and compare route cards side by side with the map.
+
 ## Status
 
-🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–4 are complete: reports and photo evidence persist, analysis jobs complete end-to-end (mock provider until a Meta AI key is configured), evidence can be compared over time, and reports are explorable on an interactive map. Builds and tests pass.
+🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–5 are complete: reports and evidence persist, analysis and comparison work end-to-end (mock AI provider until a Meta AI key is configured), reports are explorable on a map, and walking routes can be compared with evidence-aware explanations. Builds and tests pass.
 
 ## License
 

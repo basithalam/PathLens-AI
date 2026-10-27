@@ -40,6 +40,24 @@ public static class DependencyInjection
         services.AddScoped<IComparisonRepository, ComparisonRepository>();
         services.AddScoped<ComparisonService>();
 
+        // Routing: real OSRM by default; MockRouting only when explicitly set
+        // (tests). Provider failures surface as unavailable, never as fake routes.
+        services.Configure<Routing.RoutingOptions>(configuration.GetSection(Routing.RoutingOptions.SectionName));
+        services.AddHttpClient(nameof(Routing.OsrmRoutingService));
+        if (string.Equals(configuration["Routing:Provider"], "Mock", StringComparison.OrdinalIgnoreCase))
+        {
+            services.AddScoped<Application.Routing.IRoutingService, Routing.MockRoutingService>();
+        }
+        else
+        {
+            services.AddScoped<Application.Routing.IRoutingService>(serviceProvider => new Routing.OsrmRoutingService(
+                serviceProvider.GetRequiredService<IHttpClientFactory>(),
+                serviceProvider.GetRequiredService<IOptions<Routing.RoutingOptions>>()));
+        }
+
+        services.AddScoped<Application.Routing.IRouteRecommendationRepository, RouteRecommendationRepository>();
+        services.AddScoped<Application.Routing.RouteRecommendationService>();
+
         // AI provider: real Meta by default; Mock only when Ai:Provider=Mock is
         // set explicitly (tests / labelled demo). The key stays server-side.
         services.Configure<MetaAiOptions>(configuration.GetSection(MetaAiOptions.SectionName));

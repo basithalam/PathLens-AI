@@ -262,6 +262,48 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                     b.ToTable("accessibility_reports", (string)null);
                 });
 
+            modelBuilder.Entity("PathLens.Domain.Routing.RouteRecommendationRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("DestinationLatitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("DestinationLongitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("OriginLatitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("OriginLongitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Profile")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)");
+
+                    b.Property<string>("ResponseJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.ToTable("route_recommendations", (string)null);
+                });
+
             modelBuilder.Entity("PathLens.Domain.Evidence.AnalysisJob", b =>
                 {
                     b.HasOne("PathLens.Domain.Evidence.EvidenceItem", null)

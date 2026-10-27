@@ -71,6 +71,7 @@ app.MapReportEndpoints();
 app.MapEvidenceEndpoints();
 app.MapComparisonEndpoints();
 app.MapMapEndpoints();
+app.MapRouteEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

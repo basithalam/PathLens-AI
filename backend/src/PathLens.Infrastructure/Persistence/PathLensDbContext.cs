@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PathLens.Domain.Evidence;
 using PathLens.Domain.Reports;
+using PathLens.Domain.Routing;
 
 namespace PathLens.Infrastructure.Persistence;
 
@@ -16,6 +17,7 @@ public sealed class PathLensDbContext(DbContextOptions<PathLensDbContext> option
     public DbSet<EvidenceItem> EvidenceItems => Set<EvidenceItem>();
     public DbSet<AnalysisJob> AnalysisJobs => Set<AnalysisJob>();
     public DbSet<EvidenceComparison> EvidenceComparisons => Set<EvidenceComparison>();
+    public DbSet<RouteRecommendationRecord> RouteRecommendations => Set<RouteRecommendationRecord>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

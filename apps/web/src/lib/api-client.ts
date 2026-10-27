@@ -356,6 +356,78 @@ export function getMapSummary(): Promise<MapSummary | null> {
   return fetchJson<MapSummary>("/api/map/summary");
 }
 
+export interface NearbyObstacle {
+  reportId: string;
+  title: string;
+  obstacleType: string;
+  verificationStatus: string;
+  distanceMeters: number;
+  evidenceAt: string;
+}
+
+export interface EvaluatedRoute {
+  index: number;
+  geometry: { latitude: number; longitude: number }[];
+  distanceMeters: number;
+  durationSeconds: number;
+  knownObstacles: NearbyObstacle[];
+  unknownLengthPercent: number;
+  newestEvidenceAt: string | null;
+  explanation: string[];
+}
+
+export interface RouteRecommendation {
+  id: string;
+  provider: string;
+  profile: string;
+  origin: { latitude: number; longitude: number };
+  destination: { latitude: number; longitude: number };
+  routes: EvaluatedRoute[];
+  limitations: string[];
+  createdAt: string;
+}
+
+export async function recommendRoutes(
+  origin: { latitude: number; longitude: number },
+  destination: { latitude: number; longitude: number },
+): Promise<{ ok: true; recommendation: RouteRecommendation } | { ok: false; message: string }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/routes/recommend`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        originLatitude: origin.latitude,
+        originLongitude: origin.longitude,
+        destinationLatitude: destination.latitude,
+        destinationLongitude: destination.longitude,
+      }),
+      signal: AbortSignal.timeout(30000),
+    });
+
+    if (response.ok) {
+      return { ok: true, recommendation: (await response.json()) as RouteRecommendation };
+    }
+
+    const problem = (await response.json().catch(() => null)) as
+      | { errors?: Record<string, string[]>; title?: string; detail?: string }
+      | null;
+    const firstError = problem?.errors ? Object.values(problem.errors).flat()[0] : undefined;
+    return {
+      ok: false,
+      message:
+        firstError ??
+        problem?.detail ??
+        problem?.title ??
+        `Route request failed (${response.status}). No route is shown when the provider fails.`,
+    };
+  } catch {
+    return {
+      ok: false,
+      message: "The API is not reachable. Check that the backend is running. No route is shown instead.",
+    };
+  }
+}
+
 export async function getHealth(
   kind: "live" | "ready",
 ): Promise<HealthResponse | null> {
