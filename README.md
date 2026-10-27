@@ -164,9 +164,11 @@ Without this configuration an analysis job fails with an explicit "not configure
 
 Evidence comparison (Phase 3): `POST /api/comparisons`, `GET /api/comparisons/{id}`, `GET /api/reports/{id}/comparisons`, and `POST /api/comparisons/{id}/review`. The deterministic rules engine checks location match, timestamp trust, and newer-photo strength before allowing `LikelyStillPresent` or `NotObservedInNewImage`; anything weak becomes `Inconclusive`, and different findings become `ConflictingEvidence`. `NotObservedInNewImage` never means an obstacle was removed. A human review is stored beside the original outcome (never overwriting it) and changes the effective outcome. The report page shows a side-by-side evidence explorer with a timeline and the review form.
 
+Accessibility map (Phase 4): `GET /api/map/reports` (viewport bounding box with obstacle/verification filters) and `GET /api/map/summary`. The `/map` page uses Leaflet with OpenStreetMap tiles and attribution, reloads reports when the viewport moves, shows markers whose letter and text (not colour alone) encode verification status, and keeps a synchronized list beside the map. Granting location permission recentres the map; denying it leaves manual panning fully usable. PostGIS geometry is still deferred: viewport queries use the latitude/longitude columns until the Docker PostGIS database is used.
+
 ## Status
 
-🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–3 are complete: reports and photo evidence persist, analysis jobs complete end-to-end (mock provider until a Meta AI key is configured), and evidence can be compared over time with an explanation and human review. Builds and tests pass.
+🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–4 are complete: reports and photo evidence persist, analysis jobs complete end-to-end (mock provider until a Meta AI key is configured), evidence can be compared over time, and reports are explorable on an interactive map. Builds and tests pass.
 
 ## License
 

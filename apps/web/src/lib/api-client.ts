@@ -322,6 +322,40 @@ export async function reviewComparison(
   }
 }
 
+export interface MapViewport {
+  minLatitude: number;
+  maxLatitude: number;
+  minLongitude: number;
+  maxLongitude: number;
+}
+
+export function getReportsInViewport(
+  viewport: MapViewport,
+  filters: { obstacleType?: string; verificationStatus?: string } = {},
+): Promise<AccessibilityReport[] | null> {
+  const params = new URLSearchParams({
+    minLatitude: String(viewport.minLatitude),
+    maxLatitude: String(viewport.maxLatitude),
+    minLongitude: String(viewport.minLongitude),
+    maxLongitude: String(viewport.maxLongitude),
+    limit: "200",
+  });
+  if (filters.obstacleType) params.set("obstacleType", filters.obstacleType);
+  if (filters.verificationStatus) params.set("verificationStatus", filters.verificationStatus);
+  return fetchJson<AccessibilityReport[]>(`/api/map/reports?${params.toString()}`);
+}
+
+export interface MapSummary {
+  totalReports: number;
+  byObstacleType: Record<string, number>;
+  byVerificationStatus: Record<string, number>;
+  latestReportAt: string | null;
+}
+
+export function getMapSummary(): Promise<MapSummary | null> {
+  return fetchJson<MapSummary>("/api/map/summary");
+}
+
 export async function getHealth(
   kind: "live" | "ready",
 ): Promise<HealthResponse | null> {

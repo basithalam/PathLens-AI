@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getHealth } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
 
@@ -16,6 +17,13 @@ export default async function HomePage() {
           older and newer evidence from the same place, and explains how fresh
           and trustworthy that information is. It is being built for the Meta
           Global AI Developer Hackathon 2026.
+        </p>
+        <p className="home-actions">
+          <Link href="/map" className="primary-button">
+            Explore the map
+          </Link>{" "}
+          <Link href="/report/new">Report an obstacle</Link>{" "}
+          <Link href="/reports">Browse reports</Link>
         </p>
         <p className="limitations">
           Limitations, stated up front: an obstacle that is not visible in a

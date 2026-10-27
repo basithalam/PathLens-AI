@@ -57,6 +57,20 @@ public sealed class ReportService(IReportRepository repository)
         return ToResponse(report);
     }
 
+    public async Task<IReadOnlyList<ReportResponse>> InViewportAsync(
+        double minLatitude, double maxLatitude, double minLongitude, double maxLongitude,
+        ObstacleType? obstacleType, VerificationStatus? verificationStatus,
+        int limit, CancellationToken cancellationToken)
+    {
+        var reports = await repository.InViewportAsync(
+            minLatitude, maxLatitude, minLongitude, maxLongitude,
+            obstacleType, verificationStatus, limit, cancellationToken);
+        return reports.Select(ToResponse).ToList();
+    }
+
+    public Task<MapSummaryResponse> SummaryAsync(CancellationToken cancellationToken) =>
+        repository.SummaryAsync(cancellationToken);
+
     public async Task<IReadOnlyList<ReportResponse>> NearbyAsync(
         double latitude, double longitude, double radiusMeters, int limit, CancellationToken cancellationToken)
     {

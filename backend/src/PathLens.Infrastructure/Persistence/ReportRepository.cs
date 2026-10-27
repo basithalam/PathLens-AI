@@ -78,6 +78,47 @@ public sealed class ReportRepository(PathLensDbContext dbContext) : IReportRepos
             .ToList();
     }
 
+    public async Task<IReadOnlyList<AccessibilityReport>> InViewportAsync(
+        double minLatitude, double maxLatitude, double minLongitude, double maxLongitude,
+        ObstacleType? obstacleType, VerificationStatus? verificationStatus,
+        int limit, CancellationToken cancellationToken)
+    {
+        IQueryable<AccessibilityReport> reports = dbContext.Reports.AsNoTracking()
+            .Where(report =>
+                report.Latitude >= minLatitude && report.Latitude <= maxLatitude &&
+                report.Longitude >= minLongitude && report.Longitude <= maxLongitude);
+
+        if (obstacleType is not null)
+        {
+            reports = reports.Where(report => report.ObstacleType == obstacleType);
+        }
+
+        if (verificationStatus is not null)
+        {
+            reports = reports.Where(report => report.VerificationStatus == verificationStatus);
+        }
+
+        return await reports
+            .OrderByDescending(report => report.CreatedAt)
+            .Take(Math.Clamp(limit, 1, 500))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<MapSummaryResponse> SummaryAsync(CancellationToken cancellationToken)
+    {
+        var reports = await dbContext.Reports.AsNoTracking()
+            .Select(report => new { report.ObstacleType, report.VerificationStatus, report.CreatedAt })
+            .ToListAsync(cancellationToken);
+
+        return new MapSummaryResponse(
+            reports.Count,
+            reports.GroupBy(report => report.ObstacleType.ToString())
+                .ToDictionary(group => group.Key, group => group.Count()),
+            reports.GroupBy(report => report.VerificationStatus.ToString())
+                .ToDictionary(group => group.Key, group => group.Count()),
+            reports.Count == 0 ? null : reports.Max(report => report.CreatedAt));
+    }
+
     public Task SaveChangesAsync(CancellationToken cancellationToken) =>
         dbContext.SaveChangesAsync(cancellationToken);
 }

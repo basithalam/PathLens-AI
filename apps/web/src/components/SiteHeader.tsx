@@ -10,8 +10,9 @@ export function SiteHeader() {
         <Link href="/">Home</Link>
         <Link href="/reports">Reports</Link>
         <Link href="/report/new">Report an obstacle</Link>
+        <Link href="/map">Map</Link>
         <span className="nav-soon" aria-disabled="true">
-          Map (Phase 4)
+          Routes (Phase 5)
         </span>
       </nav>
     </header>
