@@ -3,6 +3,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using PathLens.Application.Ai;
+using PathLens.Application.Comparisons;
 using PathLens.Application.Evidence;
 using PathLens.Application.Reports;
 using PathLens.Application.Storage;
@@ -36,6 +37,8 @@ public static class DependencyInjection
         services.AddSingleton<IObjectStorage, LocalObjectStorage>();
         services.AddScoped<IEvidenceRepository, EvidenceRepository>();
         services.AddScoped<EvidenceService>();
+        services.AddScoped<IComparisonRepository, ComparisonRepository>();
+        services.AddScoped<ComparisonService>();
 
         // AI provider: real Meta by default; Mock only when Ai:Provider=Mock is
         // set explicitly (tests / labelled demo). The key stays server-side.

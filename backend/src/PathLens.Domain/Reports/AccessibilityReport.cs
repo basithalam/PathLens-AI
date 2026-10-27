@@ -97,13 +97,17 @@ public sealed class AccessibilityReport
     }
 
     /// <summary>Great-circle distance in metres (Haversine).</summary>
-    public double DistanceMetersTo(double latitude, double longitude)
+    public double DistanceMetersTo(double latitude, double longitude) =>
+        DistanceMetersBetween(Latitude, Longitude, latitude, longitude);
+
+    public static double DistanceMetersBetween(
+        double latitude1, double longitude1, double latitude2, double longitude2)
     {
         const double earthRadiusMeters = 6_371_000;
-        var dLat = DegreesToRadians(latitude - Latitude);
-        var dLon = DegreesToRadians(longitude - Longitude);
+        var dLat = DegreesToRadians(latitude2 - latitude1);
+        var dLon = DegreesToRadians(longitude2 - longitude1);
         var a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
-                Math.Cos(DegreesToRadians(Latitude)) * Math.Cos(DegreesToRadians(latitude)) *
+                Math.Cos(DegreesToRadians(latitude1)) * Math.Cos(DegreesToRadians(latitude2)) *
                 Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
         return earthRadiusMeters * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
     }

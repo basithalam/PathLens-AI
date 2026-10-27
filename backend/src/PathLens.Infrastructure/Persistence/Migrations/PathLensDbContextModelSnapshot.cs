@@ -61,6 +61,66 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                     b.ToTable("analysis_jobs", (string)null);
                 });
 
+            modelBuilder.Entity("PathLens.Domain.Evidence.EvidenceComparison", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("EarlierEvidenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Explanation")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("character varying(4000)");
+
+                    b.Property<Guid>("LaterEvidenceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ModelVersion")
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<string>("Outcome")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<Guid>("ReportId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ReviewReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("character varying(2000)");
+
+                    b.Property<DateTimeOffset?>("ReviewedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("ReviewedOutcome")
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("SupportingEvidenceJson")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("EarlierEvidenceId");
+
+                    b.HasIndex("LaterEvidenceId");
+
+                    b.HasIndex("ReportId");
+
+                    b.ToTable("evidence_comparisons", (string)null);
+                });
+
             modelBuilder.Entity("PathLens.Domain.Evidence.EvidenceItem", b =>
                 {
                     b.Property<Guid>("Id")
@@ -207,6 +267,27 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                     b.HasOne("PathLens.Domain.Evidence.EvidenceItem", null)
                         .WithMany()
                         .HasForeignKey("EvidenceItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("PathLens.Domain.Evidence.EvidenceComparison", b =>
+                {
+                    b.HasOne("PathLens.Domain.Evidence.EvidenceItem", null)
+                        .WithMany()
+                        .HasForeignKey("EarlierEvidenceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PathLens.Domain.Evidence.EvidenceItem", null)
+                        .WithMany()
+                        .HasForeignKey("LaterEvidenceId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("PathLens.Domain.Reports.AccessibilityReport", null)
+                        .WithMany()
+                        .HasForeignKey("ReportId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

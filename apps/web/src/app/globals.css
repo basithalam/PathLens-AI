@@ -286,6 +286,73 @@ body {
   }
 }
 
+.comparison-section {
+  margin-top: 2.5rem;
+}
+
+.timeline {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.compare-controls,
+.review-form {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 42rem;
+  margin: 1rem 0;
+}
+
+.compare-controls label,
+.review-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+
+.compare-controls select,
+.review-form select,
+.review-form input {
+  border: 1px solid var(--muted);
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+  background: var(--paper);
+}
+
+.comparison-list {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.comparison-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.comparison-images {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.comparison-images figure {
+  margin: 0;
+}
+
+.comparison-images figcaption {
+  color: var(--muted);
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 640px) {
+  .comparison-images {
+    grid-template-columns: 1fr;
+  }
+}
+
 .site-footer {
   border-top: 1px solid var(--line);
   padding: 1rem 1.25rem;

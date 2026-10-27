@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getEvidenceForReport, getReport } from "@/lib/api-client";
+import { getComparisons, getEvidenceForReport, getReport } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EvidenceSection } from "@/components/evidence/EvidenceSection";
+import { ComparisonSection } from "@/components/comparisons/ComparisonSection";
 
 export const dynamic = "force-dynamic";
 
@@ -19,6 +20,7 @@ export default async function ReportDetailsPage({ params }: ReportDetailsProps) 
   }
 
   const evidence = (await getEvidenceForReport(id)) ?? [];
+  const comparisons = (await getComparisons(id)) ?? [];
 
   return (
     <>
@@ -63,6 +65,8 @@ export default async function ReportDetailsPage({ params }: ReportDetailsProps) 
       </dl>
 
       <EvidenceSection reportId={report.id} initialEvidence={evidence} />
+
+      <ComparisonSection evidence={evidence} initialComparisons={comparisons} />
     </>
   );
 }

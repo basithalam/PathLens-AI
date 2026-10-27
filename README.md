@@ -162,9 +162,11 @@ $env:MetaAi__ApiKey = "<your key>"
 
 Without this configuration an analysis job fails with an explicit "not configured" error — it never invents a result. For tests or a clearly labelled demo, set `$env:Ai__Provider = "Mock"`; mock findings are marked in the UI as "Demo/mock analysis — not real AI". A live Meta AI image test (Blueprint Gate A) still requires a real API key.
 
+Evidence comparison (Phase 3): `POST /api/comparisons`, `GET /api/comparisons/{id}`, `GET /api/reports/{id}/comparisons`, and `POST /api/comparisons/{id}/review`. The deterministic rules engine checks location match, timestamp trust, and newer-photo strength before allowing `LikelyStillPresent` or `NotObservedInNewImage`; anything weak becomes `Inconclusive`, and different findings become `ConflictingEvidence`. `NotObservedInNewImage` never means an obstacle was removed. A human review is stored beside the original outcome (never overwriting it) and changes the effective outcome. The report page shows a side-by-side evidence explorer with a timeline and the review form.
+
 ## Status
 
-🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–2 are complete: reports and photo evidence persist in PostgreSQL, uploads are validated and privately stored, and analysis jobs complete end-to-end (with the mock provider until a Meta AI key is configured). Builds and tests pass.
+🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–3 are complete: reports and photo evidence persist, analysis jobs complete end-to-end (mock provider until a Meta AI key is configured), and evidence can be compared over time with an explanation and human review. Builds and tests pass.
 
 ## License
 

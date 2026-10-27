@@ -209,6 +209,7 @@ export function uploadEvidence(
   reportId: string,
   file: File,
   onProgress: (percent: number) => void,
+  captureTimeUtc?: string,
 ): Promise<UploadEvidenceResult> {
   return new Promise((resolve) => {
     const request = new XMLHttpRequest();
@@ -247,8 +248,78 @@ export function uploadEvidence(
 
     const form = new FormData();
     form.append("file", file);
+    if (captureTimeUtc) {
+      form.append("captureTimeUtc", captureTimeUtc);
+    }
     request.send(form);
   });
+}
+
+export interface EvidenceComparison {
+  id: string;
+  reportId: string;
+  earlierEvidenceId: string;
+  laterEvidenceId: string;
+  outcome: string;
+  effectiveOutcome: string;
+  explanation: string;
+  supportingEvidenceJson: string;
+  modelVersion: string | null;
+  createdAt: string;
+  reviewedOutcome: string | null;
+  reviewReason: string | null;
+  reviewedAt: string | null;
+}
+
+export function getComparisons(reportId: string): Promise<EvidenceComparison[] | null> {
+  return fetchJson<EvidenceComparison[]>(`/api/reports/${reportId}/comparisons`);
+}
+
+export async function createComparison(
+  earlierEvidenceId: string,
+  laterEvidenceId: string,
+): Promise<{ ok: true; comparison: EvidenceComparison } | { ok: false; message: string }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/comparisons`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ earlierEvidenceId, laterEvidenceId }),
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (response.ok) {
+      return { ok: true, comparison: (await response.json()) as EvidenceComparison };
+    }
+
+    const problem = (await response.json().catch(() => null)) as
+      | { errors?: Record<string, string[]>; title?: string }
+      | null;
+    const firstError = problem?.errors ? Object.values(problem.errors).flat()[0] : undefined;
+    return { ok: false, message: firstError ?? problem?.title ?? `Comparison failed (${response.status}).` };
+  } catch {
+    return { ok: false, message: "The API is not reachable. Check that the backend is running." };
+  }
+}
+
+export async function reviewComparison(
+  id: string,
+  reviewOutcome: string,
+  reason: string,
+): Promise<EvidenceComparison | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/comparisons/${id}/review`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reviewOutcome, reason }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) {
+      return null;
+    }
+    return (await response.json()) as EvidenceComparison;
+  } catch {
+    return null;
+  }
 }
 
 export async function getHealth(

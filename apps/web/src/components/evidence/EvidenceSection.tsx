@@ -162,6 +162,7 @@ export function EvidenceSection({
   const [progress, setProgress] = useState<number | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
+  const [captureTime, setCaptureTime] = useState("");
 
   function chooseFile(file: File | null) {
     setMessage(null);
@@ -197,7 +198,12 @@ export function EvidenceSection({
     }
 
     setProgress(0);
-    const result = await uploadEvidence(reportId, selected, setProgress);
+    const result = await uploadEvidence(
+      reportId,
+      selected,
+      setProgress,
+      captureTime ? new Date(captureTime).toISOString() : undefined,
+    );
     setProgress(null);
 
     if (result.ok) {
@@ -238,6 +244,18 @@ export function EvidenceSection({
             onChange={(event) => chooseFile(event.target.files?.[0] ?? null)}
           />
         </label>
+        <label>
+          When was this photo taken? (optional)
+          <input
+            type="datetime-local"
+            value={captureTime}
+            onChange={(event) => setCaptureTime(event.target.value)}
+          />
+        </label>
+        <p className="status-source">
+          Capture time is your claim, not a verified fact. Without it, comparisons
+          cannot make a time-based claim.
+        </p>
         {selected && (
           <p>
             {selected.name} · {(selected.size / 1024).toFixed(1)} KB{" "}

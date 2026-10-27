@@ -15,6 +15,7 @@ public sealed class PathLensDbContext(DbContextOptions<PathLensDbContext> option
     public DbSet<AccessibilityReport> Reports => Set<AccessibilityReport>();
     public DbSet<EvidenceItem> EvidenceItems => Set<EvidenceItem>();
     public DbSet<AnalysisJob> AnalysisJobs => Set<AnalysisJob>();
+    public DbSet<EvidenceComparison> EvidenceComparisons => Set<EvidenceComparison>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
