@@ -103,9 +103,44 @@ A feature is complete only when its behavior is documented, its API and data con
 - API keys and secrets stay server-side and are never committed to this repository.
 - Capture time and GPS supplied by users are treated as claims, not verified facts.
 
+## Run Locally (Phase 0)
+
+Prerequisites: .NET 10 SDK, Node.js 20+, and PostgreSQL with PostGIS (via Docker Compose below, or an existing local install).
+
+Start the database (optional if you already have PostgreSQL + PostGIS on `localhost:5432` with a `pathlens` database):
+
+```powershell
+docker compose up -d db
+```
+
+Start the backend (http://localhost:5145):
+
+```powershell
+dotnet run --project backend/src/PathLens.Api --urls http://localhost:5145
+```
+
+Check it: `GET /health/live` (the API itself is up) and `GET /health/ready` (also requires PostgreSQL; returns `503` when the database is unreachable). OpenAPI is available in Development at `/openapi/v1.json`.
+
+Start the frontend (http://localhost:3000) in a second terminal:
+
+```powershell
+cd apps/web
+npm install
+npm run dev
+```
+
+Open http://localhost:3000 in a browser. The home page shows the live API and database status from the backend.
+
+Backend checks:
+
+```powershell
+dotnet build backend/PathLens.slnx
+dotnet test backend/PathLens.slnx
+```
+
 ## Status
 
-🚧 In development for the Meta Global AI Developer Hackathon 2026. Setup and run instructions will be added as Phase 0 is completed.
+🚧 In development for the Meta Global AI Developer Hackathon 2026. Phase 0 (project foundation) is complete: backend and frontend run separately, health endpoints report real status, and builds and tests pass. The local database password must match your PostgreSQL install before `/health/ready` can pass.
 
 ## License
 

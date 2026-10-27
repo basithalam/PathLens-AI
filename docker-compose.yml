@@ -1,0 +1,21 @@
+services:
+  db:
+    image: postgis/postgis:17-3.5
+    container_name: pathlens-db
+    environment:
+      POSTGRES_DB: pathlens
+      POSTGRES_USER: postgres
+      # Local development only. Set a real password outside this file for any shared environment.
+      POSTGRES_PASSWORD: pathlens_local_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pathlens-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pathlens"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pathlens-db-data:

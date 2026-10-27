@@ -1,0 +1,6 @@
+@PathLens.Api_HostAddress = http://localhost:5145
+
+GET {{PathLens.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

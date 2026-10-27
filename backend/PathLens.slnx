@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PathLens.Api/PathLens.Api.csproj" />
+    <Project Path="src/PathLens.Application/PathLens.Application.csproj" />
+    <Project Path="src/PathLens.Domain/PathLens.Domain.csproj" />
+    <Project Path="src/PathLens.Infrastructure/PathLens.Infrastructure.csproj" />
+    <Project Path="src/PathLens.Worker/PathLens.Worker.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PathLens.IntegrationTests/PathLens.IntegrationTests.csproj" />
+    <Project Path="tests/PathLens.UnitTests/PathLens.UnitTests.csproj" />
+  </Folder>
+</Solution>
