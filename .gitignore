@@ -1,0 +1,56 @@
+# PathLens AI — local-only planning document (never commit or upload)
+Blueprint.md
+Blueprint*.md
+*blueprint*
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# .NET
+bin/
+obj/
+out/
+TestResults/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vs/
+
+# PostgreSQL / local data
+*.db
+*.sqlite
+*.sqlite3
+
+# Uploads & local storage (evidence photos must not be committed)
+uploads/
+storage/
+App_Data/
+
+# Logs
+*.log
+logs/
+
+# OS & editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Misc
+*.tmp
+*.swp
