@@ -138,9 +138,21 @@ dotnet build backend/PathLens.slnx
 dotnet test backend/PathLens.slnx
 ```
 
+Local development without Docker (Windows, using an existing PostgreSQL install on port 5433):
+
+```powershell
+& "C:\Program Files\PostgreSQL\18\bin\initdb.exe" -D .local/pgdata -U postgres --auth=trust -E UTF8
+& "C:\Program Files\PostgreSQL\18\bin\pg_ctl.exe" -D .local/pgdata -o "-p 5433" -l .local/pg.log start
+& "C:\Program Files\PostgreSQL\18\bin\createdb.exe" -h 127.0.0.1 -p 5433 -U postgres pathlens
+```
+
+The Development connection string targets this port-5433 cluster. Note: this local PostgreSQL has no PostGIS, so report location is stored as latitude/longitude; PostGIS geometry arrives in Phase 4 with the Docker PostGIS image.
+
+Reports API (Phase 1): `POST /api/reports`, `GET /api/reports` (search, obstacle-type filter, pagination, sorting), `GET /api/reports/{id}`, `PATCH /api/reports/{id}`, and `GET /api/reports/nearby`. The web app provides `/reports`, `/reports/{id}`, and `/report/new`.
+
 ## Status
 
-🚧 In development for the Meta Global AI Developer Hackathon 2026. Phase 0 (project foundation) is complete: backend and frontend run separately, health endpoints report real status, and builds and tests pass. The local database password must match your PostgreSQL install before `/health/ready` can pass.
+🚧 In development for the Meta Global AI Developer Hackathon 2026. Phase 0 (project foundation) and Phase 1 (database & report management) are complete: reports can be created in the web app, persist in PostgreSQL, and survive a refresh; `/health/ready` passes against the local database. Builds and tests pass.
 
 ## License
 

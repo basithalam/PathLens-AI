@@ -54,3 +54,6 @@ Thumbs.db
 # Misc
 *.tmp
 *.swp
+
+# Local dev database cluster
+.local/

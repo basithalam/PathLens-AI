@@ -154,6 +154,74 @@ body {
   font-weight: 600;
 }
 
+.filter-bar,
+.report-form {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 42rem;
+  margin: 1.25rem 0;
+}
+
+.filter-bar label,
+.report-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+
+.report-form input,
+.report-form textarea,
+.report-form select,
+.filter-bar input,
+.filter-bar select {
+  border: 1px solid var(--muted);
+  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+  background: var(--paper);
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.field-error {
+  color: var(--bad);
+  font-weight: 600;
+  margin: -0.5rem 0 0;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: #ffffff;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.7rem 1.2rem;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  justify-self: start;
+}
+
+.primary-button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.report-list {
+  display: grid;
+  gap: 1rem;
+  padding-left: 1.2rem;
+}
+
+.pagination {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
 .site-footer {
   border-top: 1px solid var(--line);
   padding: 1rem 1.25rem;

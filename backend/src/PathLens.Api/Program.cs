@@ -1,8 +1,11 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.EntityFrameworkCore;
+using PathLens.Api.Endpoints;
 using PathLens.Application;
 using PathLens.Infrastructure;
+using PathLens.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,6 +53,21 @@ app.Use(async (context, next) =>
 });
 
 app.UseCors("frontend");
+
+// Apply pending migrations at startup. If the database is unreachable the API
+// still starts so /health/live works and /health/ready can report the failure.
+try
+{
+    using var scope = app.Services.CreateScope();
+    var dbContext = scope.ServiceProvider.GetRequiredService<PathLensDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
+catch (Exception ex) when (ex is not OperationCanceledException)
+{
+    app.Logger.LogWarning(ex, "Database migration at startup failed; health/ready will report database status.");
+}
+
+app.MapReportEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

@@ -8,11 +8,10 @@ export function SiteHeader() {
       </Link>
       <nav aria-label="Main">
         <Link href="/">Home</Link>
+        <Link href="/reports">Reports</Link>
+        <Link href="/report/new">Report an obstacle</Link>
         <span className="nav-soon" aria-disabled="true">
           Map (Phase 4)
-        </span>
-        <span className="nav-soon" aria-disabled="true">
-          Report (Phase 1)
         </span>
       </nav>
     </header>

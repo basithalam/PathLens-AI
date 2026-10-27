@@ -1,16 +1,21 @@
 using Microsoft.EntityFrameworkCore;
+using PathLens.Domain.Reports;
 
 namespace PathLens.Infrastructure.Persistence;
 
 /// <summary>
-/// Phase 0 DbContext: establishes the PostgreSQL + PostGIS foundation.
-/// Business entities and their configurations are added in Phase 1.
+/// PostgreSQL DbContext. Location columns are latitude/longitude for now:
+/// the local PostgreSQL install has no PostGIS, so geometry columns and
+/// spatial indexes arrive with the Phase 4 PostGIS work (docker-compose
+/// already uses a PostGIS image). Do not claim PostGIS behaviour before then.
 /// </summary>
 public sealed class PathLensDbContext(DbContextOptions<PathLensDbContext> options) : DbContext(options)
 {
+    public DbSet<AccessibilityReport> Reports => Set<AccessibilityReport>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasPostgresExtension("postgis");
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(PathLensDbContext).Assembly);
         base.OnModelCreating(modelBuilder);
     }
 }
