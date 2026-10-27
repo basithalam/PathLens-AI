@@ -71,6 +71,12 @@ public sealed class AccessibilityReport
         };
     }
 
+    public void RecordEvidence(DateTimeOffset evidenceUploadedAt)
+    {
+        LastEvidenceAt = evidenceUploadedAt;
+        UpdatedAt = evidenceUploadedAt;
+    }
+
     public void Update(
         string title,
         string? description,

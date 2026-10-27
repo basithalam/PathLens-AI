@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getReport } from "@/lib/api-client";
+import { getEvidenceForReport, getReport } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
+import { EvidenceSection } from "@/components/evidence/EvidenceSection";
 
 export const dynamic = "force-dynamic";
 
@@ -16,6 +17,8 @@ export default async function ReportDetailsPage({ params }: ReportDetailsProps) 
   if (report === null) {
     notFound();
   }
+
+  const evidence = (await getEvidenceForReport(id)) ?? [];
 
   return (
     <>
@@ -54,10 +57,12 @@ export default async function ReportDetailsPage({ params }: ReportDetailsProps) 
           <dd>
             {report.lastEvidenceAt
               ? new Date(report.lastEvidenceAt).toLocaleString()
-              : "No photo evidence yet. Evidence upload arrives in Phase 2."}
+              : "No photo evidence analyzed yet."}
           </dd>
         </div>
       </dl>
+
+      <EvidenceSection reportId={report.id} initialEvidence={evidence} />
     </>
   );
 }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PathLens.Domain.Evidence;
 using PathLens.Domain.Reports;
 
 namespace PathLens.Infrastructure.Persistence;
@@ -12,6 +13,8 @@ namespace PathLens.Infrastructure.Persistence;
 public sealed class PathLensDbContext(DbContextOptions<PathLensDbContext> options) : DbContext(options)
 {
     public DbSet<AccessibilityReport> Reports => Set<AccessibilityReport>();
+    public DbSet<EvidenceItem> EvidenceItems => Set<EvidenceItem>();
+    public DbSet<AnalysisJob> AnalysisJobs => Set<AnalysisJob>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

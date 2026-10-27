@@ -36,8 +36,9 @@ TestResults/
 *.sqlite3
 
 # Uploads & local storage (evidence photos must not be committed)
-uploads/
-storage/
+# Anchored to the repo root so source folders named Storage are never ignored.
+/uploads/
+/storage/
 App_Data/
 
 # Logs

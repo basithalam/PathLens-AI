@@ -68,6 +68,7 @@ catch (Exception ex) when (ex is not OperationCanceledException)
 }
 
 app.MapReportEndpoints();
+app.MapEvidenceEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

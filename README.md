@@ -150,9 +150,21 @@ The Development connection string targets this port-5433 cluster. Note: this loc
 
 Reports API (Phase 1): `POST /api/reports`, `GET /api/reports` (search, obstacle-type filter, pagination, sorting), `GET /api/reports/{id}`, `PATCH /api/reports/{id}`, and `GET /api/reports/nearby`. The web app provides `/reports`, `/reports/{id}`, and `/report/new`.
 
+Evidence & AI analysis (Phase 2): `POST /api/reports/{id}/evidence` (multipart photo upload, JPEG/PNG/WebP up to 10 MB, validated by file content), `GET /api/reports/{id}/evidence`, `GET /api/evidence/{id}`, `GET /api/evidence/{id}/file`, `POST /api/evidence/{id}/analyze`, and `GET /api/analysis-jobs/{id}`. Photos are stored privately on local disk under a random key (`.local/storage` by default) and served only through the API. Analysis runs as a database-backed background job with bounded retry; provider output must pass the schema 1.0 validation before it is stored.
+
+Real Meta AI analysis is configured server-side only (never in the frontend):
+
+```powershell
+$env:MetaAi__Endpoint = "https://api.llama.com/compat/v1/chat/completions"
+$env:MetaAi__Model = "<vision-capable model id>"
+$env:MetaAi__ApiKey = "<your key>"
+```
+
+Without this configuration an analysis job fails with an explicit "not configured" error — it never invents a result. For tests or a clearly labelled demo, set `$env:Ai__Provider = "Mock"`; mock findings are marked in the UI as "Demo/mock analysis — not real AI". A live Meta AI image test (Blueprint Gate A) still requires a real API key.
+
 ## Status
 
-🚧 In development for the Meta Global AI Developer Hackathon 2026. Phase 0 (project foundation) and Phase 1 (database & report management) are complete: reports can be created in the web app, persist in PostgreSQL, and survive a refresh; `/health/ready` passes against the local database. Builds and tests pass.
+🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–2 are complete: reports and photo evidence persist in PostgreSQL, uploads are validated and privately stored, and analysis jobs complete end-to-end (with the mock provider until a Meta AI key is configured). Builds and tests pass.
 
 ## License
 

@@ -26,7 +26,7 @@ public class ReportEndpointsTests : IClassFixture<WebApplicationFactory<Program>
         await using var connection = new NpgsqlConnection(TestConnectionString);
         await connection.OpenAsync();
         await using var command = new NpgsqlCommand(
-            "TRUNCATE TABLE accessibility_reports", connection);
+            "TRUNCATE TABLE accessibility_reports CASCADE", connection);
         try
         {
             await command.ExecuteNonQueryAsync();

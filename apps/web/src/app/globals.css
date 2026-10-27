@@ -222,6 +222,70 @@ body {
   margin-top: 1.5rem;
 }
 
+.evidence-section {
+  margin-top: 2.5rem;
+}
+
+.drop-zone {
+  border: 2px dashed var(--muted);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: grid;
+  gap: 0.8rem;
+  max-width: 42rem;
+}
+
+.drop-zone.dragging {
+  border-color: var(--accent);
+  background: var(--wash);
+}
+
+.drop-zone input[type="file"] {
+  display: block;
+  margin-top: 0.4rem;
+}
+
+.evidence-list {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1.25rem;
+}
+
+.evidence-card {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1rem;
+}
+
+.evidence-photo {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+
+.mock-label {
+  border: 1px solid var(--warn);
+  color: var(--warn);
+  background: #fdf6e3;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .evidence-card {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .site-footer {
   border-top: 1px solid var(--line);
   padding: 1rem 1.25rem;
