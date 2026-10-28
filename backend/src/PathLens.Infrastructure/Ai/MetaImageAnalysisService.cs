@@ -34,7 +34,10 @@ public sealed class MetaImageAnalysisService(
                 "Meta AI is not configured. Set MetaAi:Endpoint, MetaAi:Model, and the server-side MetaAi:ApiKey before running real analysis.");
         }
 
-        var dataUri = $"data:{request.ContentType};base64,{Convert.ToBase64String(request.ImageBytes)}";
+        // Downscale and strip EXIF (including embedded GPS) before sending.
+        var (preparedBytes, preparedContentType) =
+            ImageDownscaler.DownscaleForAnalysis(request.ImageBytes, request.ContentType);
+        var dataUri = $"data:{preparedContentType};base64,{Convert.ToBase64String(preparedBytes)}";
 
         var payload = new
         {

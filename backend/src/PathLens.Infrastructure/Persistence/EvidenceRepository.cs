@@ -9,8 +9,15 @@ public sealed class EvidenceRepository(PathLensDbContext dbContext) : IEvidenceR
     public Task<bool> ReportExistsAsync(Guid reportId, CancellationToken cancellationToken) =>
         dbContext.Reports.AnyAsync(report => report.Id == reportId, cancellationToken);
 
-    public async Task AddEvidenceAsync(EvidenceItem item, CancellationToken cancellationToken) =>
+    public async Task AddEvidenceAsync(EvidenceItem item, CancellationToken cancellationToken)
+    {
         await dbContext.EvidenceItems.AddAsync(item, cancellationToken);
+
+        // Evidence freshness starts at upload, not only after a successful analysis.
+        var report = await dbContext.Reports.FirstOrDefaultAsync(
+            candidate => candidate.Id == item.ReportId, cancellationToken);
+        report?.RecordEvidence(item.UploadedAt);
+    }
 
     public Task<EvidenceItem?> GetEvidenceAsync(Guid id, CancellationToken cancellationToken) =>
         dbContext.EvidenceItems.FirstOrDefaultAsync(item => item.Id == id, cancellationToken);

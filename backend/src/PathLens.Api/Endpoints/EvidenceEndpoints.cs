@@ -56,25 +56,40 @@ public static class EvidenceEndpoints
                 return Results.ValidationProblem(errors, title: "Validation failed", statusCode: 400);
             }
 
-            DateTimeOffset? captureTime = DateTimeOffset.TryParse(form["captureTimeUtc"], out var parsedCapture)
-                ? parsedCapture
-                : null;
-            double? latitude = double.TryParse(form["latitude"], out var parsedLatitude) ? parsedLatitude : null;
-            double? longitude = double.TryParse(form["longitude"], out var parsedLongitude) ? parsedLongitude : null;
-            double? accuracy = double.TryParse(form["locationAccuracyMeters"], out var parsedAccuracy) ? parsedAccuracy : null;
+            // Optional fields that are present but unreadable are a client
+            // error, never silently ignored.
+            var fieldErrors = new Dictionary<string, string[]>();
+
+            DateTimeOffset? captureTime = null;
+            if (!string.IsNullOrWhiteSpace(form["captureTimeUtc"]))
+            {
+                if (DateTimeOffset.TryParse(form["captureTimeUtc"], out var parsedCapture))
+                {
+                    captureTime = parsedCapture;
+                }
+                else
+                {
+                    fieldErrors["captureTimeUtc"] = ["Capture time must be a valid date and time."];
+                }
+            }
+
+            double? latitude = ParseOptionalDouble(form, "latitude", fieldErrors);
+            double? longitude = ParseOptionalDouble(form, "longitude", fieldErrors);
+            double? accuracy = ParseOptionalDouble(form, "locationAccuracyMeters", fieldErrors);
 
             if (latitude is not null && (latitude < -90 || latitude > 90))
             {
-                return Results.ValidationProblem(
-                    new Dictionary<string, string[]> { ["latitude"] = ["Latitude must be between -90 and 90."] },
-                    title: "Validation failed", statusCode: 400);
+                fieldErrors["latitude"] = ["Latitude must be between -90 and 90."];
             }
 
             if (longitude is not null && (longitude < -180 || longitude > 180))
             {
-                return Results.ValidationProblem(
-                    new Dictionary<string, string[]> { ["longitude"] = ["Longitude must be between -180 and 180."] },
-                    title: "Validation failed", statusCode: 400);
+                fieldErrors["longitude"] = ["Longitude must be between -180 and 180."];
+            }
+
+            if (fieldErrors.Count > 0)
+            {
+                return Results.ValidationProblem(fieldErrors, title: "Validation failed", statusCode: 400);
             }
 
             var created = await service.AddEvidenceAsync(
@@ -142,5 +157,24 @@ public static class EvidenceEndpoints
         }).WithTags("Analysis");
 
         return app;
+    }
+
+    private static double? ParseOptionalDouble(
+        IFormCollection form, string field, Dictionary<string, string[]> errors)
+    {
+        var raw = form[field].ToString();
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return null;
+        }
+
+        if (double.TryParse(raw, System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture, out var value))
+        {
+            return value;
+        }
+
+        errors[field] = [$"{field} must be a number."];
+        return null;
     }
 }
