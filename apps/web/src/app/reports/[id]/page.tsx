@@ -54,6 +54,21 @@ export default async function ReportDetailsPage({ params }: ReportDetailsProps) 
 
       {report.description ? <p>{report.description}</p> : <p>No description was provided.</p>}
 
+      {report.duplicateOfReportId && (
+        <p role="note" className="mock-label">
+          This report was merged by a reviewer as a duplicate of{" "}
+          <Link href={`/reports/${report.duplicateOfReportId}`}>the main report for this obstacle</Link>.
+          Its evidence and history are kept here; counts and routes use the main report.
+        </p>
+      )}
+      {!report.duplicateOfReportId && report.possibleDuplicateOfReportId && (
+        <p role="note" className="mock-label">
+          Possible duplicate of{" "}
+          <Link href={`/reports/${report.possibleDuplicateOfReportId}`}>another nearby report</Link>{" "}
+          — suggested automatically, waiting for a reviewer to confirm or reject. Both reports stay visible until then.
+        </p>
+      )}
+
       <dl className="status-list">
         <div>
           <dt>Obstacle type</dt>

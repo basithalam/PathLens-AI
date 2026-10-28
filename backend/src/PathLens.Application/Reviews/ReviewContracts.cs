@@ -32,7 +32,10 @@ public sealed record QueueReportItem(
     string ObstacleType,
     string VerificationStatus,
     DateTimeOffset CreatedAt,
-    bool IsCameraCandidate);
+    bool IsCameraCandidate,
+    Guid? PossibleDuplicateOfReportId);
+
+public sealed record DuplicateDecisionRequest(string? Note);
 
 public sealed record QueueComparisonItem(
     Guid Id,

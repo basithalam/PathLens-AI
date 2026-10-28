@@ -23,8 +23,22 @@ public sealed class ReportService(IReportRepository repository)
 
         await repository.AddAsync(report, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
+
+        // Duplicate detection (F4): same type (or Unknown) within 25 m is a
+        // suggestion only — a reviewer decides, nothing merges by itself.
+        var duplicate = await repository.FindDuplicateCandidateAsync(
+            report.Id, report.Latitude, report.Longitude, report.ObstacleType,
+            DuplicateRadiusMeters, cancellationToken);
+        if (duplicate is not null)
+        {
+            report.SuggestDuplicate(duplicate.Id, DateTimeOffset.UtcNow);
+            await repository.SaveChangesAsync(cancellationToken);
+        }
+
         return ToResponse(report);
     }
+
+    public const double DuplicateRadiusMeters = 25;
 
     public async Task<ReportResponse?> GetAsync(Guid id, CancellationToken cancellationToken)
     {
@@ -110,7 +124,9 @@ public sealed class ReportService(IReportRepository repository)
         report.HasStairs,
         report.HasRamp,
         report.Surface?.ToString(),
-        report.AttributeSource);
+        report.AttributeSource,
+        report.PossibleDuplicateOfReportId,
+        report.DuplicateOfReportId);
 
     public static SurfaceCondition? ParseSurface(string? value) =>
         Enum.TryParse<SurfaceCondition>(value, ignoreCase: true, out var parsed) ? parsed : null;

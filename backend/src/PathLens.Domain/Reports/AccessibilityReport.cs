@@ -26,6 +26,12 @@ public sealed class AccessibilityReport
     /// <summary>Set only for camera-detected candidates: the source that produced them. Never human-verified automatically.</summary>
     public Guid? CameraSourceId { get; private set; }
 
+    /// <summary>Suggested duplicate target (unconfirmed). A reviewer decides; the system never merges by itself.</summary>
+    public Guid? PossibleDuplicateOfReportId { get; private set; }
+
+    /// <summary>Confirmed duplicate target. This report becomes a pointer; its evidence and audit stay readable, nothing is deleted.</summary>
+    public Guid? DuplicateOfReportId { get; private set; }
+
     // Optional observed accessibility attributes. Null means unknown: nobody
     // has measured it, and route scoring must never estimate it.
     public bool? HasStairs { get; private set; }
@@ -91,6 +97,42 @@ public sealed class AccessibilityReport
             CreatedAt = now,
             UpdatedAt = now,
         };
+    }
+
+    public void SuggestDuplicate(Guid possibleDuplicateOfReportId, DateTimeOffset now)
+    {
+        if (possibleDuplicateOfReportId == Id || DuplicateOfReportId is not null)
+        {
+            return;
+        }
+
+        PossibleDuplicateOfReportId = possibleDuplicateOfReportId;
+        UpdatedAt = now;
+    }
+
+    /// <summary>Reviewer confirmed the merge. Returns the canonical report id.</summary>
+    public Guid ConfirmDuplicate(DateTimeOffset now)
+    {
+        if (PossibleDuplicateOfReportId is null)
+        {
+            throw new InvalidOperationException("No duplicate suggestion to confirm.");
+        }
+
+        DuplicateOfReportId = PossibleDuplicateOfReportId;
+        PossibleDuplicateOfReportId = null;
+        UpdatedAt = now;
+        return DuplicateOfReportId.Value;
+    }
+
+    public void RejectDuplicateSuggestion(DateTimeOffset now)
+    {
+        if (PossibleDuplicateOfReportId is null)
+        {
+            throw new InvalidOperationException("No duplicate suggestion to reject.");
+        }
+
+        PossibleDuplicateOfReportId = null;
+        UpdatedAt = now;
     }
 
     public void SetVerificationStatus(VerificationStatus status, DateTimeOffset now)

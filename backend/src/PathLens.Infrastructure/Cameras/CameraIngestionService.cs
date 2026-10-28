@@ -198,6 +198,30 @@ public sealed class CameraIngestionService(
             now,
             source.Id);
 
+        // Duplicate detection applies to candidates too: another report
+        // within 25 m is a suggestion for the reviewer, never auto-merge.
+        const double delta = 0.0003;
+        var neighbours = await dbContext.Reports
+            .Where(report => report.DuplicateOfReportId == null &&
+                             report.Latitude >= source.Latitude - delta && report.Latitude <= source.Latitude + delta &&
+                             report.Longitude >= source.Longitude - delta && report.Longitude <= source.Longitude + delta)
+            .ToListAsync(cancellationToken);
+        var nearest = neighbours
+            .Select(report => new
+            {
+                Report = report,
+                Distance = AccessibilityReport.DistanceMetersBetween(
+                    source.Latitude, source.Longitude, report.Latitude, report.Longitude),
+            })
+            .Where(entry => entry.Distance <= 25)
+            .OrderBy(entry => entry.Distance)
+            .Select(entry => entry.Report)
+            .FirstOrDefault();
+        if (nearest is not null)
+        {
+            candidate.SuggestDuplicate(nearest.Id, now);
+        }
+
         await dbContext.Reports.AddAsync(candidate, cancellationToken);
         return candidate;
     }

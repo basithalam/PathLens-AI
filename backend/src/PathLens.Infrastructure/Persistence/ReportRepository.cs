@@ -18,7 +18,9 @@ public sealed class ReportRepository(PathLensDbContext dbContext) : IReportRepos
         var page = Math.Max(1, query.Page);
         var pageSize = Math.Clamp(query.PageSize, 1, 100);
 
-        IQueryable<AccessibilityReport> reports = dbContext.Reports.AsNoTracking();
+        // Confirmed duplicates are pointers, not counted as separate reports.
+        IQueryable<AccessibilityReport> reports = dbContext.Reports.AsNoTracking()
+            .Where(report => report.DuplicateOfReportId == null);
 
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
@@ -65,6 +67,7 @@ public sealed class ReportRepository(PathLensDbContext dbContext) : IReportRepos
 
         var candidates = await dbContext.Reports.AsNoTracking()
             .Where(report =>
+                report.DuplicateOfReportId == null &&
                 report.Latitude >= latitude - latDelta && report.Latitude <= latitude + latDelta &&
                 report.Longitude >= longitude - lonDelta && report.Longitude <= longitude + lonDelta)
             .ToListAsync(cancellationToken);
@@ -78,6 +81,20 @@ public sealed class ReportRepository(PathLensDbContext dbContext) : IReportRepos
             .ToList();
     }
 
+    public async Task<AccessibilityReport?> FindDuplicateCandidateAsync(
+        Guid excludeReportId, double latitude, double longitude,
+        ObstacleType obstacleType, double radiusMeters, CancellationToken cancellationToken)
+    {
+        var nearby = await NearbyAsync(latitude, longitude, radiusMeters, 20, cancellationToken);
+        return nearby
+            .Where(report => report.Id != excludeReportId &&
+                             (report.ObstacleType == obstacleType ||
+                              report.ObstacleType == ObstacleType.Unknown ||
+                              obstacleType == ObstacleType.Unknown))
+            .OrderBy(report => report.DistanceMetersTo(latitude, longitude))
+            .FirstOrDefault();
+    }
+
     public async Task<IReadOnlyList<AccessibilityReport>> InViewportAsync(
         double minLatitude, double maxLatitude, double minLongitude, double maxLongitude,
         ObstacleType? obstacleType, VerificationStatus? verificationStatus,
@@ -85,6 +102,7 @@ public sealed class ReportRepository(PathLensDbContext dbContext) : IReportRepos
     {
         IQueryable<AccessibilityReport> reports = dbContext.Reports.AsNoTracking()
             .Where(report =>
+                report.DuplicateOfReportId == null &&
                 report.Latitude >= minLatitude && report.Latitude <= maxLatitude &&
                 report.Longitude >= minLongitude && report.Longitude <= maxLongitude);
 
@@ -107,6 +125,7 @@ public sealed class ReportRepository(PathLensDbContext dbContext) : IReportRepos
     public async Task<MapSummaryResponse> SummaryAsync(CancellationToken cancellationToken)
     {
         var reports = await dbContext.Reports.AsNoTracking()
+            .Where(report => report.DuplicateOfReportId == null)
             .Select(report => new { report.ObstacleType, report.VerificationStatus, report.CreatedAt })
             .ToListAsync(cancellationToken);
 

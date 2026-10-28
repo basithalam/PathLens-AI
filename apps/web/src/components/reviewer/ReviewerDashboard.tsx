@@ -11,6 +11,7 @@ interface QueueReport {
   verificationStatus: string;
   createdAt: string;
   isCameraCandidate: boolean;
+  possibleDuplicateOfReportId: string | null;
 }
 
 interface StaleCamera {
@@ -105,6 +106,24 @@ export function ReviewerDashboard() {
     setAudit([]);
   }
 
+  async function decideDuplicate(reportId: string, action: "confirm" | "reject") {
+    const response = await authFetch(`/api/reports/${reportId}/duplicate/${action}`, {
+      method: "POST",
+      body: JSON.stringify({ note: notes[reportId] || null }),
+    });
+
+    if (response.ok) {
+      setMessage(
+        action === "confirm"
+          ? "Duplicate confirmed. The report is now a pointer to the main report; nothing was deleted."
+          : "Duplicate suggestion rejected. Both reports stay independent.",
+      );
+      await loadQueue();
+    } else {
+      setMessage(`Duplicate decision failed (${response.status}).`);
+    }
+  }
+
   async function reviewReport(reportId: string, status: string) {
     const note = notes[reportId] ?? "";
     const response = await authFetch(`/api/reports/${reportId}/review`, {
@@ -183,6 +202,21 @@ export function ReviewerDashboard() {
                   {" "}
                   <strong>CameraDetected candidate — unverified.</strong> A camera
                   suggested this; only your review can verify it.
+                </>
+              ) : null}
+              {report.possibleDuplicateOfReportId ? (
+                <>
+                  <br />
+                  <strong>Possible duplicate</strong> of{" "}
+                  <Link href={`/reports/${report.possibleDuplicateOfReportId}`}>this nearby report</Link>.{" "}
+                  <button type="button" onClick={() => decideDuplicate(report.id, "confirm")}>
+                    Confirm merge
+                  </button>{" "}
+                  <button type="button" onClick={() => decideDuplicate(report.id, "reject")}>
+                    Reject suggestion
+                  </button>{" "}
+                  Confirming deletes nothing: the report becomes a pointer and
+                  keeps its evidence and audit history.
                 </>
               ) : null}
               <br />

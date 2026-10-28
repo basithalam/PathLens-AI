@@ -39,7 +39,9 @@ public sealed record ReportResponse(
     bool? HasStairs,
     bool? HasRamp,
     string? Surface,
-    string? AttributeSource);
+    string? AttributeSource,
+    Guid? PossibleDuplicateOfReportId,
+    Guid? DuplicateOfReportId);
 
 public sealed record PagedResult<T>(
     IReadOnlyList<T> Items,

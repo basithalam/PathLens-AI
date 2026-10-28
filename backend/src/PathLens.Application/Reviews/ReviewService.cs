@@ -38,6 +38,52 @@ public sealed class ReviewService(
         return ReportService.ToResponse(report);
     }
 
+    /// <summary>Reviewer confirms a duplicate suggestion: this report becomes a pointer, nothing is deleted.</summary>
+    public async Task<ReportResponse?> ConfirmDuplicateAsync(
+        Guid actorUserId, Guid reportId, string? note, CancellationToken cancellationToken)
+    {
+        var report = await reportRepository.GetByIdAsync(reportId, cancellationToken);
+        if (report is null)
+        {
+            return null;
+        }
+
+        var suggested = report.PossibleDuplicateOfReportId;
+        var canonicalId = report.ConfirmDuplicate(DateTimeOffset.UtcNow);
+
+        await reviewRepository.AddAuditAsync(ReviewAuditEvent.Create(
+            "Report", reportId, actorUserId, "DuplicateConfirmed",
+            suggested is null ? null : $"PossibleDuplicateOf:{suggested}",
+            $"DuplicateOf:{canonicalId}", note, DateTimeOffset.UtcNow), cancellationToken);
+
+        await reportRepository.SaveChangesAsync(cancellationToken);
+        await reviewRepository.SaveChangesAsync(cancellationToken);
+        return ReportService.ToResponse(report);
+    }
+
+    /// <summary>Reviewer rejects a duplicate suggestion: both reports stay independent.</summary>
+    public async Task<ReportResponse?> RejectDuplicateAsync(
+        Guid actorUserId, Guid reportId, string? note, CancellationToken cancellationToken)
+    {
+        var report = await reportRepository.GetByIdAsync(reportId, cancellationToken);
+        if (report is null)
+        {
+            return null;
+        }
+
+        var suggested = report.PossibleDuplicateOfReportId;
+        report.RejectDuplicateSuggestion(DateTimeOffset.UtcNow);
+
+        await reviewRepository.AddAuditAsync(ReviewAuditEvent.Create(
+            "Report", reportId, actorUserId, "DuplicateSuggestionRejected",
+            suggested is null ? null : $"PossibleDuplicateOf:{suggested}",
+            null, note, DateTimeOffset.UtcNow), cancellationToken);
+
+        await reportRepository.SaveChangesAsync(cancellationToken);
+        await reviewRepository.SaveChangesAsync(cancellationToken);
+        return ReportService.ToResponse(report);
+    }
+
     public async Task RecordComparisonReviewAsync(
         Guid actorUserId,
         Guid comparisonId,
@@ -75,7 +121,8 @@ public sealed class ReviewService(
             unverified.Items.Select(report => new QueueReportItem(
                 report.Id, report.Title, report.ObstacleType.ToString(),
                 report.VerificationStatus.ToString(), report.CreatedAt,
-                report.CameraSourceId is not null)).ToList(),
+                report.CameraSourceId is not null,
+                report.PossibleDuplicateOfReportId)).ToList(),
             conflicting.Select(comparison => new QueueComparisonItem(
                 comparison.Id, comparison.ReportId, comparison.EffectiveOutcome.ToString(),
                 comparison.CreatedAt)).ToList(),

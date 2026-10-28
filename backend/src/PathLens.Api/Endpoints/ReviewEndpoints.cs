@@ -39,6 +39,64 @@ public static class ReviewEndpoints
                 : Results.Ok(reviewed);
         }).RequireAuthorization(AuthEndpoints.ReviewerPolicy).WithTags("Reviews");
 
+        app.MapPost("/api/reports/{id:guid}/duplicate/confirm", async (
+            Guid id,
+            DuplicateDecisionRequest request,
+            ClaimsPrincipal principal,
+            ReviewService service,
+            CancellationToken cancellationToken) =>
+        {
+            var actorId = AuthEndpoints.CurrentUserId(principal);
+            if (actorId is null)
+            {
+                return Results.Problem(title: "A reviewer identity is required", statusCode: 401);
+            }
+
+            try
+            {
+                var result = await service.ConfirmDuplicateAsync(
+                    actorId.Value, id, request.Note, cancellationToken);
+                return result is null
+                    ? Results.Problem(title: "Report not found", statusCode: 404)
+                    : Results.Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.ValidationProblem(
+                    new Dictionary<string, string[]> { ["duplicate"] = [ex.Message] },
+                    title: "Validation failed", statusCode: 400);
+            }
+        }).RequireAuthorization(AuthEndpoints.ReviewerPolicy).WithTags("Reviews");
+
+        app.MapPost("/api/reports/{id:guid}/duplicate/reject", async (
+            Guid id,
+            DuplicateDecisionRequest request,
+            ClaimsPrincipal principal,
+            ReviewService service,
+            CancellationToken cancellationToken) =>
+        {
+            var actorId = AuthEndpoints.CurrentUserId(principal);
+            if (actorId is null)
+            {
+                return Results.Problem(title: "A reviewer identity is required", statusCode: 401);
+            }
+
+            try
+            {
+                var result = await service.RejectDuplicateAsync(
+                    actorId.Value, id, request.Note, cancellationToken);
+                return result is null
+                    ? Results.Problem(title: "Report not found", statusCode: 404)
+                    : Results.Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Results.ValidationProblem(
+                    new Dictionary<string, string[]> { ["duplicate"] = [ex.Message] },
+                    title: "Validation failed", statusCode: 400);
+            }
+        }).RequireAuthorization(AuthEndpoints.ReviewerPolicy).WithTags("Reviews");
+
         app.MapGet("/api/reviewer/queue", async (
             ReviewService service,
             CancellationToken cancellationToken) =>

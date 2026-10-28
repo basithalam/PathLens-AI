@@ -333,6 +333,9 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
 
+                    b.Property<Guid?>("DuplicateOfReportId")
+                        .HasColumnType("uuid");
+
                     b.Property<bool?>("HasRamp")
                         .HasColumnType("boolean");
 
@@ -352,6 +355,9 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(40)
                         .HasColumnType("character varying(40)");
+
+                    b.Property<Guid?>("PossibleDuplicateOfReportId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Severity")
                         .IsRequired()
@@ -386,7 +392,11 @@ namespace PathLens.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CreatedAt");
 
+                    b.HasIndex("DuplicateOfReportId");
+
                     b.HasIndex("ObstacleType");
+
+                    b.HasIndex("PossibleDuplicateOfReportId");
 
                     b.HasIndex("VerificationStatus");
 

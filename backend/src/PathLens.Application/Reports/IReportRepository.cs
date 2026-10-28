@@ -13,6 +13,10 @@ public interface IReportRepository
         double minLatitude, double maxLatitude, double minLongitude, double maxLongitude,
         ObstacleType? obstacleType, VerificationStatus? verificationStatus,
         int limit, CancellationToken cancellationToken);
+    /// <summary>Nearest non-duplicate report within range whose type matches (or either side is Unknown).</summary>
+    Task<AccessibilityReport?> FindDuplicateCandidateAsync(
+        Guid excludeReportId, double latitude, double longitude,
+        ObstacleType obstacleType, double radiusMeters, CancellationToken cancellationToken);
     Task<MapSummaryResponse> SummaryAsync(CancellationToken cancellationToken);
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }

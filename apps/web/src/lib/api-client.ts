@@ -34,6 +34,8 @@ export interface AccessibilityReport {
   hasRamp: boolean | null;
   surface: string | null;
   attributeSource: string | null;
+  possibleDuplicateOfReportId: string | null;
+  duplicateOfReportId: string | null;
 }
 
 export interface CameraSource {
