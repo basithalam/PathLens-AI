@@ -24,6 +24,67 @@ public sealed class CameraEvidencePostProcessor(
             return null;
         }
 
+        var prior = await FindPriorAsync(evidence, cancellationToken);
+        if (prior is null || await AlreadyComparedAsync(prior, evidence, cancellationToken))
+        {
+            return null;
+        }
+
+        // View-change gate (F3): the two frames may show different places,
+        // so no change conclusion is drawn whatever the AI saw.
+        if (evidence.QualityFlag == FrameQuality.ViewChanged)
+        {
+            var comparison = EvidenceComparison.Create(
+                evidence.ReportId,
+                prior.Id,
+                evidence.Id,
+                EvidenceComparisonOutcome.Inconclusive,
+                "Comparison is inconclusive because the camera view appears to have changed between the two snapshots " +
+                $"(perceptual distance gate). {evidence.QualityNote} The camera may have been repositioned, so the frames must not be compared as the same place.",
+                System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    gate = "ViewChanged",
+                    qualityNote = evidence.QualityNote,
+                    earlierPerceptualHash = prior.PerceptualHash,
+                    laterPerceptualHash = evidence.PerceptualHash,
+                    note = "NotObservedInNewImage never means an obstacle was removed.",
+                }),
+                null,
+                DateTimeOffset.UtcNow);
+
+            await dbContext.EvidenceComparisons.AddAsync(comparison, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
+            return comparison.Id;
+        }
+
+        var creation = await comparisonService.CreateAsync(prior.Id, evidence.Id, cancellationToken);
+        return creation.Response?.Id;
+    }
+
+    /// <summary>
+    /// The frame was too dark/blurred for AI. Still record the pair outcome:
+    /// the engine returns Inconclusive for an unanalysed later photo, and the
+    /// job/evidence already records the quality reason.
+    /// </summary>
+    public async Task<Guid?> ProcessUnsuitableAsync(EvidenceItem evidence, CancellationToken cancellationToken)
+    {
+        if (evidence.SourceType != EvidenceSourceType.CameraFeed)
+        {
+            return null;
+        }
+
+        var prior = await FindPriorAsync(evidence, cancellationToken);
+        if (prior is null || await AlreadyComparedAsync(prior, evidence, cancellationToken))
+        {
+            return null;
+        }
+
+        var creation = await comparisonService.CreateAsync(prior.Id, evidence.Id, cancellationToken);
+        return creation.Response?.Id;
+    }
+
+    private async Task<EvidenceItem?> FindPriorAsync(EvidenceItem evidence, CancellationToken cancellationToken)
+    {
         var priorQuery = dbContext.EvidenceItems
             .Where(item => item.SourceType == EvidenceSourceType.CameraFeed &&
                            item.Id != evidence.Id &&
@@ -34,25 +95,15 @@ public sealed class CameraEvidencePostProcessor(
             ? priorQuery.Where(item => item.CameraSourceId == evidence.CameraSourceId)
             : priorQuery.Where(item => item.ReportId == evidence.ReportId);
 
-        var prior = await priorQuery
+        return await priorQuery
             .OrderByDescending(item => item.UploadedAt)
             .FirstOrDefaultAsync(cancellationToken);
+    }
 
-        if (prior is null)
-        {
-            return null;
-        }
-
-        var alreadyCompared = await dbContext.EvidenceComparisons.AnyAsync(
+    private async Task<bool> AlreadyComparedAsync(
+        EvidenceItem prior, EvidenceItem evidence, CancellationToken cancellationToken) =>
+        await dbContext.EvidenceComparisons.AnyAsync(
             comparison => comparison.EarlierEvidenceId == prior.Id &&
                             comparison.LaterEvidenceId == evidence.Id,
             cancellationToken);
-        if (alreadyCompared)
-        {
-            return null;
-        }
-
-        var creation = await comparisonService.CreateAsync(prior.Id, evidence.Id, cancellationToken);
-        return creation.Response?.Id;
-    }
 }

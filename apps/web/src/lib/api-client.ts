@@ -235,6 +235,11 @@ export interface EvidenceItem {
   analysisProvider: string | null;
   analysisModel: string | null;
   analyzedAt: string | null;
+  qualityFlag: string | null;
+  qualityNote: string | null;
+  perceptualHash: string | null;
+  imageBrightness: number | null;
+  imageSharpness: number | null;
 }
 
 export interface AnalysisResult {

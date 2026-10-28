@@ -125,6 +125,14 @@ public sealed class CameraIngestionService(
                     EvidenceSourceType.CameraFeed,
                     source.Id);
 
+                // Quality gate (F3): measure the frame locally before any
+                // AI spend, and record the decision on the evidence.
+                var (flag, note, metrics) = await AssessFrameAsync(source, bytes, cancellationToken);
+                evidence.RecordFrameQuality(metrics.PerceptualHash,
+                    metrics.Decoded ? metrics.Brightness : null,
+                    metrics.Decoded ? metrics.Sharpness : null,
+                    flag, note);
+
                 await dbContext.EvidenceItems.AddAsync(evidence, cancellationToken);
                 await dbContext.AnalysisJobs.AddAsync(AnalysisJob.Create(evidence.Id, now), cancellationToken);
                 report.RecordEvidence(now);
@@ -217,6 +225,59 @@ public sealed class CameraIngestionService(
             .ThenBy(candidate => candidate.Distance)
             .Select(candidate => candidate.Report)
             .FirstOrDefault();
+    }
+
+    private async Task<(FrameQuality Flag, string Note, FrameMetrics Metrics)> AssessFrameAsync(
+        CameraSource source, byte[] bytes, CancellationToken cancellationToken)
+    {
+        var settings = options.Value;
+        var metrics = CameraFrameAnalyzer.Analyze(bytes);
+
+        if (!settings.QualityGateEnabled)
+        {
+            return (FrameQuality.Unknown, "Quality gate disabled by configuration; frame sent to analysis unmeasured.", metrics);
+        }
+
+        if (!metrics.Decoded)
+        {
+            return (FrameQuality.Unknown,
+                "Frame could not be decoded for quality checks; sent to analysis as usual. Unknown does not mean suitable.",
+                metrics);
+        }
+
+        if (metrics.Brightness < settings.MinBrightness)
+        {
+            return (FrameQuality.TooDark,
+                $"Frame too dark to judge (mean brightness {metrics.Brightness:0.0} below {settings.MinBrightness:0.0}). Stored as evidence; no AI analysis will run.",
+                metrics);
+        }
+
+        if (metrics.Sharpness < settings.MinSharpness)
+        {
+            return (FrameQuality.TooBlurred,
+                $"Frame too blurred or flat to judge (sharpness {metrics.Sharpness:0.0} below {settings.MinSharpness:0.0}). Stored as evidence; no AI analysis will run.",
+                metrics);
+        }
+
+        var prior = await dbContext.EvidenceItems
+            .Where(item => item.CameraSourceId == source.Id && item.PerceptualHash != null)
+            .OrderByDescending(item => item.UploadedAt)
+            .Select(item => item.PerceptualHash)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var distance = CameraFrameAnalyzer.HammingDistance(prior, metrics.PerceptualHash);
+        if (distance is not null && distance.Value > settings.ViewChangeHashDistance)
+        {
+            return (FrameQuality.ViewChanged,
+                $"Camera view appears to have changed (perceptual distance {distance.Value} above {settings.ViewChangeHashDistance}). " +
+                "The camera may have been repositioned; any comparison stays Inconclusive.",
+                metrics);
+        }
+
+        return (FrameQuality.Suitable,
+            $"Frame passed local quality checks (brightness {metrics.Brightness:0.0}, sharpness {metrics.Sharpness:0.0}" +
+            (distance is not null ? $", view distance {distance.Value} from the previous frame" : "") + ").",
+            metrics);
     }
 
     private async Task<CameraPollResult> FailAsync(

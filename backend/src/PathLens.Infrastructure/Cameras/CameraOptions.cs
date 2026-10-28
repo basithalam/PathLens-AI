@@ -17,4 +17,16 @@ public sealed class CameraOptions
     /// Zero or negative means unlimited.
     /// </summary>
     public int DailyAnalysisBudgetPerCamera { get; set; } = 240;
+
+    /// <summary>Pre-AI frame quality gate for camera snapshots (Phase F3).</summary>
+    public bool QualityGateEnabled { get; set; } = true;
+
+    /// <summary>Mean brightness (0-255) below this is too dark to judge.</summary>
+    public double MinBrightness { get; set; } = 10;
+
+    /// <summary>Laplacian-variance sharpness proxy below this is too blurred/flat to judge.</summary>
+    public double MinSharpness { get; set; } = 2;
+
+    /// <summary>Perceptual-hash Hamming distance above this means the camera view changed.</summary>
+    public int ViewChangeHashDistance { get; set; } = 30;
 }

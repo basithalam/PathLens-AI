@@ -123,7 +123,12 @@ public sealed class EvidenceService(IEvidenceRepository repository, IObjectStora
         item.AnalysisResultJson,
         item.AnalysisProvider,
         item.AnalysisModel,
-        item.AnalyzedAt);
+        item.AnalyzedAt,
+        item.QualityFlag.ToString(),
+        item.QualityNote,
+        item.PerceptualHash,
+        item.ImageBrightness,
+        item.ImageSharpness);
 
     public static AnalysisJobResponse ToResponse(AnalysisJob job) => new(
         job.Id,

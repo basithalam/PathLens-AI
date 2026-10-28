@@ -77,6 +77,32 @@ public sealed class AnalysisJobProcessor(
         evidence.MarkAnalysisProcessing();
         await dbContext.SaveChangesAsync(stoppingToken);
 
+        // Quality gate (F3): an unsuitable camera frame is stored evidence,
+        // but no AI call is spent on it. The job records why, and the pair
+        // comparison (if any) stays Inconclusive rather than guessed.
+        if (evidence.SourceType == PathLens.Domain.Evidence.EvidenceSourceType.CameraFeed &&
+            evidence.IsUnsuitableForAnalysis)
+        {
+            job.MarkFailed(
+                $"Camera frame not analysed: {evidence.QualityNote ?? "frame quality too low."}",
+                DateTimeOffset.UtcNow);
+            evidence.MarkAnalysisFailed();
+            await dbContext.SaveChangesAsync(stoppingToken);
+
+            try
+            {
+                var postProcessor = scope.ServiceProvider
+                    .GetRequiredService<Cameras.CameraEvidencePostProcessor>();
+                await postProcessor.ProcessUnsuitableAsync(evidence, stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Camera unsuitable-frame comparison failed for evidence {EvidenceId}.", evidence.Id);
+            }
+
+            return;
+        }
+
         try
         {
             var storage = scope.ServiceProvider.GetRequiredService<IObjectStorage>();

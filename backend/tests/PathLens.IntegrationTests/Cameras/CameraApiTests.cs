@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PathLens.Infrastructure.Persistence;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace PathLens.IntegrationTests.Cameras;
 
@@ -225,7 +228,7 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
         // Analysis runs in the background (mock provider); the auto-comparison
         // must appear without anyone calling POST /api/comparisons.
         JsonElement comparisons = default;
-        for (var attempt = 0; attempt < 30; attempt++)
+        for (var attempt = 0; attempt < 90; attempt++)
         {
             comparisons = await _client.GetFromJsonAsync<JsonElement>($"/api/reports/{reportId}/comparisons");
             if (comparisons.GetArrayLength() > 0)
@@ -241,7 +244,7 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
         Assert.Equal(firstEvidenceId, comparison.GetProperty("earlierEvidenceId").GetGuid());
         Assert.Equal(secondEvidenceId, comparison.GetProperty("laterEvidenceId").GetGuid());
         // Mock analysis reports Unknown with zero confidence, so the honest
-        // engine outcome is Inconclusive — never a removal claim.
+        // engine outcome is Inconclusive â€” never a removal claim.
         Assert.Equal("Inconclusive", comparison.GetProperty("outcome").GetString());
     }
 
@@ -303,6 +306,152 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
         return report.GetProperty("id").GetGuid();
     }
 
+    private static byte[] StripesPng(bool vertical, int size = 64)
+    {
+        using var image = new Image<Rgba32>(size, size);
+        for (var y = 0; y < size; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                var on = vertical ? x / 4 % 2 == 0 : y / 4 % 2 == 0;
+                image[x, y] = on ? new Rgba32(235, 235, 235) : new Rgba32(20, 20, 20);
+            }
+        }
+
+        using var stream = new MemoryStream();
+        image.Save(stream, new PngEncoder());
+        return stream.ToArray();
+    }
+
+    /// <summary>Deterministic noise; the inverted copy flips almost every hash bit.</summary>
+    private static byte[] NoisePng(bool inverted, int size = 64)
+    {
+        var random = new Random(1234);
+        using var image = new Image<Rgba32>(size, size);
+        for (var y = 0; y < size; y++)
+        {
+            for (var x = 0; x < size; x++)
+            {
+                var value = (byte)random.Next(30, 226);
+                if (inverted)
+                {
+                    value = (byte)(255 - value);
+                }
+
+                image[x, y] = new Rgba32(value, value, value);
+            }
+        }
+
+        using var stream = new MemoryStream();
+        image.Save(stream, new PngEncoder());
+        return stream.ToArray();
+    }
+
+    private static byte[] DarkPng(int size = 64)
+    {
+        using var image = new Image<Rgba32>(size, size, new Rgba32(4, 4, 4));
+        using var stream = new MemoryStream();
+        image.Save(stream, new PngEncoder());
+        return stream.ToArray();
+    }
+
+    private async Task<JsonElement> WaitForEvidenceAsync(Guid reportId, Guid evidenceId, string status)
+    {
+        for (var attempt = 0; attempt < 90; attempt++)
+        {
+            var list = await _client.GetFromJsonAsync<JsonElement>($"/api/reports/{reportId}/evidence");
+            var item = list.EnumerateArray()
+                .FirstOrDefault(candidate => candidate.GetProperty("id").GetGuid() == evidenceId);
+            if (item.ValueKind != JsonValueKind.Undefined &&
+                item.GetProperty("analysisStatus").GetString() == status)
+            {
+                return item;
+            }
+
+            await Task.Delay(1000);
+        }
+
+        throw new InvalidOperationException($"Evidence {evidenceId} did not reach status {status} in time.");
+    }
+
+    private async Task<JsonElement> WaitForComparisonsAsync(Guid reportId)
+    {
+        for (var attempt = 0; attempt < 90; attempt++)
+        {
+            var list = await _client.GetFromJsonAsync<JsonElement>($"/api/reports/{reportId}/comparisons");
+            if (list.GetArrayLength() > 0)
+            {
+                return list;
+            }
+
+            await Task.Delay(1000);
+        }
+
+        throw new InvalidOperationException($"No comparison appeared for report {reportId} in time.");
+    }
+
+    private async Task<Guid> StartCameraAsync(LocalFeedServer feed, double latitude, double longitude)
+    {
+        var request = ValidRequest();
+        request["feedImageUrl"] = feed.Url;
+        request["latitude"] = latitude;
+        request["longitude"] = longitude;
+        var created = await PostAsAdminAsync(request);
+        created.EnsureSuccessStatusCode();
+        return (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+    }
+
+    [Fact]
+    public async Task Dark_frame_is_stored_but_never_sent_to_ai_and_comparison_stays_inconclusive()
+    {
+        using var feed = new LocalFeedServer();
+        var reportId = await CreateNearbyReportAsync(40.7300, -73.9300);
+        var cameraId = await StartCameraAsync(feed, 40.7300, -73.9300);
+
+        feed.SetImage(StripesPng(vertical: true), "image/png");
+        var first = await PollAsync(cameraId);
+        var firstEvidenceId = first.GetProperty("evidenceId").GetGuid();
+        var firstItem = await WaitForEvidenceAsync(reportId, firstEvidenceId, "Completed");
+        Assert.Equal("Suitable", firstItem.GetProperty("qualityFlag").GetString());
+
+        feed.SetImage(DarkPng(), "image/png");
+        var second = await PollAsync(cameraId);
+        Assert.Equal("Changed", second.GetProperty("outcome").GetString());
+        var darkEvidenceId = second.GetProperty("evidenceId").GetGuid();
+
+        var darkItem = await WaitForEvidenceAsync(reportId, darkEvidenceId, "Failed");
+        Assert.Equal("TooDark", darkItem.GetProperty("qualityFlag").GetString());
+        Assert.Contains("too dark", darkItem.GetProperty("qualityNote").GetString(), StringComparison.OrdinalIgnoreCase);
+
+        var comparisons = await WaitForComparisonsAsync(reportId);
+        Assert.Equal(1, comparisons.GetArrayLength());
+        Assert.Equal("Inconclusive", comparisons[0].GetProperty("outcome").GetString());
+    }
+
+    [Fact]
+    public async Task Repositioned_camera_comparison_is_inconclusive_and_says_why()
+    {
+        using var feed = new LocalFeedServer();
+        var reportId = await CreateNearbyReportAsync(40.7400, -73.9400);
+        var cameraId = await StartCameraAsync(feed, 40.7400, -73.9400);
+
+        feed.SetImage(NoisePng(inverted: false), "image/png");
+        var first = await PollAsync(cameraId);
+        await WaitForEvidenceAsync(reportId, first.GetProperty("evidenceId").GetGuid(), "Completed");
+
+        feed.SetImage(NoisePng(inverted: true), "image/png");
+        var second = await PollAsync(cameraId);
+        var secondItem = await WaitForEvidenceAsync(
+            reportId, second.GetProperty("evidenceId").GetGuid(), "Completed");
+        Assert.Equal("ViewChanged", secondItem.GetProperty("qualityFlag").GetString());
+
+        var comparisons = await WaitForComparisonsAsync(reportId);
+        Assert.Equal(1, comparisons.GetArrayLength());
+        Assert.Equal("Inconclusive", comparisons[0].GetProperty("outcome").GetString());
+        Assert.Contains("view appears to have changed",
+            comparisons[0].GetProperty("explanation").GetString(), StringComparison.OrdinalIgnoreCase);
+    }
+
     private async Task<string> LoginAsync(string email, string password)
     {
         var response = await _client.PostAsJsonAsync("/api/auth/login", new { email, password });
@@ -330,8 +479,16 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
         }
 
         private int _variant;
+        private string _contentType = "image/jpeg";
 
         public void ChangeImage() => _image = CreateJpeg(red: (byte)(30 + ++_variant * 40));
+
+        /// <summary>Serve a real image (used by the Phase F3 quality-gate tests).</summary>
+        public void SetImage(byte[] bytes, string contentType)
+        {
+            _image = bytes;
+            _contentType = contentType;
+        }
 
         private async Task ServeAsync()
         {
@@ -340,7 +497,7 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
                 try
                 {
                     var context = await _listener.GetContextAsync();
-                    context.Response.ContentType = "image/jpeg";
+                    context.Response.ContentType = _contentType;
                     await context.Response.OutputStream.WriteAsync(_image, _cts.Token);
                     context.Response.Close();
                 }
@@ -381,3 +538,4 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
         }
     }
 }
+

@@ -17,7 +17,12 @@ public sealed record EvidenceResponse(
     string? AnalysisResultJson,
     string? AnalysisProvider,
     string? AnalysisModel,
-    DateTimeOffset? AnalyzedAt);
+    DateTimeOffset? AnalyzedAt,
+    string? QualityFlag,
+    string? QualityNote,
+    string? PerceptualHash,
+    double? ImageBrightness,
+    double? ImageSharpness);
 
 public sealed record AnalysisJobResponse(
     Guid Id,

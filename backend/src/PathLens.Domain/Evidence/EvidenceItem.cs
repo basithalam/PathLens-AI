@@ -9,6 +9,20 @@ public enum EvidenceSourceType
 }
 
 /// <summary>
+/// Local quality assessment of a camera frame, made before any AI call.
+/// Unknown means the frame could not be decoded for checks (it is still
+/// sent to analysis as usual); it never means the frame was fine.
+/// </summary>
+public enum FrameQuality
+{
+    Unknown,
+    Suitable,
+    TooDark,
+    TooBlurred,
+    ViewChanged,
+}
+
+/// <summary>
 /// One piece of evidence (a photo) attached to a report. Capture time and
 /// GPS are user-supplied claims unless independently verified; they are
 /// stored separately from the upload time for exactly that reason.
@@ -34,6 +48,13 @@ public sealed class EvidenceItem
 
     /// <summary>Set only for camera evidence: which source produced this snapshot.</summary>
     public Guid? CameraSourceId { get; private set; }
+    // Camera frame quality gate (Phase F3). Null metrics mean not measured.
+    public string? PerceptualHash { get; private set; }
+    public double? ImageBrightness { get; private set; }
+    public double? ImageSharpness { get; private set; }
+    public FrameQuality QualityFlag { get; private set; } = FrameQuality.Unknown;
+    public string? QualityNote { get; private set; }
+
     public AnalysisStatus AnalysisStatus { get; private set; }
     public string? AnalysisResultJson { get; private set; }
     public string? AnalysisProvider { get; private set; }
@@ -82,6 +103,21 @@ public sealed class EvidenceItem
             AnalysisStatus = AnalysisStatus.Pending,
         };
     }
+
+    /// <summary>Records the pre-AI quality decision so it is auditable, not magic.</summary>
+    public void RecordFrameQuality(
+        string? perceptualHash, double? brightness, double? sharpness,
+        FrameQuality flag, string? note)
+    {
+        PerceptualHash = perceptualHash;
+        ImageBrightness = brightness;
+        ImageSharpness = sharpness;
+        QualityFlag = flag;
+        QualityNote = string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+    }
+
+    public bool IsUnsuitableForAnalysis =>
+        QualityFlag is FrameQuality.TooDark or FrameQuality.TooBlurred;
 
     public void MarkAnalysisProcessing() => AnalysisStatus = AnalysisStatus.Processing;
 

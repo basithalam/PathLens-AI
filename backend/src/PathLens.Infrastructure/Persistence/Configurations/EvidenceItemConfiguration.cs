@@ -17,6 +17,9 @@ public sealed class EvidenceItemConfiguration : IEntityTypeConfiguration<Evidenc
         builder.Property(item => item.ContentType).HasMaxLength(60).IsRequired();
         builder.Property(item => item.SourceType).HasConversion<string>().HasMaxLength(20);
         builder.Property(item => item.AnalysisStatus).HasConversion<string>().HasMaxLength(20);
+        builder.Property(item => item.PerceptualHash).HasMaxLength(32);
+        builder.Property(item => item.QualityFlag).HasConversion<string>().HasMaxLength(20);
+        builder.Property(item => item.QualityNote).HasMaxLength(500);
         builder.Property(item => item.AnalysisProvider).HasMaxLength(40);
         builder.Property(item => item.AnalysisModel).HasMaxLength(120);
 

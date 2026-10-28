@@ -255,6 +255,12 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                     b.Property<long>("FileSize")
                         .HasColumnType("bigint");
 
+                    b.Property<double?>("ImageBrightness")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("ImageSharpness")
+                        .HasColumnType("double precision");
+
                     b.Property<double?>("Latitude")
                         .HasColumnType("double precision");
 
@@ -263,6 +269,19 @@ namespace PathLens.Infrastructure.Persistence.Migrations
 
                     b.Property<double?>("Longitude")
                         .HasColumnType("double precision");
+
+                    b.Property<string>("PerceptualHash")
+                        .HasMaxLength(32)
+                        .HasColumnType("character varying(32)");
+
+                    b.Property<string>("QualityFlag")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("QualityNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<Guid>("ReportId")
                         .HasColumnType("uuid");

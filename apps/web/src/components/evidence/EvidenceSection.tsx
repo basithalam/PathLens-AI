@@ -137,6 +137,13 @@ function EvidenceCard({
           Analysis: <StatusBadge status={item.analysisStatus} />
           {item.analysisProvider && <> · Provider: {item.analysisProvider}</>}
         </p>
+        {item.qualityFlag && item.qualityFlag !== "Suitable" && (
+          <p role="note" className="mock-label">
+            Camera frame check: {item.qualityFlag}.{" "}
+            {item.qualityNote ??
+              "This frame was flagged before any AI analysis; a flagged frame is not evidence that a path is clear or blocked."}
+          </p>
+        )}
         <AnalysisFindings item={item} />
         {(item.analysisStatus === "Pending" || item.analysisStatus === "Failed") && (
           <button type="button" onClick={runAnalysis} disabled={busy} className="primary-button">
