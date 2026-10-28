@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PathLens.Domain.Evidence;
 using PathLens.Domain.Reports;
 using PathLens.Domain.Routing;
+using PathLens.Domain.Cameras;
 using PathLens.Domain.Users;
 
 namespace PathLens.Infrastructure.Persistence;
@@ -21,6 +22,7 @@ public sealed class PathLensDbContext(DbContextOptions<PathLensDbContext> option
     public DbSet<RouteRecommendationRecord> RouteRecommendations => Set<RouteRecommendationRecord>();
     public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<ReviewAuditEvent> ReviewAuditEvents => Set<ReviewAuditEvent>();
+    public DbSet<CameraSource> CameraSources => Set<CameraSource>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

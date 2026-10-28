@@ -82,6 +82,13 @@ public static class DependencyInjection
 
         services.AddHostedService<AnalysisJobProcessor>();
 
+        services.Configure<Cameras.CameraOptions>(configuration.GetSection(Cameras.CameraOptions.SectionName));
+        services.AddHttpClient(nameof(Cameras.CameraIngestionService));
+        services.AddScoped<Application.Cameras.ICameraRepository, CameraRepository>();
+        services.AddScoped<Application.Cameras.CameraService>();
+        services.AddScoped<Cameras.CameraIngestionService>();
+        services.AddHostedService<Cameras.CameraPollingWorker>();
+
         return services;
     }
 }

@@ -5,6 +5,7 @@ namespace PathLens.Domain.Evidence;
 public enum EvidenceSourceType
 {
     Upload,
+    CameraFeed,
 }
 
 /// <summary>
@@ -46,7 +47,8 @@ public sealed class EvidenceItem
         double? latitude,
         double? longitude,
         double? locationAccuracyMeters,
-        DateTimeOffset now)
+        DateTimeOffset now,
+        EvidenceSourceType sourceType = EvidenceSourceType.Upload)
     {
         if (latitude is not null && !AccessibilityReport.IsValidLatitude(latitude.Value))
         {
@@ -71,7 +73,7 @@ public sealed class EvidenceItem
             Latitude = latitude,
             Longitude = longitude,
             LocationAccuracyMeters = locationAccuracyMeters,
-            SourceType = EvidenceSourceType.Upload,
+            SourceType = sourceType,
             AnalysisStatus = AnalysisStatus.Pending,
         };
     }

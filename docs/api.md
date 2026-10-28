@@ -49,3 +49,11 @@ Base URL (local): `http://localhost:5145`. Errors are RFC 9457 ProblemDetails. M
 - `POST /api/reports/{id}/review` â€” Reviewer/Admin; `{ verificationStatus, note }`
 - `GET /api/reviewer/queue` â€” Reviewer/Admin; unverified reports + conflicting comparisons
 - `GET /api/reviewer/audit` â€” Reviewer/Admin; recent audit events
+
+## Cameras (Phase A+B)
+
+- `GET /api/cameras` — public list with freshness (`isStale`), last attempt/change/error
+- `GET /api/cameras/{id}` — public detail
+- `POST /api/cameras` — Admin only; a source cannot be enabled without a permission/terms note (`400` otherwise); cadence minimum 30s (NYC profile 60s)
+- `PATCH /api/cameras/{id}` — Admin only; cadence/permission/enabled (removing the note auto-disables)
+- `POST /api/cameras/{id}/poll` — Admin only; one manual poll: `Changed` / `Unchanged` (hash dedupe, no new evidence or AI cost) / `NoMatchingReport` (no report within 100 m; change recorded only) / `Failed` (backoff applies)

@@ -47,7 +47,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy(AuthEndpoints.ReviewerPolicy, policy =>
-        policy.RequireRole("Reviewer", "Admin"));
+        policy.RequireRole("Reviewer", "Admin"))
+    .AddPolicy(CameraEndpoints.AdminPolicy, policy =>
+        policy.RequireRole("Admin"));
 
 var frontendOrigin = builder.Configuration["Cors:FrontendOrigin"] ?? "http://localhost:3000";
 builder.Services.AddCors(options =>
@@ -115,6 +117,7 @@ app.MapEvidenceEndpoints();
 app.MapComparisonEndpoints();
 app.MapMapEndpoints();
 app.MapRouteEndpoints();
+app.MapCameraEndpoints();
 
 if (app.Environment.IsDevelopment())
 {
