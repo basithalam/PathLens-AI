@@ -42,3 +42,7 @@ handling, tests) is implemented and green.
 A local fake feed must never be presented as this gate: the local
 Changed → Unchanged → Changed behaviour is already covered by
 integration tests and proves the pipeline, not provider access.
+
+See Blueprint Section 23 for the practicality review of `idea.txt`
+(wheelchair scoring, coverage layer, duplicate detection, quick
+feedback, real-user testing) and its phase plan F1–F7.
