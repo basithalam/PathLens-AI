@@ -101,6 +101,18 @@ public sealed class CameraSourceTests
     }
 
     [Fact]
+    public void Budget_skip_acknowledges_change_and_keeps_the_reason_visible()
+    {
+        var source = Create(permissionNote: "note");
+        source.RecordBudgetSkip(Now, "hash9", "Daily analysis budget spent.");
+
+        Assert.Equal("hash9", source.LastImageHash);
+        Assert.Equal(Now, source.LastChangeAt);
+        Assert.Equal("Daily analysis budget spent.", source.LastError);
+        Assert.Equal(0, source.ConsecutiveFailures);
+    }
+
+    [Fact]
     public void Disabled_source_is_never_due()
     {
         var source = Create();

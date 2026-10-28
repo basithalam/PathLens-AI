@@ -16,6 +16,7 @@ public enum CameraPollOutcome
     Failed,
     NoMatchingReport,
     CandidateCreated,
+    BudgetExceeded,
 }
 
 public sealed record CameraPollResult(CameraPollOutcome Outcome, Guid? EvidenceId, string? Message);
@@ -23,14 +24,15 @@ public sealed record CameraPollResult(CameraPollOutcome Outcome, Guid? EvidenceI
 /// <summary>
 /// Polls one camera source. Unchanged images (same SHA-256) create no
 /// evidence and no AI job. A changed image becomes CameraFeed evidence on
-/// the nearest report within range and enters the existing analysis queue.
-/// With no nearby report, the change is recorded on the source only —
-/// unattached evidence is not invented.
+/// the nearest report within range (or on that camera's unverified
+/// candidate) and enters the existing analysis queue — unless the camera's
+/// daily analysis budget is spent, which is reported, never silent.
 /// </summary>
 public sealed class CameraIngestionService(
     PathLensDbContext dbContext,
     IObjectStorage storage,
-    IHttpClientFactory httpClientFactory)
+    IHttpClientFactory httpClientFactory,
+    Microsoft.Extensions.Options.IOptions<CameraOptions> options)
 {
     public const double MatchingRadiusMeters = 100;
     private const long MaxImageBytes = 10 * 1024 * 1024;
@@ -71,6 +73,27 @@ public sealed class CameraIngestionService(
                 source.RecordSuccess(now, hash, changed: false);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 return new CameraPollResult(CameraPollOutcome.Unchanged, null, "Image unchanged; no new evidence or AI cost.");
+            }
+
+            // Cost gate: one stored snapshot means one analysis job. When the
+            // camera's daily budget is spent, acknowledge the change but do
+            // not store or analyse it — and say so on the source.
+            var budget = options.Value.DailyAnalysisBudgetPerCamera;
+            if (budget > 0)
+            {
+                var dayStart = new DateTimeOffset(now.UtcDateTime.Date, TimeSpan.Zero);
+                var analysedToday = await dbContext.EvidenceItems.CountAsync(
+                    item => item.CameraSourceId == source.Id && item.UploadedAt >= dayStart,
+                    cancellationToken);
+                if (analysedToday >= budget)
+                {
+                    var message =
+                        $"Daily analysis budget for this camera is spent ({analysedToday}/{budget} today). " +
+                        "Snapshot acknowledged but not stored or analysed; budget resets at UTC midnight.";
+                    source.RecordBudgetSkip(now, hash, message);
+                    await dbContext.SaveChangesAsync(cancellationToken);
+                    return new CameraPollResult(CameraPollOutcome.BudgetExceeded, null, message);
+                }
             }
 
             // No nearby human report: attach the snapshot to this camera's own

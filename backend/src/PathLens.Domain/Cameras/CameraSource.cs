@@ -150,6 +150,21 @@ public sealed class CameraSource
         UpdatedAt = now;
     }
 
+    /// <summary>
+    /// The daily analysis budget is spent: the change is acknowledged (hash
+    /// moves on) but nothing is stored or analysed, and the skip stays
+    /// visible as the last error so it is never a silent spend or drop.
+    /// </summary>
+    public void RecordBudgetSkip(DateTimeOffset now, string imageHash, string message)
+    {
+        LastSuccessAt = now;
+        LastImageHash = imageHash;
+        LastChangeAt = now;
+        ConsecutiveFailures = 0;
+        LastError = message;
+        UpdatedAt = now;
+    }
+
     public void RecordFailure(DateTimeOffset now, string error)
     {
         LastError = error;

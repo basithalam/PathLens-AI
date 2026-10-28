@@ -23,6 +23,7 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
             builder.UseSetting("ConnectionStrings:DefaultConnection",
                 "Host=localhost;Port=5433;Database=pathlens_camera_test;Username=postgres;Timeout=5;Command Timeout=15");
             builder.UseSetting("Ai:Provider", "Mock");
+            builder.UseSetting("Cameras:DailyAnalysisBudgetPerCamera", "2");
             builder.UseSetting("Storage:RootPath", Path.Combine(Path.GetTempPath(), "pathlens-camera-tests"));
             builder.UseSetting("Auth:JwtSigningKey", "camera-test-signing-key-at-least-32-chars-long!!");
         });
@@ -147,6 +148,37 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
         var queueItem = queue.GetProperty("reports").EnumerateArray()
             .Single(item => item.GetProperty("id").GetGuid() == candidate.GetProperty("id").GetGuid());
         Assert.True(queueItem.GetProperty("isCameraCandidate").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Third_change_in_a_day_hits_budget_and_stores_nothing()
+    {
+        using var feed = new LocalFeedServer();
+        var reportId = await CreateNearbyReportAsync(40.7200, -73.9200);
+
+        var request = ValidRequest();
+        request["feedImageUrl"] = feed.Url;
+        request["latitude"] = 40.7200;
+        request["longitude"] = -73.9200;
+        var created = await PostAsAdminAsync(request);
+        created.EnsureSuccessStatusCode();
+        var cameraId = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+
+        // Test budget is 2 analysed snapshots per camera per day.
+        Assert.Equal("Changed", (await PollAsync(cameraId)).GetProperty("outcome").GetString());
+        feed.ChangeImage();
+        Assert.Equal("Changed", (await PollAsync(cameraId)).GetProperty("outcome").GetString());
+        feed.ChangeImage();
+        var third = await PollAsync(cameraId);
+        Assert.Equal("BudgetExceeded", third.GetProperty("outcome").GetString());
+        Assert.True(third.GetProperty("evidenceId").ValueKind == JsonValueKind.Null);
+
+        var evidence = await _client.GetFromJsonAsync<JsonElement>($"/api/reports/{reportId}/evidence");
+        Assert.Equal(2, evidence.GetArrayLength());
+
+        // The skip is reported on the source, not silent.
+        var camera = await _client.GetFromJsonAsync<JsonElement>($"/api/cameras/{cameraId}");
+        Assert.Contains("budget", camera.GetProperty("lastError").GetString(), StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -297,7 +329,9 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
             _ = Task.Run(ServeAsync);
         }
 
-        public void ChangeImage() => _image = CreateJpeg(red: 30);
+        private int _variant;
+
+        public void ChangeImage() => _image = CreateJpeg(red: (byte)(30 + ++_variant * 40));
 
         private async Task ServeAsync()
         {
