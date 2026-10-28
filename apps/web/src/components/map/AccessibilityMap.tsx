@@ -4,8 +4,10 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import "leaflet/dist/leaflet.css";
 import {
+  getCameras,
   getReportsInViewport,
   type AccessibilityReport,
+  type CameraSource,
   type MapViewport,
 } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -51,9 +53,18 @@ export function AccessibilityMap() {
   // Leaflet objects are kept in refs so React state never holds them.
   const mapRef = useRef<unknown>(null);
   const layerRef = useRef<unknown>(null);
+  const cameraLayerRef = useRef<unknown>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
 
   const [reports, setReports] = useState<AccessibilityReport[]>([]);
+  const [cameras, setCameras] = useState<CameraSource[]>([]);
+  const [camerasInView, setCamerasInView] = useState<CameraSource[]>([]);
+  const [showCameras, setShowCameras] = useState(true);
+  const showCamerasRef = useRef(true);
+  showCamerasRef.current = showCameras;
+  const camerasRef = useRef<CameraSource[]>([]);
+  camerasRef.current = cameras;
+  const viewportRef = useRef<MapViewport | null>(null);
   const [selected, setSelected] = useState<AccessibilityReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +75,54 @@ export function AccessibilityMap() {
   const filtersRef = useRef({ obstacleType: "", verificationStatus: "" });
   filtersRef.current = { obstacleType, verificationStatus };
 
+  function renderCameras() {
+    const L = leafletRef.current;
+    const layer = cameraLayerRef.current as import("leaflet").LayerGroup | null;
+    const viewport = viewportRef.current;
+    if (!L || !layer || !viewport) {
+      return;
+    }
+
+    layer.clearLayers();
+    const inView = camerasRef.current.filter(
+      (camera) =>
+        camera.latitude >= viewport.minLatitude &&
+        camera.latitude <= viewport.maxLatitude &&
+        camera.longitude >= viewport.minLongitude &&
+        camera.longitude <= viewport.maxLongitude,
+    );
+    setCamerasInView(inView);
+
+    if (!showCamerasRef.current) {
+      return;
+    }
+
+    for (const camera of inView) {
+      const state = !camera.enabled ? "disabled" : camera.isStale ? "stale" : "ok";
+      const icon = L.divIcon({
+        className: "map-marker",
+        html: `<span class="map-camera-pin map-camera-${state}" title="${escapeHtml(camera.label)} camera"><span class="map-camera-letter">C</span></span>`,
+        iconSize: [26, 26],
+        iconAnchor: [13, 13],
+      });
+
+      const marker = L.marker([camera.latitude, camera.longitude], { icon, title: `${camera.label} camera` });
+      marker.bindPopup(
+        `<strong>Camera: ${escapeHtml(camera.label)}</strong><br/>${escapeHtml(camera.provider)} · ${escapeHtml(camera.city)}<br/>` +
+          (camera.enabled
+            ? camera.isStale
+              ? `Stale: no successful check recently${camera.lastSuccessAt ? ` (last success ${escapeHtml(new Date(camera.lastSuccessAt).toLocaleString())})` : " (never succeeded)"}. Treat its data as old.`
+              : `Last checked ${camera.lastSuccessAt ? escapeHtml(new Date(camera.lastSuccessAt).toLocaleString()) : "never"}${camera.lastChangeAt ? `; last change ${escapeHtml(new Date(camera.lastChangeAt).toLocaleString())}` : ""}.`
+            : "This camera source is disabled.") +
+          `<br/>A camera snapshot is evidence, not proof that a path is accessible.`,
+      );
+      marker.addTo(layer);
+    }
+  }
+
   async function loadReports(viewport: MapViewport) {
+    viewportRef.current = viewport;
+    renderCameras();
     setLoading(true);
     const result = await getReportsInViewport(viewport, {
       obstacleType: filtersRef.current.obstacleType || undefined,
@@ -127,6 +185,15 @@ export function AccessibilityMap() {
       }).addTo(map);
 
       layerRef.current = L.layerGroup().addTo(map);
+      cameraLayerRef.current = L.layerGroup().addTo(map);
+
+      void getCameras().then((result) => {
+        if (!cancelled && result !== null) {
+          camerasRef.current = result;
+          setCameras(result);
+          renderCameras();
+        }
+      });
 
       const loadFromBounds = () => {
         const bounds = map.getBounds();
@@ -149,10 +216,17 @@ export function AccessibilityMap() {
       map?.remove();
       mapRef.current = null;
       layerRef.current = null;
+      cameraLayerRef.current = null;
     };
     // Initialised once; filter changes reload through the effect below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-render only the camera layer when its toggle changes.
+  // renderCameras reads the latest toggle through showCamerasRef.
+  useEffect(() => {
+    renderCameras();
+  }, [showCameras]);
 
   // Reload the current viewport when filters change.
   useEffect(() => {
@@ -226,6 +300,14 @@ export function AccessibilityMap() {
         <button type="button" onClick={useMyLocation}>
           Use my location
         </button>
+        <label>
+          <input
+            type="checkbox"
+            checked={showCameras}
+            onChange={(event) => setShowCameras(event.target.checked)}
+          />{" "}
+          Show cameras (square C markers)
+        </label>
       </div>
 
       {locationNote && <p>{locationNote}</p>}
@@ -248,7 +330,8 @@ export function AccessibilityMap() {
           <h2 id="map-list-heading">Reports in this area ({reports.length})</h2>
           <p>
             The list and the map always show the same reports. Marker letters mean:
-            ! unverified, V human-verified, ? disputed, X rejected.
+            ! unverified, V human-verified, ? disputed, X rejected. Square C
+            markers are cameras, kept separate from obstacle reports.
           </p>
 
           {selected && (
@@ -264,6 +347,31 @@ export function AccessibilityMap() {
               </p>
               <Link href={`/reports/${selected.id}`}>Open full report</Link>
             </article>
+          )}
+
+          <h3>Cameras in this area ({camerasInView.length})</h3>
+          {camerasInView.length === 0 ? (
+            <p>
+              No automatic camera source here. That area only updates when a
+              person reports or uploads evidence — no camera coverage is not
+              proof that paths are clear.
+            </p>
+          ) : (
+            <ul className="report-list">
+              {camerasInView.map((camera) => (
+                <li key={camera.id}>
+                  <strong>{camera.label}</strong> ({camera.provider}, {camera.city})
+                  <br />
+                  <span>
+                    {!camera.enabled
+                      ? "Disabled."
+                      : camera.isStale
+                        ? `Stale — last successful check ${camera.lastSuccessAt ? new Date(camera.lastSuccessAt).toLocaleString() : "never"}. Its data may be old.`
+                        : `Last checked ${camera.lastSuccessAt ? new Date(camera.lastSuccessAt).toLocaleString() : "never"}${camera.lastChangeAt ? `, last change ${new Date(camera.lastChangeAt).toLocaleString()}` : ""}.`}
+                  </span>
+                </li>
+              ))}
+            </ul>
           )}
 
           {reports.length === 0 && !loading ? (

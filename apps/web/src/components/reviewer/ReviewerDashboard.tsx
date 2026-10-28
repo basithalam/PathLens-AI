@@ -10,6 +10,16 @@ interface QueueReport {
   obstacleType: string;
   verificationStatus: string;
   createdAt: string;
+  isCameraCandidate: boolean;
+}
+
+interface StaleCamera {
+  id: string;
+  label: string;
+  city: string;
+  provider: string;
+  lastSuccessAt: string | null;
+  lastError: string | null;
 }
 
 interface QueueComparison {
@@ -22,6 +32,7 @@ interface QueueComparison {
 interface Queue {
   reports: QueueReport[];
   comparisons: QueueComparison[];
+  staleCameras: StaleCamera[];
 }
 
 interface AuditEvent {
@@ -167,6 +178,13 @@ export function ReviewerDashboard() {
             <li key={report.id}>
               <Link href={`/reports/${report.id}`}>{report.title}</Link> — {report.obstacleType},{" "}
               reported {new Date(report.createdAt).toLocaleString()}
+              {report.isCameraCandidate ? (
+                <>
+                  {" "}
+                  <strong>CameraDetected candidate — unverified.</strong> A camera
+                  suggested this; only your review can verify it.
+                </>
+              ) : null}
               <br />
               <label>
                 Reviewer note{" "}
@@ -183,6 +201,25 @@ export function ReviewerDashboard() {
                   {action}
                 </button>
               ))}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <h2>Stale cameras ({queue?.staleCameras.length ?? 0})</h2>
+      {queue === null ? (
+        <p aria-live="polite">Loading camera health…</p>
+      ) : queue.staleCameras.length === 0 ? (
+        <p>No enabled camera is stale right now.</p>
+      ) : (
+        <ul className="report-list">
+          {queue.staleCameras.map((camera) => (
+            <li key={camera.id}>
+              <strong>{camera.label}</strong> ({camera.provider}, {camera.city}) — stale.
+              Last successful check:{" "}
+              {camera.lastSuccessAt ? new Date(camera.lastSuccessAt).toLocaleString() : "never"}
+              {camera.lastError ? <> · Last error: {camera.lastError}</> : null}. Do not
+              treat this feed as current.
             </li>
           ))}
         </ul>

@@ -150,6 +150,24 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
+    public async Task Enabled_camera_that_never_succeeded_appears_as_stale_in_reviewer_queue()
+    {
+        var created = await CreateCameraAsync();
+        var cameraId = created.GetProperty("id").GetGuid();
+
+        var reviewerToken = await LoginAsync("reviewer@pathlens.local", "Reviewer@123");
+        using var queueRequest = new HttpRequestMessage(HttpMethod.Get, "/api/reviewer/queue");
+        queueRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", reviewerToken);
+        var queueResponse = await _client.SendAsync(queueRequest);
+        queueResponse.EnsureSuccessStatusCode();
+        var queue = await queueResponse.Content.ReadFromJsonAsync<JsonElement>();
+
+        Assert.Contains(
+            queue.GetProperty("staleCameras").EnumerateArray(),
+            camera => camera.GetProperty("id").GetGuid() == cameraId);
+    }
+
+    [Fact]
     public async Task Second_camera_snapshot_auto_compares_with_prior_after_analysis()
     {
         using var feed = new LocalFeedServer();

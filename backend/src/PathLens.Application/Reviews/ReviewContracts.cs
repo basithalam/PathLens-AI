@@ -15,7 +15,16 @@ public sealed record ReviewResponse(
 
 public sealed record ReviewQueueResponse(
     IReadOnlyList<QueueReportItem> Reports,
-    IReadOnlyList<QueueComparisonItem> Comparisons);
+    IReadOnlyList<QueueComparisonItem> Comparisons,
+    IReadOnlyList<StaleCameraItem> StaleCameras);
+
+public sealed record StaleCameraItem(
+    Guid Id,
+    string Label,
+    string City,
+    string Provider,
+    DateTimeOffset? LastSuccessAt,
+    string? LastError);
 
 public sealed record QueueReportItem(
     Guid Id,

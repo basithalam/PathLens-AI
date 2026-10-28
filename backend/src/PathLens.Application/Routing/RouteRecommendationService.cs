@@ -61,7 +61,8 @@ public sealed class RouteRecommendationService(
                     Math.Round(candidateReport.Distance, 1),
                     candidateReport.Report.LastEvidenceAt ?? candidateReport.Report.CreatedAt,
                     candidateReport.Report.Latitude,
-                    candidateReport.Report.Longitude))
+                    candidateReport.Report.Longitude,
+                    candidateReport.Report.CameraSourceId is not null))
                 .ToList();
 
             var unknownPercent = RouteGeometry.UnknownLengthPercent(

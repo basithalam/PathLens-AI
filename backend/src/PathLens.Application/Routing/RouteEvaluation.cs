@@ -8,7 +8,8 @@ public sealed record NearbyReportInfo(
     double DistanceMeters,
     DateTimeOffset EvidenceAt,
     double Latitude,
-    double Longitude);
+    double Longitude,
+    bool IsCameraCandidate);
 
 public sealed record EvaluatedRoute(
     int Index,

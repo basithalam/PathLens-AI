@@ -29,6 +29,48 @@ export interface AccessibilityReport {
   createdAt: string;
   updatedAt: string;
   lastEvidenceAt: string | null;
+  cameraSourceId: string | null;
+}
+
+export interface CameraSource {
+  id: string;
+  provider: string;
+  externalId: string;
+  label: string;
+  city: string;
+  latitude: number;
+  longitude: number;
+  feedImageUrl: string;
+  directionLabel: string | null;
+  cadenceSeconds: number;
+  enabled: boolean;
+  hasPermissionNote: boolean;
+  lastAttemptAt: string | null;
+  lastSuccessAt: string | null;
+  lastChangeAt: string | null;
+  lastError: string | null;
+  consecutiveFailures: number;
+  isStale: boolean;
+  createdAt: string;
+}
+
+export function getCameras(): Promise<CameraSource[] | null> {
+  return fetchJson<CameraSource[]>("/api/cameras");
+}
+
+/** Great-circle distance in metres, matching the backend's haversine. */
+export function distanceMeters(
+  a: { latitude: number; longitude: number },
+  b: { latitude: number; longitude: number },
+): number {
+  const earth = 6_371_000;
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b.latitude - a.latitude);
+  const dLon = toRad(b.longitude - a.longitude);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(a.latitude)) * Math.cos(toRad(b.latitude)) * Math.sin(dLon / 2) ** 2;
+  return earth * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(1 - h));
 }
 
 export interface PagedReports {
@@ -425,6 +467,7 @@ export interface NearbyObstacle {
   evidenceAt: string;
   latitude: number;
   longitude: number;
+  isCameraCandidate: boolean;
 }
 
 export interface EvaluatedRoute {

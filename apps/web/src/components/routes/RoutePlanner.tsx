@@ -281,6 +281,17 @@ function RouteCard({
         {Math.round(route.durationSeconds / 60)} min
       </h3>
 
+      {route.newestEvidenceAt ? (
+        <p>
+          Newest evidence near this route:{" "}
+          {new Date(route.newestEvidenceAt).toLocaleString()}. Fresher evidence
+          can come from people or from automatic camera checks; neither proves
+          the whole route is accessible.
+        </p>
+      ) : (
+        <p>No evidence near this route yet — it is unknown, not proven clear.</p>
+      )}
+
       {route.unknownLengthPercent > 50 && (
         <p role="note" className="mock-label">
           Mostly unknown: {route.unknownLengthPercent.toFixed(0)}% of this route has
@@ -306,6 +317,9 @@ function RouteCard({
                 {obstacle.obstacleType}, {obstacle.verificationStatus}, about{" "}
                 {Math.round(obstacle.distanceMeters)} m from the route, evidence{" "}
                 {new Date(obstacle.evidenceAt).toLocaleDateString()}
+                {obstacle.isCameraCandidate
+                  ? " · CameraDetected candidate — unverified, a person has not confirmed this."
+                  : ""}
               </li>
             ))}
           </ul>

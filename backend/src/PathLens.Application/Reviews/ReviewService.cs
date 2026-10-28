@@ -1,3 +1,4 @@
+using PathLens.Application.Cameras;
 using PathLens.Application.Comparisons;
 using PathLens.Application.Reports;
 using PathLens.Domain.Reports;
@@ -8,7 +9,8 @@ namespace PathLens.Application.Reviews;
 public sealed class ReviewService(
     IReportRepository reportRepository,
     IComparisonRepository comparisonRepository,
-    IReviewRepository reviewRepository)
+    IReviewRepository reviewRepository,
+    ICameraRepository cameraRepository)
 {
     public async Task<ReportResponse?> ReviewReportAsync(
         Guid actorUserId,
@@ -60,6 +62,15 @@ public sealed class ReviewService(
         var conflicting = await comparisonRepository.ListByEffectiveOutcomeAsync(
             EvidenceComparisonOutcome.ConflictingEvidence, 50, cancellationToken);
 
+        var now = DateTimeOffset.UtcNow;
+        var cameras = await cameraRepository.ListAsync(cancellationToken);
+        var staleCameras = cameras
+            .Where(camera => camera.Enabled && camera.IsStale(now, CameraService.DefaultStaleAfter))
+            .Select(camera => new StaleCameraItem(
+                camera.Id, camera.Label, camera.City, camera.Provider.ToString(),
+                camera.LastSuccessAt, camera.LastError))
+            .ToList();
+
         return new ReviewQueueResponse(
             unverified.Items.Select(report => new QueueReportItem(
                 report.Id, report.Title, report.ObstacleType.ToString(),
@@ -67,7 +78,8 @@ public sealed class ReviewService(
                 report.CameraSourceId is not null)).ToList(),
             conflicting.Select(comparison => new QueueComparisonItem(
                 comparison.Id, comparison.ReportId, comparison.EffectiveOutcome.ToString(),
-                comparison.CreatedAt)).ToList());
+                comparison.CreatedAt)).ToList(),
+            staleCameras);
     }
 
     public async Task<IReadOnlyList<ReviewResponse>> ListAuditForEntityAsync(
