@@ -23,7 +23,8 @@ export default async function HomePage() {
             Explore the map
           </Link>{" "}
           <Link href="/report/new">Report an obstacle</Link>{" "}
-          <Link href="/reports">Browse reports</Link>
+          <Link href="/reports">Browse reports</Link>{" "}
+          <Link href="/routes">Plan a route</Link>
         </p>
         <p className="limitations">
           Limitations, stated up front: an obstacle that is not visible in a

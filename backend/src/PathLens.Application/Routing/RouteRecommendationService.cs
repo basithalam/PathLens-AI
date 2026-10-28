@@ -59,7 +59,9 @@ public sealed class RouteRecommendationService(
                     candidateReport.Report.ObstacleType.ToString(),
                     candidateReport.Report.VerificationStatus.ToString(),
                     Math.Round(candidateReport.Distance, 1),
-                    candidateReport.Report.LastEvidenceAt ?? candidateReport.Report.CreatedAt))
+                    candidateReport.Report.LastEvidenceAt ?? candidateReport.Report.CreatedAt,
+                    candidateReport.Report.Latitude,
+                    candidateReport.Report.Longitude))
                 .ToList();
 
             var unknownPercent = RouteGeometry.UnknownLengthPercent(

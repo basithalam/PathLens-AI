@@ -1,0 +1,4 @@
+id,image,expectedObstacle,latitude,longitude,captureTimeUtc,pairId,expectedOutcome
+sample-1,sample-tiny.png,Unknown,23.8103,90.4125,2026-10-25T10:00:00Z,,
+sample-2,sample-tiny.png,Unknown,23.8103,90.4125,2026-10-27T10:00:00Z,pair-1,Inconclusive
+sample-3,sample-tiny.png,Unknown,23.8103,90.4125,2026-10-26T10:00:00Z,pair-1,

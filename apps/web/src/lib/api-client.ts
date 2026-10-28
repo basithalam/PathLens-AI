@@ -73,6 +73,58 @@ export function getReport(id: string): Promise<AccessibilityReport | null> {
   return fetchJson<AccessibilityReport>(`/api/reports/${id}`);
 }
 
+export interface ReportReview {
+  id: string;
+  entityType: string;
+  entityId: string;
+  actorUserId: string;
+  action: string;
+  previousValue: string | null;
+  newValue: string | null;
+  note: string | null;
+  createdAt: string;
+}
+
+export function getReportReviews(id: string): Promise<ReportReview[] | null> {
+  return fetchJson<ReportReview[]>(`/api/reports/${id}/reviews`);
+}
+
+export interface UpdateReportInput {
+  title: string;
+  description: string | null;
+  obstacleType: string;
+  severity: string;
+}
+
+export async function updateReport(
+  id: string,
+  input: UpdateReportInput,
+): Promise<{ ok: true; report: AccessibilityReport } | { ok: false; errors: Record<string, string[]>; message: string }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/reports/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(input),
+      signal: AbortSignal.timeout(8000),
+    });
+
+    if (response.ok) {
+      return { ok: true, report: (await response.json()) as AccessibilityReport };
+    }
+
+    const problem = (await response.json().catch(() => null)) as
+      | { errors?: Record<string, string[]>; title?: string }
+      | null;
+    return {
+      ok: false,
+      errors: problem?.errors ?? {},
+      message: problem?.title ?? `Update failed (${response.status}).`,
+    };
+  } catch {
+    return { ok: false, errors: {}, message: "The API is not reachable. Check that the backend is running." };
+  }
+}
+
 export interface CreateReportInput {
   title: string;
   description: string | null;
@@ -371,6 +423,8 @@ export interface NearbyObstacle {
   verificationStatus: string;
   distanceMeters: number;
   evidenceAt: string;
+  latitude: number;
+  longitude: number;
 }
 
 export interface EvaluatedRoute {

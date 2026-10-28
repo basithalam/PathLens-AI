@@ -6,7 +6,9 @@ public sealed record NearbyReportInfo(
     string ObstacleType,
     string VerificationStatus,
     double DistanceMeters,
-    DateTimeOffset EvidenceAt);
+    DateTimeOffset EvidenceAt,
+    double Latitude,
+    double Longitude);
 
 public sealed record EvaluatedRoute(
     int Index,

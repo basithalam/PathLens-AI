@@ -13,6 +13,14 @@ type PickMode = "origin" | "destination";
 
 const ROUTE_COLORS = ["#0b6b4f", "#8a5a00", "#6b4e9e"];
 
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;");
+}
+
 function formatDistance(meters: number): string {
   return meters >= 1000 ? `${(meters / 1000).toFixed(2)} km` : `${Math.round(meters)} m`;
 }
@@ -109,6 +117,20 @@ export function RoutePlanner() {
           opacity: index === highlight ? 1 : 0.55,
         },
       ).addTo(layer);
+
+      for (const obstacle of route.knownObstacles) {
+        L.circleMarker([obstacle.latitude, obstacle.longitude], {
+          radius: index === highlight ? 8 : 5,
+          color: ROUTE_COLORS[index % ROUTE_COLORS.length],
+          weight: 2,
+          fillColor: "#ffffff",
+          fillOpacity: 1,
+        })
+          .addTo(layer)
+          .bindPopup(
+            `<strong>Known obstacle</strong><br/><a href="/reports/${obstacle.reportId}">${escapeHtml(obstacle.title)}</a><br/>${escapeHtml(obstacle.obstacleType)} · ${escapeHtml(obstacle.verificationStatus)}`,
+          );
+      }
 
       if (index === highlight) {
         map.fitBounds(line.getBounds(), { padding: [24, 24] });
