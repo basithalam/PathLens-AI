@@ -28,7 +28,8 @@ public sealed record ReportResponse(
     string VerificationStatus,
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
-    DateTimeOffset? LastEvidenceAt);
+    DateTimeOffset? LastEvidenceAt,
+    Guid? CameraSourceId);
 
 public sealed record PagedResult<T>(
     IReadOnlyList<T> Items,

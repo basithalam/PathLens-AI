@@ -236,6 +236,9 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                     b.Property<DateTimeOffset?>("AnalyzedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("CameraSourceId")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset?>("CaptureTimeUtc")
                         .HasColumnType("timestamp with time zone");
 
@@ -281,6 +284,8 @@ namespace PathLens.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AnalysisStatus");
 
+                    b.HasIndex("CameraSourceId");
+
                     b.HasIndex("ReportId");
 
                     b.ToTable("evidence_items", (string)null);
@@ -290,6 +295,9 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("CameraSourceId")
                         .HasColumnType("uuid");
 
                     b.Property<DateTimeOffset>("CreatedAt")
@@ -340,6 +348,8 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                         .HasColumnType("character varying(20)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CameraSourceId");
 
                     b.HasIndex("CreatedAt");
 

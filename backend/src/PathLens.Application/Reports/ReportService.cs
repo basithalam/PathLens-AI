@@ -90,5 +90,6 @@ public sealed class ReportService(IReportRepository repository)
         report.VerificationStatus.ToString(),
         report.CreatedAt,
         report.UpdatedAt,
-        report.LastEvidenceAt);
+        report.LastEvidenceAt,
+        report.CameraSourceId);
 }

@@ -87,6 +87,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Cameras.ICameraRepository, CameraRepository>();
         services.AddScoped<Application.Cameras.CameraService>();
         services.AddScoped<Cameras.CameraIngestionService>();
+        services.AddScoped<Cameras.CameraEvidencePostProcessor>();
         services.AddHostedService<Cameras.CameraPollingWorker>();
 
         return services;

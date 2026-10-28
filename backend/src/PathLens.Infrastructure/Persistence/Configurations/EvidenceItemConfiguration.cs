@@ -26,6 +26,7 @@ public sealed class EvidenceItemConfiguration : IEntityTypeConfiguration<Evidenc
             .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(item => item.ReportId);
+        builder.HasIndex(item => item.CameraSourceId);
         builder.HasIndex(item => item.AnalysisStatus);
     }
 }

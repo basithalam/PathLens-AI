@@ -57,3 +57,5 @@ Base URL (local): `http://localhost:5145`. Errors are RFC 9457 ProblemDetails. M
 - `POST /api/cameras` — Admin only; a source cannot be enabled without a permission/terms note (`400` otherwise); cadence minimum 30s (NYC profile 60s)
 - `PATCH /api/cameras/{id}` — Admin only; cadence/permission/enabled (removing the note auto-disables)
 - `POST /api/cameras/{id}/poll` — Admin only; one manual poll: `Changed` / `Unchanged` (hash dedupe, no new evidence or AI cost) / `NoMatchingReport` (no report within 100 m; change recorded only) / `Failed` (backoff applies)
+
+Phase C behaviour: after a camera snapshot finishes analysis, it is auto-compared with the prior snapshot from the same camera (existing comparison engine; no manual call needed). A changed image far from any report attaches to that camera's unverified `CameraDetected` candidate (`cameraSourceId` set, `isCameraCandidate` in the reviewer queue) instead of being dropped.

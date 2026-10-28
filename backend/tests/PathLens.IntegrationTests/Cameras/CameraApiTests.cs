@@ -110,7 +110,7 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
     }
 
     [Fact]
-    public async Task Poll_without_nearby_report_records_change_only()
+    public async Task Poll_without_nearby_report_creates_unverified_camera_candidate_in_reviewer_queue()
     {
         using var feed = new LocalFeedServer();
         var request = ValidRequest();
@@ -122,7 +122,77 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
         var cameraId = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
 
         var result = await PollAsync(cameraId);
-        Assert.Equal("NoMatchingReport", result.GetProperty("outcome").GetString());
+        Assert.Equal("CandidateCreated", result.GetProperty("outcome").GetString());
+        var evidenceId = result.GetProperty("evidenceId").GetGuid();
+
+        // The candidate shows up as an unverified report owned by the camera.
+        var reports = await _client.GetFromJsonAsync<JsonElement>("/api/reports?pageSize=50");
+        var candidate = reports.GetProperty("items").EnumerateArray()
+            .Single(item => item.GetProperty("cameraSourceId").ValueKind != JsonValueKind.Null &&
+                            item.GetProperty("cameraSourceId").GetGuid() == cameraId);
+        Assert.Equal("Unverified", candidate.GetProperty("verificationStatus").GetString());
+        Assert.Contains("CameraDetected", candidate.GetProperty("title").GetString());
+
+        var evidence = await _client.GetFromJsonAsync<JsonElement>(
+            $"/api/reports/{candidate.GetProperty("id").GetGuid()}/evidence");
+        Assert.Contains(evidence.EnumerateArray(), item => item.GetProperty("id").GetGuid() == evidenceId);
+
+        // And it is in the reviewer queue, flagged as a camera candidate.
+        var reviewerToken = await LoginAsync("reviewer@pathlens.local", "Reviewer@123");
+        using var queueRequest = new HttpRequestMessage(HttpMethod.Get, "/api/reviewer/queue");
+        queueRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", reviewerToken);
+        var queueResponse = await _client.SendAsync(queueRequest);
+        queueResponse.EnsureSuccessStatusCode();
+        var queue = await queueResponse.Content.ReadFromJsonAsync<JsonElement>();
+        var queueItem = queue.GetProperty("reports").EnumerateArray()
+            .Single(item => item.GetProperty("id").GetGuid() == candidate.GetProperty("id").GetGuid());
+        Assert.True(queueItem.GetProperty("isCameraCandidate").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Second_camera_snapshot_auto_compares_with_prior_after_analysis()
+    {
+        using var feed = new LocalFeedServer();
+        var reportId = await CreateNearbyReportAsync(40.7100, -73.9100);
+
+        var request = ValidRequest();
+        request["feedImageUrl"] = feed.Url;
+        request["latitude"] = 40.7100;
+        request["longitude"] = -73.9100;
+        var created = await PostAsAdminAsync(request);
+        created.EnsureSuccessStatusCode();
+        var cameraId = (await created.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+
+        var first = await PollAsync(cameraId);
+        Assert.Equal("Changed", first.GetProperty("outcome").GetString());
+        var firstEvidenceId = first.GetProperty("evidenceId").GetGuid();
+
+        feed.ChangeImage();
+        var second = await PollAsync(cameraId);
+        Assert.Equal("Changed", second.GetProperty("outcome").GetString());
+        var secondEvidenceId = second.GetProperty("evidenceId").GetGuid();
+
+        // Analysis runs in the background (mock provider); the auto-comparison
+        // must appear without anyone calling POST /api/comparisons.
+        JsonElement comparisons = default;
+        for (var attempt = 0; attempt < 30; attempt++)
+        {
+            comparisons = await _client.GetFromJsonAsync<JsonElement>($"/api/reports/{reportId}/comparisons");
+            if (comparisons.GetArrayLength() > 0)
+            {
+                break;
+            }
+
+            await Task.Delay(1000);
+        }
+
+        Assert.Equal(1, comparisons.GetArrayLength());
+        var comparison = comparisons[0];
+        Assert.Equal(firstEvidenceId, comparison.GetProperty("earlierEvidenceId").GetGuid());
+        Assert.Equal(secondEvidenceId, comparison.GetProperty("laterEvidenceId").GetGuid());
+        // Mock analysis reports Unknown with zero confidence, so the honest
+        // engine outcome is Inconclusive — never a removal claim.
+        Assert.Equal("Inconclusive", comparison.GetProperty("outcome").GetString());
     }
 
     private Dictionary<string, object?> ValidRequest() => new()
@@ -167,15 +237,15 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
         return await response.Content.ReadFromJsonAsync<JsonElement>();
     }
 
-    private async Task<Guid> CreateNearbyReportAsync()
+    private async Task<Guid> CreateNearbyReportAsync(double latitude = 40.7000, double longitude = -73.9000)
     {
         var response = await _client.PostAsJsonAsync("/api/reports", new
         {
             title = "Report near test camera",
             description = "Beside the test feed.",
             category = "Other",
-            latitude = 40.7000,
-            longitude = -73.9000,
+            latitude,
+            longitude,
             city = "New York",
         });
         response.EnsureSuccessStatusCode();

@@ -22,7 +22,8 @@ public sealed record QueueReportItem(
     string Title,
     string ObstacleType,
     string VerificationStatus,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    bool IsCameraCandidate);
 
 public sealed record QueueComparisonItem(
     Guid Id,

@@ -31,6 +31,9 @@ public sealed class EvidenceItem
     public double? Longitude { get; private set; }
     public double? LocationAccuracyMeters { get; private set; }
     public EvidenceSourceType SourceType { get; private set; }
+
+    /// <summary>Set only for camera evidence: which source produced this snapshot.</summary>
+    public Guid? CameraSourceId { get; private set; }
     public AnalysisStatus AnalysisStatus { get; private set; }
     public string? AnalysisResultJson { get; private set; }
     public string? AnalysisProvider { get; private set; }
@@ -48,7 +51,8 @@ public sealed class EvidenceItem
         double? longitude,
         double? locationAccuracyMeters,
         DateTimeOffset now,
-        EvidenceSourceType sourceType = EvidenceSourceType.Upload)
+        EvidenceSourceType sourceType = EvidenceSourceType.Upload,
+        Guid? cameraSourceId = null)
     {
         if (latitude is not null && !AccessibilityReport.IsValidLatitude(latitude.Value))
         {
@@ -74,6 +78,7 @@ public sealed class EvidenceItem
             Longitude = longitude,
             LocationAccuracyMeters = locationAccuracyMeters,
             SourceType = sourceType,
+            CameraSourceId = sourceType == EvidenceSourceType.CameraFeed ? cameraSourceId : null,
             AnalysisStatus = AnalysisStatus.Pending,
         };
     }

@@ -22,5 +22,6 @@ public sealed class AccessibilityReportConfiguration : IEntityTypeConfiguration<
         builder.HasIndex(report => report.VerificationStatus);
         builder.HasIndex(report => report.CreatedAt);
         builder.HasIndex(report => new { report.Latitude, report.Longitude });
+        builder.HasIndex(report => report.CameraSourceId);
     }
 }

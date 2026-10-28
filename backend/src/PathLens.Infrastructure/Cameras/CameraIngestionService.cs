@@ -15,6 +15,7 @@ public enum CameraPollOutcome
     Unchanged,
     Failed,
     NoMatchingReport,
+    CandidateCreated,
 }
 
 public sealed record CameraPollResult(CameraPollOutcome Outcome, Guid? EvidenceId, string? Message);
@@ -72,15 +73,12 @@ public sealed class CameraIngestionService(
                 return new CameraPollResult(CameraPollOutcome.Unchanged, null, "Image unchanged; no new evidence or AI cost.");
             }
 
+            // No nearby human report: attach the snapshot to this camera's own
+            // unverified CameraDetected candidate instead of dropping it. The
+            // candidate is created once per camera and reused for later snapshots.
             var report = await FindMatchingReportAsync(source, cancellationToken);
-            if (report is null)
-            {
-                source.RecordSuccess(now, hash, changed: true);
-                await dbContext.SaveChangesAsync(cancellationToken);
-                return new CameraPollResult(
-                    CameraPollOutcome.NoMatchingReport, null,
-                    "Image changed, but no report exists within range of this camera. Recorded as a change only.");
-            }
+            report ??= await GetOrCreateCandidateAsync(source, now, cancellationToken);
+            var isCandidate = report.CameraSourceId == source.Id;
 
             string storageKey;
             await using (var stream = new MemoryStream(bytes))
@@ -101,7 +99,8 @@ public sealed class CameraIngestionService(
                     source.Longitude,
                     null,
                     now,
-                    EvidenceSourceType.CameraFeed);
+                    EvidenceSourceType.CameraFeed,
+                    source.Id);
 
                 await dbContext.EvidenceItems.AddAsync(evidence, cancellationToken);
                 await dbContext.AnalysisJobs.AddAsync(AnalysisJob.Create(evidence.Id, now), cancellationToken);
@@ -110,8 +109,11 @@ public sealed class CameraIngestionService(
                 source.RecordSuccess(now, hash, changed: true);
                 await dbContext.SaveChangesAsync(cancellationToken);
 
-                return new CameraPollResult(CameraPollOutcome.Changed, evidence.Id,
-                    $"New camera evidence stored and queued for analysis on report '{report.Title}'.");
+                return isCandidate
+                    ? new CameraPollResult(CameraPollOutcome.CandidateCreated, evidence.Id,
+                        $"New camera evidence stored on the unverified CameraDetected candidate for '{source.Label}' and queued for analysis. A person must review it; it is not verified.")
+                    : new CameraPollResult(CameraPollOutcome.Changed, evidence.Id,
+                        $"New camera evidence stored and queued for analysis on report '{report.Title}'.");
             }
             catch
             {
@@ -142,11 +144,38 @@ public sealed class CameraIngestionService(
         return results;
     }
 
+    private async Task<AccessibilityReport> GetOrCreateCandidateAsync(
+        CameraSource source, DateTimeOffset now, CancellationToken cancellationToken)
+    {
+        var existing = await dbContext.Reports
+            .FirstOrDefaultAsync(report => report.CameraSourceId == source.Id, cancellationToken);
+        if (existing is not null)
+        {
+            return existing;
+        }
+
+        var candidate = AccessibilityReport.Create(
+            $"CameraDetected candidate — {source.Label}",
+            "Created automatically from a public/authorised camera snapshot. " +
+            "This is an unverified camera-detected candidate: no person has confirmed an obstacle here, " +
+            "and it must never be treated as human-verified without review.",
+            ObstacleType.Unknown,
+            SeverityLevel.Unknown,
+            source.Latitude,
+            source.Longitude,
+            createdByUserId: null,
+            now,
+            source.Id);
+
+        await dbContext.Reports.AddAsync(candidate, cancellationToken);
+        return candidate;
+    }
+
     private async Task<AccessibilityReport?> FindMatchingReportAsync(
         CameraSource source, CancellationToken cancellationToken)
     {
         const double delta = 0.002;
-        var candidates = await dbContext.Reports.AsNoTracking()
+        var candidates = await dbContext.Reports
             .Where(report =>
                 report.Latitude >= source.Latitude - delta && report.Latitude <= source.Latitude + delta &&
                 report.Longitude >= source.Longitude - delta && report.Longitude <= source.Longitude + delta)
@@ -160,7 +189,9 @@ public sealed class CameraIngestionService(
                     source.Latitude, source.Longitude, report.Latitude, report.Longitude),
             })
             .Where(candidate => candidate.Distance <= MatchingRadiusMeters)
-            .OrderBy(candidate => candidate.Distance)
+            .OrderBy(candidate => candidate.Report.CameraSourceId is not null &&
+                                    candidate.Report.CameraSourceId != source.Id)
+            .ThenBy(candidate => candidate.Distance)
             .Select(candidate => candidate.Report)
             .FirstOrDefault();
     }

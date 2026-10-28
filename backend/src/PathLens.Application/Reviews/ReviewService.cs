@@ -63,7 +63,8 @@ public sealed class ReviewService(
         return new ReviewQueueResponse(
             unverified.Items.Select(report => new QueueReportItem(
                 report.Id, report.Title, report.ObstacleType.ToString(),
-                report.VerificationStatus.ToString(), report.CreatedAt)).ToList(),
+                report.VerificationStatus.ToString(), report.CreatedAt,
+                report.CameraSourceId is not null)).ToList(),
             conflicting.Select(comparison => new QueueComparisonItem(
                 comparison.Id, comparison.ReportId, comparison.EffectiveOutcome.ToString(),
                 comparison.CreatedAt)).ToList());

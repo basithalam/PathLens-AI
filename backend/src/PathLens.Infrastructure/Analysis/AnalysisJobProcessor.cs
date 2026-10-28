@@ -103,6 +103,23 @@ public sealed class AnalysisJobProcessor(
             report?.RecordEvidence(evidence.UploadedAt);
 
             job.MarkCompleted(DateTimeOffset.UtcNow);
+            await dbContext.SaveChangesAsync(stoppingToken);
+
+            // Camera snapshots: auto-compare with the prior snapshot from the
+            // same camera. A failure here must not fail the analysis itself.
+            if (evidence.SourceType == PathLens.Domain.Evidence.EvidenceSourceType.CameraFeed)
+            {
+                try
+                {
+                    var postProcessor = scope.ServiceProvider
+                        .GetRequiredService<Cameras.CameraEvidencePostProcessor>();
+                    await postProcessor.ProcessAsync(evidence, stoppingToken);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Camera auto-comparison failed for evidence {EvidenceId}.", evidence.Id);
+                }
+            }
         }
         catch (Exception ex) when (ex is HttpRequestException or TimeoutException or TaskCanceledException)
         {

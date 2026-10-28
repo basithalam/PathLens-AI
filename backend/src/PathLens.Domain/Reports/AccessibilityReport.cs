@@ -22,6 +22,9 @@ public sealed class AccessibilityReport
     public ReportStatus Status { get; private set; }
     public VerificationStatus VerificationStatus { get; private set; }
     public Guid? CreatedByUserId { get; private set; }
+
+    /// <summary>Set only for camera-detected candidates: the source that produced them. Never human-verified automatically.</summary>
+    public Guid? CameraSourceId { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public DateTimeOffset? LastEvidenceAt { get; private set; }
@@ -37,7 +40,8 @@ public sealed class AccessibilityReport
         double latitude,
         double longitude,
         Guid? createdByUserId,
-        DateTimeOffset now)
+        DateTimeOffset now,
+        Guid? cameraSourceId = null)
     {
         if (string.IsNullOrWhiteSpace(title))
         {
@@ -66,6 +70,7 @@ public sealed class AccessibilityReport
             Status = ReportStatus.Active,
             VerificationStatus = VerificationStatus.Unverified,
             CreatedByUserId = createdByUserId,
+            CameraSourceId = cameraSourceId,
             CreatedAt = now,
             UpdatedAt = now,
         };
