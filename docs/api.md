@@ -63,3 +63,5 @@ Phase C behaviour: after a camera snapshot finishes analysis, it is auto-compare
 Reviewer queue now also returns `staleCameras` (enabled cameras with no successful check within the stale threshold) and queue reports carry `isCameraCandidate`. Route obstacles carry `isCameraCandidate` too.
 
 Camera cost gate: `Cameras:DailyAnalysisBudgetPerCamera` (default 240, 0 = unlimited). When spent, a changed snapshot returns `BudgetExceeded`, stores nothing, and leaves the reason in the camera's `lastError` until the UTC day resets. Privacy: snapshots are stored privately and go through the same downscale + EXIF strip as uploads before AI; no face/plate blurring is claimed (no detector integrated).
+
+Phase F1 (explainable ranking): route explanations now include per-obstacle evidence age with a 30-day stale flag, a certain/uncertain certainty split per route, and a cross-route ranking reason (`Route 2 ranks below Route 1 because...`) naming the exact key that separated them — obstacle count, human-verified count, or distance. Ranking order itself is unchanged (F2 will revisit scoring).

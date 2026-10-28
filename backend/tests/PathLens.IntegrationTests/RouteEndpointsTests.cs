@@ -1,4 +1,4 @@
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
@@ -67,6 +67,17 @@ public class RouteEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         var explanationText = string.Join(" ", withObstacle.GetProperty("explanation")
             .EnumerateArray().Select(element => element.GetString()));
         Assert.Contains("known obstacle", explanationText);
+        // F1: per-obstacle age/certainty, route certainty split, and the
+        // cross-route reason must all be present and human-readable.
+        Assert.Contains("evidence less than a day old", explanationText);
+        Assert.Contains("uncertain (not human-verified)", explanationText);
+        Assert.Contains("Certainty split for this route:", explanationText);
+        Assert.Contains("ranks below Route 1", explanationText);
+
+        var firstText = string.Join(" ", first.GetProperty("explanation")
+            .EnumerateArray().Select(element => element.GetString()));
+        Assert.Contains("ranks above Route 2", firstText);
+        Assert.Contains("not proof of safety", firstText);
 
         var limitationsText = string.Join(" ", recommendation.GetProperty("limitations")
             .EnumerateArray().Select(element => element.GetString()));
@@ -77,6 +88,40 @@ public class RouteEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         var id = recommendation.GetProperty("id").GetGuid();
         var reopened = await _client.GetAsync($"/api/routes/{id}");
         Assert.Equal(HttpStatusCode.OK, reopened.StatusCode);
+    }
+
+    [Fact]
+    public async Task Old_evidence_is_called_stale_in_route_explanations()
+    {
+        var title = $"Stale route obstacle {Guid.NewGuid():N}";
+        await CreateReportAsync(26.505, 94.0, title);
+
+        // Age the report 45 days directly; the API never lets users fake age.
+        await using var connection = new Npgsql.NpgsqlConnection(TestConnectionString);
+        await connection.OpenAsync();
+        await using var command = new Npgsql.NpgsqlCommand(
+            "UPDATE accessibility_reports SET \"CreatedAt\" = now() - interval '45 days' WHERE \"Title\" = @title",
+            connection);
+        command.Parameters.AddWithValue("title", title);
+        await command.ExecuteNonQueryAsync();
+
+        var response = await _client.PostAsJsonAsync("/api/routes/recommend", new
+        {
+            originLatitude = 26.5,
+            originLongitude = 94.0,
+            destinationLatitude = 26.51,
+            destinationLongitude = 94.0,
+        });
+        response.EnsureSuccessStatusCode();
+
+        var recommendation = await response.Content.ReadFromJsonAsync<JsonElement>();
+        var withObstacle = recommendation.GetProperty("routes").EnumerateArray()
+            .First(route => route.GetProperty("knownObstacles").GetArrayLength() > 0);
+        var text = string.Join(" ", withObstacle.GetProperty("explanation")
+            .EnumerateArray().Select(element => element.GetString()));
+
+        Assert.Contains("stale (over 30 days", text);
+        Assert.Contains("rely on stale evidence", text);
     }
 
     [Fact]
@@ -107,3 +152,4 @@ public class RouteEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
 }
+

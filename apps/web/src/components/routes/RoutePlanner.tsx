@@ -311,17 +311,30 @@ function RouteCard({
             <strong>Known obstacles on this route</strong>
           </p>
           <ul>
-            {route.knownObstacles.map((obstacle) => (
-              <li key={obstacle.reportId}>
-                <Link href={`/reports/${obstacle.reportId}`}>{obstacle.title}</Link> —{" "}
-                {obstacle.obstacleType}, {obstacle.verificationStatus}, about{" "}
-                {Math.round(obstacle.distanceMeters)} m from the route, evidence{" "}
-                {new Date(obstacle.evidenceAt).toLocaleDateString()}
-                {obstacle.isCameraCandidate
-                  ? " · CameraDetected candidate — unverified, a person has not confirmed this."
-                  : ""}
-              </li>
-            ))}
+            {route.knownObstacles.map((obstacle) => {
+              const ageDays = Math.max(
+                0,
+                Math.floor((Date.now() - new Date(obstacle.evidenceAt).getTime()) / 86_400_000),
+              );
+              const certainty =
+                obstacle.verificationStatus === "HumanVerified"
+                  ? "Certain (human-verified)"
+                  : obstacle.isCameraCandidate
+                    ? "Uncertain (camera-detected candidate)"
+                    : "Uncertain (not human-verified)";
+              return (
+                <li key={obstacle.reportId}>
+                  <Link href={`/reports/${obstacle.reportId}`}>{obstacle.title}</Link> —{" "}
+                  {obstacle.obstacleType}, {obstacle.verificationStatus}, about{" "}
+                  {Math.round(obstacle.distanceMeters)} m from the route, evidence{" "}
+                  {new Date(obstacle.evidenceAt).toLocaleDateString()} ({ageDays} day(s) old
+                  {ageDays > 30 ? " — stale, conditions may have changed" : ""}) · {certainty}
+                  {obstacle.isCameraCandidate
+                    ? " — a person has not confirmed this."
+                    : ""}
+                </li>
+              );
+            })}
           </ul>
         </>
       )}

@@ -22,6 +22,9 @@ public sealed class RouteRecommendationService(
     /// <summary>Reports within this distance count as evidence coverage (not obstacles).</summary>
     public const double CoverageRadiusMeters = 100;
 
+    /// <summary>Evidence older than this is called stale in explanations — never silently fresh.</summary>
+    public const int StaleEvidenceDays = 30;
+
     public async Task<RouteRecommendationResponse> RecommendAsync(
         GeoPoint origin, GeoPoint destination, CancellationToken cancellationToken)
     {
@@ -84,8 +87,33 @@ public sealed class RouteRecommendationService(
                 explanation.Add($"{nearby.Count} known obstacle report(s) lie within {(int)ObstacleRadiusMeters} m of this route.");
                 foreach (var obstacle in nearby.Take(3))
                 {
-                    explanation.Add($"- {obstacle.Title} ({obstacle.ObstacleType}, {obstacle.VerificationStatus}) about {obstacle.DistanceMeters:0} m from the route.");
+                    var ageDays = Math.Max(0, (now - obstacle.EvidenceAt).TotalDays);
+                    var ageText = ageDays < 1
+                        ? "evidence less than a day old"
+                        : $"evidence {ageDays:0} day(s) old";
+                    if (ageDays > StaleEvidenceDays)
+                    {
+                        ageText += $" — stale (over {StaleEvidenceDays} days; conditions may have changed)";
+                    }
+
+                    var certainty = obstacle.VerificationStatus == "HumanVerified"
+                        ? "certain (human-verified)"
+                        : obstacle.IsCameraCandidate
+                            ? "uncertain (camera-detected candidate, not human-verified)"
+                            : "uncertain (not human-verified)";
+
+                    explanation.Add(
+                        $"- {obstacle.Title} ({obstacle.ObstacleType}, {obstacle.VerificationStatus}) about {obstacle.DistanceMeters:0} m from the route; {ageText}; {certainty}.");
                 }
+
+                var certainCount = nearby.Count(info => info.VerificationStatus == "HumanVerified");
+                var staleCount = nearby.Count(info => (now - info.EvidenceAt).TotalDays > StaleEvidenceDays);
+                explanation.Add(
+                    $"Certainty split for this route: {certainCount} certain (human-verified) obstacle(s), " +
+                    $"{nearby.Count - certainCount} uncertain (unverified, AI-only, disputed, or camera-detected). " +
+                    (staleCount > 0
+                        ? $"{staleCount} obstacle(s) rely on stale evidence (over {StaleEvidenceDays} days old)."
+                        : "No obstacle here relies on stale evidence."));
             }
 
             explanation.Add(unknownPercent >= 99
@@ -128,6 +156,18 @@ public sealed class RouteRecommendationService(
                     .Prepend("Ranked first because it has the fewest known obstacle reports among the candidates — not because it is proven safe.")
                     .ToList(),
             };
+
+            // Say, for every neighbouring pair, exactly which ranking key
+            // separated them — obstacle count, verified count, or distance.
+            for (var i = 0; i < ranked.Count - 1; i++)
+            {
+                var above = ranked[i];
+                var below = ranked[i + 1];
+                var (aboveLine, belowLine) = RankingReason(above, below);
+
+                ranked[i] = above with { Explanation = above.Explanation.Append(aboveLine).ToList() };
+                ranked[i + 1] = below with { Explanation = below.Explanation.Append(belowLine).ToList() };
+            }
         }
 
         var responseId = Guid.NewGuid();
@@ -158,6 +198,46 @@ public sealed class RouteRecommendationService(
         await recommendationRepository.SaveChangesAsync(cancellationToken);
 
         return response;
+    }
+
+    private static (string AboveLine, string BelowLine) RankingReason(EvaluatedRoute above, EvaluatedRoute below)
+    {
+        var aboveName = $"Route {above.Index + 1}";
+        var belowName = $"Route {below.Index + 1}";
+
+        if (below.KnownObstacles.Count != above.KnownObstacles.Count)
+        {
+            return (
+                $"{aboveName} ranks above {belowName} because it has fewer known obstacle reports " +
+                $"({above.KnownObstacles.Count} vs {below.KnownObstacles.Count}). Fewer known obstacles is not proof of safety.",
+                $"{belowName} ranks below {aboveName} because it has more known obstacle reports " +
+                $"({below.KnownObstacles.Count} vs {above.KnownObstacles.Count}).");
+        }
+
+        var aboveVerified = above.KnownObstacles.Count(info => info.VerificationStatus == "HumanVerified");
+        var belowVerified = below.KnownObstacles.Count(info => info.VerificationStatus == "HumanVerified");
+        if (belowVerified != aboveVerified)
+        {
+            return (
+                $"{aboveName} ranks above {belowName} because both have {above.KnownObstacles.Count} known obstacle(s) " +
+                $"but {aboveName} has fewer human-verified ones ({aboveVerified} vs {belowVerified}).",
+                $"{belowName} ranks below {aboveName} because it has more human-verified obstacles " +
+                $"({belowVerified} vs {aboveVerified}) at the same total count.");
+        }
+
+        if (Math.Abs(below.DistanceMeters - above.DistanceMeters) > 0.5)
+        {
+            return (
+                $"{aboveName} ranks above {belowName} because their known-obstacle counts tie " +
+                $"({above.KnownObstacles.Count}) and {aboveName} is shorter " +
+                $"({above.DistanceMeters / 1000:0.00} km vs {below.DistanceMeters / 1000:0.00} km).",
+                $"{belowName} ranks below {aboveName} because their known-obstacle counts tie " +
+                $"and {belowName} is longer ({below.DistanceMeters / 1000:0.00} km vs {above.DistanceMeters / 1000:0.00} km).");
+        }
+
+        return (
+            $"{aboveName} and {belowName} tie on known obstacles and distance; their order is not meaningful.",
+            $"{belowName} and {aboveName} tie on known obstacles and distance; their order is not meaningful.");
     }
 
     public async Task<RouteRecommendationResponse?> GetAsync(Guid id, CancellationToken cancellationToken)
