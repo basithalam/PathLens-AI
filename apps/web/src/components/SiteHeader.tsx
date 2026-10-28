@@ -12,6 +12,7 @@ export function SiteHeader() {
         <Link href="/report/new">Report an obstacle</Link>
         <Link href="/map">Map</Link>
         <Link href="/routes">Plan a route</Link>
+        <Link href="/reviewer">Reviewer</Link>
       </nav>
     </header>
   );

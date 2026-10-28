@@ -17,4 +17,5 @@ public sealed record ComparisonResponse(
     DateTimeOffset CreatedAt,
     string? ReviewedOutcome,
     string? ReviewReason,
-    DateTimeOffset? ReviewedAt);
+    DateTimeOffset? ReviewedAt,
+    Guid? ReviewedByUserId);

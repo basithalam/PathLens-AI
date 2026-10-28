@@ -1,10 +1,15 @@
+using System.Text;
 using System.Text.Json;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using PathLens.Api.Endpoints;
 using PathLens.Application;
+using PathLens.Application.Users;
 using PathLens.Infrastructure;
+using PathLens.Infrastructure.Auth;
 using PathLens.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +26,26 @@ builder.Services.AddProblemDetails();
 builder.Services.AddOpenApi();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+var jwtSigningKey = builder.Configuration["Jwt:SigningKey"]
+    ?? "LOCAL_DEV_ONLY_CHANGE_ME_PATHLENS_SIGNING_KEY_32CHARS";
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "PathLens",
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "PathLensWeb",
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSigningKey)),
+            ValidateLifetime = true,
+        };
+    });
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(AuthEndpoints.ReviewerPolicy, policy =>
+        policy.RequireRole("Reviewer", "Admin"));
 
 var frontendOrigin = builder.Configuration["Cors:FrontendOrigin"] ?? "http://localhost:3000";
 builder.Services.AddCors(options =>
@@ -53,6 +78,8 @@ app.Use(async (context, next) =>
 });
 
 app.UseCors("frontend");
+app.UseAuthentication();
+app.UseAuthorization();
 
 // Apply pending migrations at startup. If the database is unreachable the API
 // still starts so /health/live works and /health/ready can report the failure.
@@ -67,6 +94,20 @@ catch (Exception ex) when (ex is not OperationCanceledException)
     app.Logger.LogWarning(ex, "Database migration at startup failed; health/ready will report database status.");
 }
 
+// Seed the development reviewer/admin/user accounts once (hashed passwords).
+try
+{
+    using var seedScope = app.Services.CreateScope();
+    var userRepository = seedScope.ServiceProvider.GetRequiredService<IUserRepository>();
+    await SeedUsers.SeedAsync(userRepository, CancellationToken.None);
+}
+catch (Exception ex) when (ex is not OperationCanceledException)
+{
+    app.Logger.LogWarning(ex, "Seed user creation failed; login will be unavailable until the database is reachable.");
+}
+
+app.MapAuthEndpoints();
+app.MapReviewEndpoints();
 app.MapReportEndpoints();
 app.MapEvidenceEndpoints();
 app.MapComparisonEndpoints();

@@ -55,7 +55,9 @@ function ComparisonCard({
       onReviewed(reviewed);
       setReason("");
     } else {
-      setReviewError("Review failed. Check that the backend is running.");
+      setReviewError(
+        "Review failed. You must be logged in as a reviewer (see the Reviewer page), and the backend must be running.",
+      );
     }
   }
 

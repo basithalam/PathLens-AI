@@ -112,7 +112,8 @@ public sealed class ComparisonService(IComparisonRepository repository)
     }
 
     public async Task<ComparisonResponse?> ReviewAsync(
-        Guid id, EvidenceComparisonOutcome outcome, string reason, CancellationToken cancellationToken)
+        Guid id, EvidenceComparisonOutcome outcome, string reason, CancellationToken cancellationToken,
+        Guid? reviewedByUserId = null)
     {
         var comparison = await repository.GetComparisonAsync(id, cancellationToken);
         if (comparison is null)
@@ -120,7 +121,7 @@ public sealed class ComparisonService(IComparisonRepository repository)
             return null;
         }
 
-        comparison.Review(outcome, reason, DateTimeOffset.UtcNow);
+        comparison.Review(outcome, reason, DateTimeOffset.UtcNow, reviewedByUserId);
         await repository.SaveChangesAsync(cancellationToken);
         return ToResponse(comparison);
     }
@@ -208,5 +209,6 @@ public sealed class ComparisonService(IComparisonRepository repository)
         comparison.CreatedAt,
         comparison.ReviewedOutcome?.ToString(),
         comparison.ReviewReason,
-        comparison.ReviewedAt);
+        comparison.ReviewedAt,
+        comparison.ReviewedByUserId);
 }

@@ -35,6 +35,19 @@ public class ComparisonEndpointsTests : IClassFixture<WebApplicationFactory<Prog
         _client = _factory.CreateClient();
     }
 
+    private async Task LoginAsReviewerAsync()
+    {
+        var response = await _client.PostAsJsonAsync("/api/auth/login", new
+        {
+            email = "reviewer@pathlens.local",
+            password = "Reviewer@123",
+        });
+        response.EnsureSuccessStatusCode();
+        var login = await response.Content.ReadFromJsonAsync<JsonElement>();
+        _client.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", login.GetProperty("accessToken").GetString());
+    }
+
     private async Task<Guid> CreateReportAsync()
     {
         var response = await _client.PostAsJsonAsync("/api/reports", new
@@ -161,6 +174,7 @@ public class ComparisonEndpointsTests : IClassFixture<WebApplicationFactory<Prog
         var comparison = await CompareAsync(earlier, later);
         var id = comparison.GetProperty("id").GetGuid();
 
+        await LoginAsReviewerAsync();
         var review = await _client.PostAsJsonAsync($"/api/comparisons/{id}/review", new
         {
             reviewOutcome = "Inconclusive",
@@ -181,6 +195,7 @@ public class ComparisonEndpointsTests : IClassFixture<WebApplicationFactory<Prog
         var comparison = await CompareAsync(earlier, later);
         var id = comparison.GetProperty("id").GetGuid();
 
+        await LoginAsReviewerAsync();
         var response = await _client.PostAsJsonAsync($"/api/comparisons/{id}/review", new
         {
             reviewOutcome = "Inconclusive",

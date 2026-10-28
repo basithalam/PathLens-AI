@@ -26,6 +26,20 @@ public sealed class ComparisonRepository(PathLensDbContext dbContext) : ICompari
             .OrderByDescending(comparison => comparison.CreatedAt)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<EvidenceComparison>> ListByEffectiveOutcomeAsync(
+        Domain.Reports.EvidenceComparisonOutcome outcome, int limit, CancellationToken cancellationToken)
+    {
+        // Effective outcome is the reviewed outcome when present, else the engine outcome.
+        var comparisons = await dbContext.EvidenceComparisons.AsNoTracking()
+            .OrderBy(comparison => comparison.CreatedAt)
+            .ToListAsync(cancellationToken);
+
+        return comparisons
+            .Where(comparison => comparison.EffectiveOutcome == outcome)
+            .Take(Math.Clamp(limit, 1, 100))
+            .ToList();
+    }
+
     public Task SaveChangesAsync(CancellationToken cancellationToken) =>
         dbContext.SaveChangesAsync(cancellationToken);
 }

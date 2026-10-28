@@ -24,6 +24,7 @@ public sealed class EvidenceComparison
     public EvidenceComparisonOutcome? ReviewedOutcome { get; private set; }
     public string? ReviewReason { get; private set; }
     public DateTimeOffset? ReviewedAt { get; private set; }
+    public Guid? ReviewedByUserId { get; private set; }
 
     public EvidenceComparisonOutcome EffectiveOutcome => ReviewedOutcome ?? Outcome;
 
@@ -48,7 +49,7 @@ public sealed class EvidenceComparison
             CreatedAt = now,
         };
 
-    public void Review(EvidenceComparisonOutcome outcome, string reason, DateTimeOffset now)
+    public void Review(EvidenceComparisonOutcome outcome, string reason, DateTimeOffset now, Guid? reviewedByUserId = null)
     {
         if (string.IsNullOrWhiteSpace(reason))
         {
@@ -58,5 +59,6 @@ public sealed class EvidenceComparison
         ReviewedOutcome = outcome;
         ReviewReason = reason.Trim();
         ReviewedAt = now;
+        ReviewedByUserId = reviewedByUserId;
     }
 }

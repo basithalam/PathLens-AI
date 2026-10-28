@@ -307,9 +307,17 @@ export async function reviewComparison(
   reason: string,
 ): Promise<EvidenceComparison | null> {
   try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (typeof window !== "undefined") {
+      const token = window.localStorage.getItem("pathlens.accessToken");
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+    }
+
     const response = await fetch(`${API_BASE_URL}/api/comparisons/${id}/review`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ reviewOutcome, reason }),
       signal: AbortSignal.timeout(8000),
     });

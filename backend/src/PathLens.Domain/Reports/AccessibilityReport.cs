@@ -71,6 +71,12 @@ public sealed class AccessibilityReport
         };
     }
 
+    public void SetVerificationStatus(VerificationStatus status, DateTimeOffset now)
+    {
+        VerificationStatus = status;
+        UpdatedAt = now;
+    }
+
     public void RecordEvidence(DateTimeOffset evidenceUploadedAt)
     {
         LastEvidenceAt = evidenceUploadedAt;

@@ -60,9 +60,12 @@ public static class ComparisonEndpoints
         app.MapPost("/api/comparisons/{id:guid}/review", async (
             Guid id,
             ReviewComparisonRequest request,
+            System.Security.Claims.ClaimsPrincipal principal,
             ComparisonService service,
+            Application.Reviews.ReviewService reviewService,
             CancellationToken cancellationToken) =>
         {
+            var actorId = AuthEndpoints.CurrentUserId(principal);
             if (string.IsNullOrWhiteSpace(request.Reason))
             {
                 return Results.ValidationProblem(
@@ -81,11 +84,19 @@ public static class ComparisonEndpoints
                     title: "Validation failed", statusCode: 400);
             }
 
-            var reviewed = await service.ReviewAsync(id, outcome, request.Reason, cancellationToken);
+            var before = await service.GetAsync(id, cancellationToken);
+            var reviewed = await service.ReviewAsync(id, outcome, request.Reason, cancellationToken, actorId);
+            if (reviewed is not null && actorId is not null && before is not null)
+            {
+                await reviewService.RecordComparisonReviewAsync(
+                    actorId.Value, id, before.EffectiveOutcome, reviewed.EffectiveOutcome,
+                    request.Reason, cancellationToken);
+            }
+
             return reviewed is null
                 ? Results.Problem(title: "Comparison not found", statusCode: 404)
                 : Results.Ok(reviewed);
-        }).WithTags("Comparisons");
+        }).RequireAuthorization(AuthEndpoints.ReviewerPolicy).WithTags("Comparisons");
 
         return app;
     }

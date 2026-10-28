@@ -168,9 +168,11 @@ Accessibility map (Phase 4): `GET /api/map/reports` (viewport bounding box with 
 
 Route recommendation (Phase 5): `POST /api/routes/recommend` and `GET /api/routes/{id}`. Real route geometry, distance, and duration come from OSRM (`Routing:OsrmBaseUrl`, `Routing:Profile=foot`); if the provider fails, the API returns `502` and the UI shows no route rather than inventing one. Each candidate is evaluated against nearby reports (known obstacles within 50 m), evidence freshness, and the share of the route with no nearby evidence — unknown is reported as unknown, never as clear — and ranked by an explainable rule (fewest known obstacles, then shortest). Recommendations are persisted and can be reopened by id. The `/routes` page lets you type or click start/destination on the map and compare route cards side by side with the map.
 
+Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a JWT for seeded accounts (reviewer `reviewer@pathlens.local` / `Reviewer@123`, admin `admin@pathlens.local` / `Admin@123`, user `user@pathlens.local` / `User@123` — local development only, change them elsewhere; passwords are stored hashed). Only Reviewer/Admin can call `POST /api/reports/{id}/review`, `POST /api/comparisons/{id}/review`, `GET /api/reviewer/queue`, and `GET /api/reviewer/audit`; anonymous callers get `401` and plain users `403`. Every verification change and comparison review writes an audit event with actor, previous value, new value, note, and time; the original AI outcome is never overwritten. The `/reviewer` page provides login, the queue (unverified reports and conflicting comparisons), review actions, and the audit trail. Set `Jwt__SigningKey` in the environment outside local development.
+
 ## Status
 
-🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–5 are complete: reports and evidence persist, analysis and comparison work end-to-end (mock AI provider until a Meta AI key is configured), reports are explorable on a map, and walking routes can be compared with evidence-aware explanations. Builds and tests pass.
+🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–6 are complete: reports and evidence persist, analysis and comparison work end-to-end (mock AI provider until a Meta AI key is configured), reports are explorable on a map, walking routes can be compared, and human review is authenticated and audited. Builds and tests pass.
 
 ## License
 

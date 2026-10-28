@@ -58,6 +58,12 @@ public static class DependencyInjection
         services.AddScoped<Application.Routing.IRouteRecommendationRepository, RouteRecommendationRepository>();
         services.AddScoped<Application.Routing.RouteRecommendationService>();
 
+        services.Configure<Auth.JwtOptions>(configuration.GetSection(Auth.JwtOptions.SectionName));
+        services.AddScoped<Application.Users.IUserRepository, UserRepository>();
+        services.AddScoped<Application.Users.IAuthService, Auth.AuthService>();
+        services.AddScoped<Application.Reviews.IReviewRepository, ReviewRepository>();
+        services.AddScoped<Application.Reviews.ReviewService>();
+
         // AI provider: real Meta by default; Mock only when Ai:Provider=Mock is
         // set explicitly (tests / labelled demo). The key stays server-side.
         services.Configure<MetaAiOptions>(configuration.GetSection(MetaAiOptions.SectionName));
