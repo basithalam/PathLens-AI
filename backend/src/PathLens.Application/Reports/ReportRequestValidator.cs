@@ -11,6 +11,7 @@ public static class ReportRequestValidator
     public static Dictionary<string, string[]> ValidateCreate(CreateReportRequest request)
     {
         var errors = ValidateCommon(request.Title, request.Description, request.ObstacleType, request.Severity);
+        ValidateSurface(request.Surface, errors);
 
         if (!AccessibilityReport.IsValidLatitude(request.Latitude))
         {
@@ -25,8 +26,22 @@ public static class ReportRequestValidator
         return errors;
     }
 
-    public static Dictionary<string, string[]> ValidateUpdate(UpdateReportRequest request) =>
-        ValidateCommon(request.Title, request.Description, request.ObstacleType, request.Severity);
+    public static Dictionary<string, string[]> ValidateUpdate(UpdateReportRequest request)
+    {
+        var errors = ValidateCommon(request.Title, request.Description, request.ObstacleType, request.Severity);
+        ValidateSurface(request.Surface, errors);
+        return errors;
+    }
+
+    private static void ValidateSurface(string? surface, Dictionary<string, string[]> errors)
+    {
+        if (!string.IsNullOrWhiteSpace(surface) &&
+            !Enum.TryParse<SurfaceCondition>(surface, ignoreCase: true, out _))
+        {
+            errors["surface"] =
+                [$"Surface must be one of: {string.Join(", ", Enum.GetNames<SurfaceCondition>())}, or omitted when unknown."];
+        }
+    }
 
     private static Dictionary<string, string[]> ValidateCommon(
         string? title, string? description, string? obstacleType, string? severity)

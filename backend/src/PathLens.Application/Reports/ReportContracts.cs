@@ -8,13 +8,19 @@ public sealed record CreateReportRequest(
     string? ObstacleType,
     string? Severity,
     double Latitude,
-    double Longitude);
+    double Longitude,
+    bool? HasStairs = null,
+    bool? HasRamp = null,
+    string? Surface = null);
 
 public sealed record UpdateReportRequest(
     string? Title,
     string? Description,
     string? ObstacleType,
-    string? Severity);
+    string? Severity,
+    bool? HasStairs = null,
+    bool? HasRamp = null,
+    string? Surface = null);
 
 public sealed record ReportResponse(
     Guid Id,
@@ -29,7 +35,11 @@ public sealed record ReportResponse(
     DateTimeOffset CreatedAt,
     DateTimeOffset UpdatedAt,
     DateTimeOffset? LastEvidenceAt,
-    Guid? CameraSourceId);
+    Guid? CameraSourceId,
+    bool? HasStairs,
+    bool? HasRamp,
+    string? Surface,
+    string? AttributeSource);
 
 public sealed record PagedResult<T>(
     IReadOnlyList<T> Items,

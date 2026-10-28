@@ -33,6 +33,14 @@ public enum VerificationStatus
     Rejected,
 }
 
+/// <summary>Surface as actually observed. Absent (null) means nobody measured it — never estimated.</summary>
+public enum SurfaceCondition
+{
+    Smooth,
+    Uneven,
+    Broken,
+}
+
 public enum AnalysisStatus
 {
     Pending,

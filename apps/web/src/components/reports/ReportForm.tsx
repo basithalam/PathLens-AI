@@ -36,6 +36,9 @@ export function ReportForm() {
   const [severity, setSeverity] = useState("Unknown");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
+  const [hasStairs, setHasStairs] = useState("");
+  const [hasRamp, setHasRamp] = useState("");
+  const [surface, setSurface] = useState("");
   const [errors, setErrors] = useState<Record<string, string[]>>({});
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -72,6 +75,9 @@ export function ReportForm() {
       severity,
       latitude: Number(latitude),
       longitude: Number(longitude),
+      hasStairs: hasStairs === "" ? null : hasStairs === "yes",
+      hasRamp: hasRamp === "" ? null : hasRamp === "yes",
+      surface: surface === "" ? null : surface,
     });
 
     setSubmitting(false);
@@ -144,6 +150,42 @@ export function ReportForm() {
         </label>
         <FieldError errors={errors} field="longitude" />
       </div>
+
+      <fieldset>
+        <legend>What did you actually see? (optional — Unknown is honest)</legend>
+        <p>
+          Only set these when you observed them yourself. Leave Unknown when
+          you did not check; the system never estimates them for you.
+        </p>
+        <div className="form-row">
+          <label>
+            Stairs or a step here?
+            <select value={hasStairs} onChange={(e) => setHasStairs(e.target.value)}>
+              <option value="">Unknown</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label>
+            Ramp here?
+            <select value={hasRamp} onChange={(e) => setHasRamp(e.target.value)}>
+              <option value="">Unknown</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label>
+            Surface
+            <select value={surface} onChange={(e) => setSurface(e.target.value)}>
+              <option value="">Unknown</option>
+              <option value="Smooth">Smooth</option>
+              <option value="Uneven">Uneven</option>
+              <option value="Broken">Broken</option>
+            </select>
+          </label>
+        </div>
+        <FieldError errors={errors} field="surface" />
+      </fieldset>
 
       <p>
         <button type="button" onClick={useMyLocation}>

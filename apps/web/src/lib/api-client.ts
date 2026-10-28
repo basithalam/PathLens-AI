@@ -30,6 +30,10 @@ export interface AccessibilityReport {
   updatedAt: string;
   lastEvidenceAt: string | null;
   cameraSourceId: string | null;
+  hasStairs: boolean | null;
+  hasRamp: boolean | null;
+  surface: string | null;
+  attributeSource: string | null;
 }
 
 export interface CameraSource {
@@ -174,6 +178,9 @@ export interface CreateReportInput {
   severity: string;
   latitude: number;
   longitude: number;
+  hasStairs?: boolean | null;
+  hasRamp?: boolean | null;
+  surface?: string | null;
 }
 
 export type CreateReportResult =
@@ -468,6 +475,9 @@ export interface NearbyObstacle {
   latitude: number;
   longitude: number;
   isCameraCandidate: boolean;
+  hasStairs: boolean | null;
+  hasRamp: boolean | null;
+  surface: string | null;
 }
 
 export interface EvaluatedRoute {
@@ -479,7 +489,23 @@ export interface EvaluatedRoute {
   unknownLengthPercent: number;
   newestEvidenceAt: string | null;
   explanation: string[];
+  hasConfirmedStairs: boolean;
+  staleObstacleCount: number;
 }
+
+export interface RoutePreferences {
+  avoidStairs: boolean;
+  preferVerifiedEvidence: boolean;
+  avoidStaleEvidence: boolean;
+  preferShortest: boolean;
+}
+
+export const DEFAULT_ROUTE_PREFERENCES: RoutePreferences = {
+  avoidStairs: true,
+  preferVerifiedEvidence: false,
+  avoidStaleEvidence: false,
+  preferShortest: false,
+};
 
 export interface RouteRecommendation {
   id: string;
@@ -490,11 +516,13 @@ export interface RouteRecommendation {
   routes: EvaluatedRoute[];
   limitations: string[];
   createdAt: string;
+  appliedPreferences: string[];
 }
 
 export async function recommendRoutes(
   origin: { latitude: number; longitude: number },
   destination: { latitude: number; longitude: number },
+  preferences: RoutePreferences = DEFAULT_ROUTE_PREFERENCES,
 ): Promise<{ ok: true; recommendation: RouteRecommendation } | { ok: false; message: string }> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/routes/recommend`, {
@@ -505,6 +533,7 @@ export async function recommendRoutes(
         originLongitude: origin.longitude,
         destinationLatitude: destination.latitude,
         destinationLongitude: destination.longitude,
+        preferences,
       }),
       signal: AbortSignal.timeout(30000),
     });

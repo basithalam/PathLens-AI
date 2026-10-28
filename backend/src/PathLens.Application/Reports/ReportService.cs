@@ -14,7 +14,12 @@ public sealed class ReportService(IReportRepository repository)
             request.Latitude,
             request.Longitude,
             createdByUserId: null,
-            DateTimeOffset.UtcNow);
+            DateTimeOffset.UtcNow,
+            cameraSourceId: null,
+            request.HasStairs,
+            request.HasRamp,
+            ParseSurface(request.Surface),
+            HasAnyAttribute(request.HasStairs, request.HasRamp, request.Surface) ? "Reporter" : null);
 
         await repository.AddAsync(report, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
@@ -52,6 +57,16 @@ public sealed class ReportService(IReportRepository repository)
             ReportRequestValidator.ParseObstacleType(request.ObstacleType),
             ReportRequestValidator.ParseSeverity(request.Severity),
             DateTimeOffset.UtcNow);
+
+        if (request.HasStairs is not null || request.HasRamp is not null || request.Surface is not null)
+        {
+            report.SetAttributes(
+                request.HasStairs ?? report.HasStairs,
+                request.HasRamp ?? report.HasRamp,
+                request.Surface is not null ? ParseSurface(request.Surface) : report.Surface,
+                "Reporter",
+                DateTimeOffset.UtcNow);
+        }
 
         await repository.SaveChangesAsync(cancellationToken);
         return ToResponse(report);
@@ -91,5 +106,15 @@ public sealed class ReportService(IReportRepository repository)
         report.CreatedAt,
         report.UpdatedAt,
         report.LastEvidenceAt,
-        report.CameraSourceId);
+        report.CameraSourceId,
+        report.HasStairs,
+        report.HasRamp,
+        report.Surface?.ToString(),
+        report.AttributeSource);
+
+    public static SurfaceCondition? ParseSurface(string? value) =>
+        Enum.TryParse<SurfaceCondition>(value, ignoreCase: true, out var parsed) ? parsed : null;
+
+    private static bool HasAnyAttribute(bool? hasStairs, bool? hasRamp, string? surface) =>
+        hasStairs is not null || hasRamp is not null || ParseSurface(surface) is not null;
 }

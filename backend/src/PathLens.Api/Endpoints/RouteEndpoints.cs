@@ -42,7 +42,8 @@ public static class RouteEndpoints
                 var recommendation = await service.RecommendAsync(
                     new GeoPoint(request.OriginLatitude, request.OriginLongitude),
                     new GeoPoint(request.DestinationLatitude, request.DestinationLongitude),
-                    cancellationToken);
+                    cancellationToken,
+                    request.Preferences);
                 return Results.Created($"/api/routes/{recommendation.Id}", recommendation);
             }
             catch (RouteProviderUnavailableException ex)

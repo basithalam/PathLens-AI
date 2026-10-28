@@ -25,6 +25,15 @@ public sealed class AccessibilityReport
 
     /// <summary>Set only for camera-detected candidates: the source that produced them. Never human-verified automatically.</summary>
     public Guid? CameraSourceId { get; private set; }
+
+    // Optional observed accessibility attributes. Null means unknown: nobody
+    // has measured it, and route scoring must never estimate it.
+    public bool? HasStairs { get; private set; }
+    public bool? HasRamp { get; private set; }
+    public SurfaceCondition? Surface { get; private set; }
+
+    /// <summary>Who supplied the attributes above: Reporter, CameraFeed, or Reviewer.</summary>
+    public string? AttributeSource { get; private set; }
     public DateTimeOffset CreatedAt { get; private set; }
     public DateTimeOffset UpdatedAt { get; private set; }
     public DateTimeOffset? LastEvidenceAt { get; private set; }
@@ -41,7 +50,11 @@ public sealed class AccessibilityReport
         double longitude,
         Guid? createdByUserId,
         DateTimeOffset now,
-        Guid? cameraSourceId = null)
+        Guid? cameraSourceId = null,
+        bool? hasStairs = null,
+        bool? hasRamp = null,
+        SurfaceCondition? surface = null,
+        string? attributeSource = null)
     {
         if (string.IsNullOrWhiteSpace(title))
         {
@@ -71,6 +84,10 @@ public sealed class AccessibilityReport
             VerificationStatus = VerificationStatus.Unverified,
             CreatedByUserId = createdByUserId,
             CameraSourceId = cameraSourceId,
+            HasStairs = hasStairs,
+            HasRamp = hasRamp,
+            Surface = surface,
+            AttributeSource = string.IsNullOrWhiteSpace(attributeSource) ? null : attributeSource.Trim(),
             CreatedAt = now,
             UpdatedAt = now,
         };
@@ -104,6 +121,16 @@ public sealed class AccessibilityReport
         Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
         ObstacleType = obstacleType;
         Severity = severity;
+        UpdatedAt = now;
+    }
+
+    public void SetAttributes(
+        bool? hasStairs, bool? hasRamp, SurfaceCondition? surface, string? attributeSource, DateTimeOffset now)
+    {
+        HasStairs = hasStairs;
+        HasRamp = hasRamp;
+        Surface = surface;
+        AttributeSource = string.IsNullOrWhiteSpace(attributeSource) ? null : attributeSource.Trim();
         UpdatedAt = now;
     }
 

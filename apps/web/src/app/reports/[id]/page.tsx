@@ -74,6 +74,19 @@ export default async function ReportDetailsPage({ params }: ReportDetailsProps) 
           <dd>{new Date(report.createdAt).toLocaleString()}</dd>
         </div>
         <div>
+          <dt>Observed attributes</dt>
+          <dd>
+            {report.hasStairs === null && report.hasRamp === null && report.surface === null
+              ? "Stairs, ramp and surface have not been measured here. Unknown — not estimated."
+              : [
+                  report.hasStairs !== null ? `Stairs: ${report.hasStairs ? "yes" : "no"}` : "Stairs: unknown",
+                  report.hasRamp !== null ? `Ramp: ${report.hasRamp ? "yes" : "no"}` : "Ramp: unknown",
+                  report.surface !== null ? `Surface: ${report.surface}` : "Surface: unknown",
+                  report.attributeSource ? ` (source: ${report.attributeSource})` : "",
+                ].join(" · ")}
+          </dd>
+        </div>
+        <div>
           <dt>Last evidence</dt>
           <dd>
             {report.lastEvidenceAt

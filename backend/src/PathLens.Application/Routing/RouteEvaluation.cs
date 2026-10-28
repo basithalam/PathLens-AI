@@ -9,7 +9,10 @@ public sealed record NearbyReportInfo(
     DateTimeOffset EvidenceAt,
     double Latitude,
     double Longitude,
-    bool IsCameraCandidate);
+    bool IsCameraCandidate,
+    bool? HasStairs,
+    bool? HasRamp,
+    string? Surface);
 
 public sealed record EvaluatedRoute(
     int Index,
@@ -19,7 +22,9 @@ public sealed record EvaluatedRoute(
     IReadOnlyList<NearbyReportInfo> KnownObstacles,
     double UnknownLengthPercent,
     DateTimeOffset? NewestEvidenceAt,
-    IReadOnlyList<string> Explanation);
+    IReadOnlyList<string> Explanation,
+    bool HasConfirmedStairs,
+    int StaleObstacleCount);
 
 public sealed record RouteRecommendationResponse(
     Guid Id,
@@ -29,7 +34,8 @@ public sealed record RouteRecommendationResponse(
     GeoPoint Destination,
     IReadOnlyList<EvaluatedRoute> Routes,
     IReadOnlyList<string> Limitations,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    IReadOnlyList<string> AppliedPreferences);
 
 public static class RouteGeometry
 {

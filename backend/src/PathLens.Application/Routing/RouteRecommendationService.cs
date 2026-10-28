@@ -26,8 +26,10 @@ public sealed class RouteRecommendationService(
     public const int StaleEvidenceDays = 30;
 
     public async Task<RouteRecommendationResponse> RecommendAsync(
-        GeoPoint origin, GeoPoint destination, CancellationToken cancellationToken)
+        GeoPoint origin, GeoPoint destination, CancellationToken cancellationToken,
+        RoutePreferences? preferences = null)
     {
+        preferences ??= RoutePreferences.Default;
         var providerResult = await routingService.GetRoutesAsync(origin, destination, cancellationToken);
 
         // Fetch reports around the whole routing area once.
@@ -65,7 +67,10 @@ public sealed class RouteRecommendationService(
                     candidateReport.Report.LastEvidenceAt ?? candidateReport.Report.CreatedAt,
                     candidateReport.Report.Latitude,
                     candidateReport.Report.Longitude,
-                    candidateReport.Report.CameraSourceId is not null))
+                    candidateReport.Report.CameraSourceId is not null,
+                    candidateReport.Report.HasStairs,
+                    candidateReport.Report.HasRamp,
+                    candidateReport.Report.Surface?.ToString()))
                 .ToList();
 
             var unknownPercent = RouteGeometry.UnknownLengthPercent(
@@ -128,6 +133,27 @@ public sealed class RouteRecommendationService(
                     : $"The newest nearby evidence is about {ageDays:0} day(s) old; conditions may have changed since.");
             }
 
+            var hasConfirmedStairs = nearby.Any(info =>
+                info.VerificationStatus == "HumanVerified" &&
+                (info.HasStairs == true || info.ObstacleType == "StairsOrStep"));
+            var routeStaleCount = nearby.Count(info => (now - info.EvidenceAt).TotalDays > StaleEvidenceDays);
+
+            if (hasConfirmedStairs)
+            {
+                explanation.Add(
+                    "This route has a human-verified stair report. With Avoid stairs on (the default), " +
+                    "it cannot outrank a route without one, however short it is.");
+            }
+
+            foreach (var obstacle in nearby.Where(info => info.HasStairs is not null || info.HasRamp is not null || info.Surface is not null).Take(3))
+            {
+                var parts = new List<string>();
+                if (obstacle.HasStairs is not null) parts.Add($"stairs: {(obstacle.HasStairs.Value ? "yes" : "no")}");
+                if (obstacle.HasRamp is not null) parts.Add($"ramp: {(obstacle.HasRamp.Value ? "yes" : "no")}");
+                if (obstacle.Surface is not null) parts.Add($"surface: {obstacle.Surface}");
+                explanation.Add($"- Observed attributes for {obstacle.Title}: {string.Join(", ", parts)}. Attributes that nobody measured stay unknown and are never estimated.");
+            }
+
             return new EvaluatedRoute(
                 0,
                 candidate.Geometry,
@@ -136,15 +162,18 @@ public sealed class RouteRecommendationService(
                 nearby,
                 unknownPercent,
                 newestEvidence,
-                explanation);
+                explanation,
+                hasConfirmedStairs,
+                routeStaleCount);
         }).ToList();
 
-        // Explainable ranking: fewest known obstacles, then fewest
-        // human-verified obstacles, then shortest distance. Never "safest".
+        // Explainable ranking v2. Key order: confirmed stairs (hard, when
+        // Avoid stairs is on), fewest known obstacles, [shortest if
+        // preferred], fewest human-verified, [fewest uncertain if
+        // preferred], [fewest stale if preferred], shortest. Unknown
+        // segments never win by default, and no route is ever "safest".
         var ranked = evaluated
-            .OrderBy(route => route.KnownObstacles.Count)
-            .ThenBy(route => route.KnownObstacles.Count(info => info.VerificationStatus == "HumanVerified"))
-            .ThenBy(route => route.DistanceMeters)
+            .OrderBy(route => route, new RouteRankingComparer(preferences))
             .Select((route, index) => route with { Index = index })
             .ToList();
 
@@ -163,7 +192,7 @@ public sealed class RouteRecommendationService(
             {
                 var above = ranked[i];
                 var below = ranked[i + 1];
-                var (aboveLine, belowLine) = RankingReason(above, below);
+                var (aboveLine, belowLine) = RankingReason(above, below, preferences);
 
                 ranked[i] = above with { Explanation = above.Explanation.Append(aboveLine).ToList() };
                 ranked[i + 1] = below with { Explanation = below.Explanation.Append(belowLine).ToList() };
@@ -183,7 +212,8 @@ public sealed class RouteRecommendationService(
                 "A route with no obstacle reports is unknown, not clear.",
                 "Report locations are user-supplied claims and may be inaccurate.",
             ],
-            now);
+            now,
+            preferences.Describe());
 
         var record = RouteRecommendationRecord.Create(
             responseId,
@@ -200,10 +230,53 @@ public sealed class RouteRecommendationService(
         return response;
     }
 
-    private static (string AboveLine, string BelowLine) RankingReason(EvaluatedRoute above, EvaluatedRoute below)
+    private sealed class RouteRankingComparer(RoutePreferences preferences) : IComparer<EvaluatedRoute>
+    {
+        public int Compare(EvaluatedRoute? x, EvaluatedRoute? y)
+        {
+            if (x is null || y is null) return 0;
+            if (preferences.AvoidStairs)
+            {
+                var c = x.HasConfirmedStairs.CompareTo(y.HasConfirmedStairs);
+                if (c != 0) return c;
+            }
+            var count = x.KnownObstacles.Count.CompareTo(y.KnownObstacles.Count);
+            if (count != 0) return count;
+            if (preferences.PreferShortest)
+            {
+                var d = x.DistanceMeters.CompareTo(y.DistanceMeters);
+                if (d != 0) return d;
+            }
+            var verified = Verified(x).CompareTo(Verified(y));
+            if (verified != 0) return verified;
+            if (preferences.PreferVerifiedEvidence)
+            {
+                var u = Uncertain(x).CompareTo(Uncertain(y));
+                if (u != 0) return u;
+            }
+            if (preferences.AvoidStaleEvidence)
+            {
+                var s = x.StaleObstacleCount.CompareTo(y.StaleObstacleCount);
+                if (s != 0) return s;
+            }
+            return x.DistanceMeters.CompareTo(y.DistanceMeters);
+        }
+        private static int Verified(EvaluatedRoute r) => r.KnownObstacles.Count(i => i.VerificationStatus == "HumanVerified");
+        private static int Uncertain(EvaluatedRoute r) => r.KnownObstacles.Count - Verified(r);
+    }
+
+    private static (string AboveLine, string BelowLine) RankingReason(
+        EvaluatedRoute above, EvaluatedRoute below, RoutePreferences preferences)
     {
         var aboveName = $"Route {above.Index + 1}";
         var belowName = $"Route {below.Index + 1}";
+
+        if (preferences.AvoidStairs && above.HasConfirmedStairs != below.HasConfirmedStairs)
+        {
+            return (
+                $"{aboveName} ranks above {belowName} because {belowName} has a human-verified stair report and Avoid stairs is on: a confirmed-stair route cannot outrank one without, however short it is.",
+                $"{belowName} ranks below {aboveName} because it has a human-verified stair report and Avoid stairs is on. Turn Avoid stairs off to treat stairs as an ordinary obstacle.");
+        }
 
         if (below.KnownObstacles.Count != above.KnownObstacles.Count)
         {
@@ -216,6 +289,13 @@ public sealed class RouteRecommendationService(
 
         var aboveVerified = above.KnownObstacles.Count(info => info.VerificationStatus == "HumanVerified");
         var belowVerified = below.KnownObstacles.Count(info => info.VerificationStatus == "HumanVerified");
+        if (preferences.PreferShortest && Math.Abs(below.DistanceMeters - above.DistanceMeters) > 0.5)
+        {
+            return (
+                $"{aboveName} ranks above {belowName} because obstacle counts tie and Prefer shortest is on: {aboveName} is shorter ({above.DistanceMeters / 1000:0.00} km vs {below.DistanceMeters / 1000:0.00} km).",
+                $"{belowName} ranks below {aboveName} because obstacle counts tie and Prefer shortest is on: {belowName} is longer ({below.DistanceMeters / 1000:0.00} km vs {above.DistanceMeters / 1000:0.00} km).");
+        }
+
         if (belowVerified != aboveVerified)
         {
             return (
@@ -223,6 +303,21 @@ public sealed class RouteRecommendationService(
                 $"but {aboveName} has fewer human-verified ones ({aboveVerified} vs {belowVerified}).",
                 $"{belowName} ranks below {aboveName} because it has more human-verified obstacles " +
                 $"({belowVerified} vs {aboveVerified}) at the same total count.");
+        }
+
+        if (preferences.PreferVerifiedEvidence &&
+            below.KnownObstacles.Count - belowVerified != above.KnownObstacles.Count - aboveVerified)
+        {
+            return (
+                $"{aboveName} ranks above {belowName} because Prefer verified evidence is on and {aboveName} has fewer uncertain obstacles ({above.KnownObstacles.Count - aboveVerified} vs {below.KnownObstacles.Count - belowVerified}).",
+                $"{belowName} ranks below {aboveName} because Prefer verified evidence is on and {belowName} has more uncertain obstacles ({below.KnownObstacles.Count - belowVerified} vs {above.KnownObstacles.Count - aboveVerified}). Uncertain does not mean absent.");
+        }
+
+        if (preferences.AvoidStaleEvidence && below.StaleObstacleCount != above.StaleObstacleCount)
+        {
+            return (
+                $"{aboveName} ranks above {belowName} because Avoid stale evidence is on and {aboveName} has fewer stale obstacles ({above.StaleObstacleCount} vs {below.StaleObstacleCount}).",
+                $"{belowName} ranks below {aboveName} because Avoid stale evidence is on and {belowName} has more stale obstacles ({below.StaleObstacleCount} vs {above.StaleObstacleCount}).");
         }
 
         if (Math.Abs(below.DistanceMeters - above.DistanceMeters) > 0.5)
@@ -239,7 +334,6 @@ public sealed class RouteRecommendationService(
             $"{aboveName} and {belowName} tie on known obstacles and distance; their order is not meaningful.",
             $"{belowName} and {aboveName} tie on known obstacles and distance; their order is not meaningful.");
     }
-
     public async Task<RouteRecommendationResponse?> GetAsync(Guid id, CancellationToken cancellationToken)
     {
         var record = await recommendationRepository.GetAsync(id, cancellationToken);

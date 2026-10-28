@@ -17,6 +17,8 @@ public sealed class AccessibilityReportConfiguration : IEntityTypeConfiguration<
         builder.Property(report => report.Severity).HasConversion<string>().HasMaxLength(20);
         builder.Property(report => report.Status).HasConversion<string>().HasMaxLength(20);
         builder.Property(report => report.VerificationStatus).HasConversion<string>().HasMaxLength(20);
+        builder.Property(report => report.Surface).HasConversion<string>().HasMaxLength(20);
+        builder.Property(report => report.AttributeSource).HasMaxLength(20);
 
         builder.HasIndex(report => report.ObstacleType);
         builder.HasIndex(report => report.VerificationStatus);

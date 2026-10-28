@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
@@ -88,6 +89,138 @@ public class RouteEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         var id = recommendation.GetProperty("id").GetGuid();
         var reopened = await _client.GetAsync($"/api/routes/{id}");
         Assert.Equal(HttpStatusCode.OK, reopened.StatusCode);
+    }
+
+    private async Task<Guid> CreateReportFullAsync(
+        double latitude, double longitude, string title,
+        string obstacleType = "BlockedSidewalk", bool? hasStairs = null, string? surface = null)
+    {
+        var response = await _client.PostAsJsonAsync("/api/reports", new
+        {
+            title,
+            description = (string?)null,
+            obstacleType,
+            severity = "High",
+            latitude,
+            longitude,
+            hasStairs,
+            hasRamp = (bool?)false,
+            surface,
+        });
+        response.EnsureSuccessStatusCode();
+        var report = await response.Content.ReadFromJsonAsync<JsonElement>();
+        return report.GetProperty("id").GetGuid();
+    }
+
+    private async Task VerifyAsync(Guid reportId)
+    {
+        var login = await _client.PostAsJsonAsync("/api/auth/login",
+            new { email = "reviewer@pathlens.local", password = "Reviewer@123" });
+        login.EnsureSuccessStatusCode();
+        var token = (await login.Content.ReadFromJsonAsync<JsonElement>())
+            .GetProperty("accessToken").GetString();
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, $"/api/reports/{reportId}/review")
+        {
+            Content = JsonContent.Create(new { verificationStatus = "HumanVerified", note = "F2 test verification." }),
+        };
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var response = await _client.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+    }
+
+    private async Task<JsonElement> RecommendAsync(double lat, double lon, object? preferences)
+    {
+        var response = await _client.PostAsJsonAsync("/api/routes/recommend", new
+        {
+            originLatitude = lat,
+            originLongitude = lon,
+            destinationLatitude = lat + 0.01,
+            destinationLongitude = lon,
+            preferences,
+        });
+        response.EnsureSuccessStatusCode();
+        return await response.Content.ReadFromJsonAsync<JsonElement>();
+    }
+
+    [Fact]
+    public async Task Report_attributes_are_stored_with_their_source()
+    {
+        var response = await _client.PostAsJsonAsync("/api/reports", new
+        {
+            title = $"Attribute test {Guid.NewGuid():N}",
+            description = (string?)null,
+            obstacleType = "StairsOrStep",
+            severity = "High",
+            latitude = 28.5,
+            longitude = 96.0,
+            hasStairs = true,
+            hasRamp = false,
+            surface = "Broken",
+        });
+        response.EnsureSuccessStatusCode();
+        var report = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.True(report.GetProperty("hasStairs").GetBoolean());
+        Assert.False(report.GetProperty("hasRamp").GetBoolean());
+        Assert.Equal("Broken", report.GetProperty("surface").GetString());
+        Assert.Equal("Reporter", report.GetProperty("attributeSource").GetString());
+
+        var badSurface = await _client.PostAsJsonAsync("/api/reports", new
+        {
+            title = "Bad surface",
+            description = (string?)null,
+            obstacleType = "Other",
+            severity = "Low",
+            latitude = 28.5,
+            longitude = 96.0,
+            surface = "Sparkly",
+        });
+        Assert.Equal(HttpStatusCode.BadRequest, badSurface.StatusCode);
+    }
+
+    [Fact]
+    public async Task Verified_stairs_are_a_hard_constraint_unless_the_preference_is_off()
+    {
+        // Direct route (straight line) gets ONE human-verified stair report.
+        var stairId = await CreateReportFullAsync(
+            27.505, 95.0, $"Verified stairs {Guid.NewGuid():N}", "StairsOrStep", hasStairs: true, surface: "Broken");
+        await VerifyAsync(stairId);
+
+        // Detour (bends +0.004 longitude at the middle) gets TWO unverified reports.
+        await CreateReportFullAsync(27.505, 95.004, $"Detour obstacle A {Guid.NewGuid():N}");
+        await CreateReportFullAsync(27.5025, 95.0028, $"Detour obstacle B {Guid.NewGuid():N}");
+
+        // Default preferences: Avoid stairs is hard, so the 2-obstacle detour
+        // must outrank the 1-obstacle stair route.
+        var withDefault = await RecommendAsync(27.5, 95.0, null);
+        var routes = withDefault.GetProperty("routes");
+        // Relative assertions only: the shared test DB keeps reports from
+        // earlier runs, so exact obstacle counts grow between runs.
+        Assert.True(
+            routes[0].GetProperty("knownObstacles").GetArrayLength() >
+            routes[1].GetProperty("knownObstacles").GetArrayLength(),
+            "With Avoid stairs on, the obstacle-heavier detour must outrank the stair route.");
+        Assert.True(routes[1].GetProperty("hasConfirmedStairs").GetBoolean());
+        var firstText = string.Join(" ", routes[0].GetProperty("explanation")
+            .EnumerateArray().Select(e => e.GetString()));
+        Assert.Contains("human-verified stair report", firstText);
+        Assert.Contains("Avoid stairs: hard constraint", string.Join(" ",
+            withDefault.GetProperty("appliedPreferences").EnumerateArray().Select(e => e.GetString())));
+
+        // Avoid stairs off: the stair route (fewest obstacles) ranks first again.
+        var stairsOff = await RecommendAsync(27.5, 95.0, new
+        {
+            avoidStairs = false,
+            preferVerifiedEvidence = false,
+            avoidStaleEvidence = false,
+            preferShortest = false,
+        });
+        var offRoutes = stairsOff.GetProperty("routes");
+        Assert.True(offRoutes[0].GetProperty("hasConfirmedStairs").GetBoolean());
+        Assert.True(
+            offRoutes[0].GetProperty("knownObstacles").GetArrayLength() <
+            offRoutes[1].GetProperty("knownObstacles").GetArrayLength(),
+            "With Avoid stairs off, the stair route wins on fewest obstacles again.");
     }
 
     [Fact]

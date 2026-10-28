@@ -297,6 +297,10 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("AttributeSource")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
                     b.Property<Guid?>("CameraSourceId")
                         .HasColumnType("uuid");
 
@@ -309,6 +313,12 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
+
+                    b.Property<bool?>("HasRamp")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool?>("HasStairs")
+                        .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LastEvidenceAt")
                         .HasColumnType("timestamp with time zone");
@@ -331,6 +341,10 @@ namespace PathLens.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Surface")
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 

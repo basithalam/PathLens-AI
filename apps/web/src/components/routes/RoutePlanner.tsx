@@ -5,9 +5,25 @@ import Link from "next/link";
 import "leaflet/dist/leaflet.css";
 import {
   recommendRoutes,
+  DEFAULT_ROUTE_PREFERENCES,
   type EvaluatedRoute,
+  type RoutePreferences,
   type RouteRecommendation,
 } from "@/lib/api-client";
+
+const PREFERENCES_KEY = "pathlens.routePreferences";
+
+function loadPreferences(): RoutePreferences {
+  try {
+    const raw = window.localStorage.getItem(PREFERENCES_KEY);
+    if (raw) {
+      return { ...DEFAULT_ROUTE_PREFERENCES, ...(JSON.parse(raw) as Partial<RoutePreferences>) };
+    }
+  } catch {
+    // Corrupt storage falls back to defaults.
+  }
+  return DEFAULT_ROUTE_PREFERENCES;
+}
 
 type PickMode = "origin" | "destination";
 
@@ -42,6 +58,24 @@ export function RoutePlanner() {
     pickModeRef.current = mode;
     setPickModeState(mode);
   }
+  const [preferences, setPreferences] = useState<RoutePreferences>(DEFAULT_ROUTE_PREFERENCES);
+
+  useEffect(() => {
+    setPreferences(loadPreferences());
+  }, []);
+
+  function updatePreference<K extends keyof RoutePreferences>(key: K, value: RoutePreferences[K]) {
+    setPreferences((current) => {
+      const next = { ...current, [key]: value };
+      try {
+        window.localStorage.setItem(PREFERENCES_KEY, JSON.stringify(next));
+      } catch {
+        // Storage unavailable: preferences still apply to this session.
+      }
+      return next;
+    });
+  }
+
   const [recommendation, setRecommendation] = useState<RouteRecommendation | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [busy, setBusy] = useState(false);
@@ -162,7 +196,7 @@ export function RoutePlanner() {
     }
 
     setBusy(true);
-    const result = await recommendRoutes(origin, destination);
+    const result = await recommendRoutes(origin, destination, preferences);
     setBusy(false);
 
     if (result.ok) {
@@ -211,6 +245,50 @@ export function RoutePlanner() {
           </button>
         </fieldset>
 
+        <fieldset>
+          <legend>Your route preferences (saved on this device only)</legend>
+          <p>
+            Preferences reorder routes. They never hide a known obstacle, and
+            unknown stays unknown whatever you choose.
+          </p>
+          <label>
+            <input
+              type="checkbox"
+              checked={preferences.avoidStairs}
+              onChange={(e) => updatePreference("avoidStairs", e.target.checked)}
+            />{" "}
+            Avoid stairs — a route with a human-verified stair report cannot
+            outrank one without
+          </label>
+          <br />
+          <label>
+            <input
+              type="checkbox"
+              checked={preferences.preferVerifiedEvidence}
+              onChange={(e) => updatePreference("preferVerifiedEvidence", e.target.checked)}
+            />{" "}
+            Prefer verified evidence — fewer uncertain obstacles ranks higher
+          </label>
+          <br />
+          <label>
+            <input
+              type="checkbox"
+              checked={preferences.avoidStaleEvidence}
+              onChange={(e) => updatePreference("avoidStaleEvidence", e.target.checked)}
+            />{" "}
+            Avoid stale evidence — fewer obstacles based on old evidence ranks higher
+          </label>
+          <br />
+          <label>
+            <input
+              type="checkbox"
+              checked={preferences.preferShortest}
+              onChange={(e) => updatePreference("preferShortest", e.target.checked)}
+            />{" "}
+            Prefer shortest — distance counts earlier in ranking
+          </label>
+        </fieldset>
+
         <p>
           Clicking the map fills the {pickMode}. Then plan the trip. Routes use a
           walking profile; that is not a validated wheelchair profile, so no route
@@ -249,6 +327,11 @@ export function RoutePlanner() {
             </p>
           ))}
 
+          <p>
+            <strong>Preferences applied:</strong>{" "}
+            {recommendation.appliedPreferences.join(" ")}
+          </p>
+
           <div className="route-cards">
             {recommendation.routes.map((route) => (
               <RouteCard
@@ -280,6 +363,13 @@ function RouteCard({
         Route {route.index + 1} · {formatDistance(route.distanceMeters)} · about{" "}
         {Math.round(route.durationSeconds / 60)} min
       </h3>
+
+      {route.hasConfirmedStairs && (
+        <p role="note" className="mock-label">
+          This route has a human-verified stair report. If stairs are a hard
+          barrier for you, do not choose it on distance alone.
+        </p>
+      )}
 
       {route.newestEvidenceAt ? (
         <p>
@@ -332,6 +422,15 @@ function RouteCard({
                   {obstacle.isCameraCandidate
                     ? " — a person has not confirmed this."
                     : ""}
+                  {obstacle.hasStairs !== null || obstacle.hasRamp !== null || obstacle.surface !== null
+                    ? ` · Observed: ${[
+                        obstacle.hasStairs !== null ? `stairs ${obstacle.hasStairs ? "yes" : "no"}` : null,
+                        obstacle.hasRamp !== null ? `ramp ${obstacle.hasRamp ? "yes" : "no"}` : null,
+                        obstacle.surface !== null ? `surface ${obstacle.surface}` : null,
+                      ]
+                        .filter(Boolean)
+                        .join(", ")}`
+                    : " · Stairs/ramp/surface not measured here (unknown, not estimated)"}
                 </li>
               );
             })}
