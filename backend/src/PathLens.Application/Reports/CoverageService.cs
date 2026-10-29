@@ -1,8 +1,9 @@
+using Microsoft.Extensions.Caching.Memory;
 using PathLens.Domain.Reports;
 
 namespace PathLens.Application.Reports;
 
-public sealed class CoverageService(IReportRepository repository)
+public sealed class CoverageService(IReportRepository repository, IMemoryCache cache)
 {
     public const double DefaultCellSizeMeters = 50;
     public const double MinCellSizeMeters = 20;
@@ -21,6 +22,11 @@ public sealed class CoverageService(IReportRepository repository)
         CancellationToken cancellationToken)
     {
         var cellSize = Math.Clamp(cellSizeMeters ?? DefaultCellSizeMeters, MinCellSizeMeters, MaxCellSizeMeters);
+
+        // 30s viewport cache — spec: viewport hash + 30s
+        var cacheKey = $"coverage:{minLatitude:F5}:{maxLatitude:F5}:{minLongitude:F5}:{maxLongitude:F5}:{cellSize:F1}:{obstacleType}:{verificationStatus}";
+        if (cache.TryGetValue<CoverageResponse>(cacheKey, out var cached) && cached is not null)
+            return cached;
 
         ObstacleType? obstacle = null;
         if (!string.IsNullOrWhiteSpace(obstacleType) && Enum.TryParse<ObstacleType>(obstacleType, true, out var o))
@@ -43,16 +49,28 @@ public sealed class CoverageService(IReportRepository repository)
         var rows = (int)Math.Ceiling(latSpan / latDelta);
         var cols = (int)Math.Ceiling(lonSpan / lonDelta);
 
-        while (rows * cols > MaxCells && cellSize < MaxCellSizeMeters)
+        while (rows * cols > MaxCells)
         {
             cellSize *= 2;
+            // Beyond 500 is allowed for huge viewports to keep cell count bounded — never more than 1000.
             latDelta = cellSize / 111_320.0;
             lonDelta = cellSize / (111_320.0 * cosLat);
             rows = (int)Math.Ceiling(latSpan / latDelta);
             cols = (int)Math.Ceiling(lonSpan / lonDelta);
+            if (cellSize > 100_000) break; // safety for world viewport
         }
         rows = Math.Max(1, Math.Clamp(rows, 1, 100));
         cols = Math.Max(1, Math.Clamp(cols, 1, 100));
+        // Hard cap still: if still > MaxCells after clamping, reduce proportionally
+        if (rows * cols > MaxCells)
+        {
+            var ratio = Math.Sqrt((double)MaxCells / (rows * cols));
+            rows = Math.Max(1, (int)Math.Floor(rows * ratio));
+            cols = Math.Max(1, (int)Math.Floor(cols * ratio));
+            latDelta = latSpan / rows;
+            lonDelta = lonSpan / cols;
+            cellSize = Math.Max(cellSize, Math.Min(latDelta, lonDelta) * 111_320.0 * cosLat);
+        }
 
         var cells = new List<CoverageCell>(rows * cols);
         var now = DateTimeOffset.UtcNow;
@@ -75,7 +93,9 @@ public sealed class CoverageService(IReportRepository repository)
         if (reports.Count == 0)
         {
             var summaryEmpty = new CoverageSummary(cells.Count, 0, cells.Count, 0, 0);
-            return new CoverageResponse(cells, summaryEmpty, cellSize, new MapViewport(minLatitude, maxLatitude, minLongitude, maxLongitude));
+            var emptyResponse = new CoverageResponse(cells, summaryEmpty, cellSize, new MapViewport(minLatitude, maxLatitude, minLongitude, maxLongitude));
+            cache.Set(cacheKey, emptyResponse, TimeSpan.FromSeconds(30));
+            return emptyResponse;
         }
 
         var buckets = new Dictionary<string, List<AccessibilityReport>>();
@@ -106,7 +126,9 @@ public sealed class CoverageService(IReportRepository repository)
         var evidenceCells = filled.Count(x => x.Status == CoverageStatus.EvidencePresent.ToString());
         var insufficient = filled.Count - covered;
         var summary = new CoverageSummary(filled.Count, covered, insufficient, obstacleCells, evidenceCells);
-        return new CoverageResponse(filled, summary, cellSize, new MapViewport(minLatitude, maxLatitude, minLongitude, maxLongitude));
+        var response = new CoverageResponse(filled, summary, cellSize, new MapViewport(minLatitude, maxLatitude, minLongitude, maxLongitude));
+        cache.Set(cacheKey, response, TimeSpan.FromSeconds(30));
+        return response;
     }
 }
 

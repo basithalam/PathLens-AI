@@ -119,4 +119,42 @@ public class MapEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
             "/api/map/coverage?minLatitude=23&maxLatitude=24&minLongitude=90&maxLongitude=91&cellSizeMeters=5000");
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Coverage_empty_viewport_all_insufficient()
+    {
+        var coverage = await _client.GetFromJsonAsync<JsonElement>(
+            "/api/map/coverage?minLatitude=0&maxLatitude=0.01&minLongitude=0&maxLongitude=0.01");
+
+        Assert.True(coverage.GetProperty("cells").GetArrayLength() > 0);
+        Assert.All(coverage.GetProperty("cells").EnumerateArray(),
+            cell => Assert.Equal("InsufficientInfo", cell.GetProperty("status").GetString()));
+        Assert.Equal(0, coverage.GetProperty("summary").GetProperty("coveredCells").GetInt32());
+    }
+
+    [Fact]
+    public async Task Coverage_respects_limit_and_auto_scales_large_viewport()
+    {
+        var coverage = await _client.GetFromJsonAsync<JsonElement>(
+            "/api/map/coverage?minLatitude=20&maxLatitude=25&minLongitude=88&maxLongitude=93&cellSizeMeters=20");
+
+        // Large viewport with small cellSize would exceed 1000, so it auto-scales.
+        Assert.True(coverage.GetProperty("cells").GetArrayLength() <= 1000);
+        Assert.True(coverage.GetProperty("cellSizeMeters").GetDouble() >= 20);
+    }
+
+    [Fact]
+    public async Task Coverage_status_has_cellId_and_bounds_and_reportCounts()
+    {
+        await CreateReportAsync(23.8110, 90.4130);
+        var coverage = await _client.GetFromJsonAsync<JsonElement>(
+            "/api/map/coverage?minLatitude=23.81&maxLatitude=23.812&minLongitude=90.412&maxLongitude=90.414");
+
+        var cellWithReport = coverage.GetProperty("cells").EnumerateArray().FirstOrDefault(c => c.GetProperty("reportCount").GetInt32() > 0);
+        Assert.True(cellWithReport.ValueKind != JsonValueKind.Undefined);
+        Assert.True(cellWithReport.GetProperty("reportCount").GetInt32() >= 1);
+        Assert.False(string.IsNullOrWhiteSpace(cellWithReport.GetProperty("cellId").GetString()));
+        Assert.True(cellWithReport.GetProperty("minLatitude").GetDouble() <= cellWithReport.GetProperty("maxLatitude").GetDouble());
+        Assert.True(cellWithReport.GetProperty("newestEvidenceAt").ValueKind != JsonValueKind.Null);
+    }
 }
