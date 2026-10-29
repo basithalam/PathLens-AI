@@ -278,7 +278,11 @@ export function AccessibilityMap() {
         });
       };
 
-      map.on("moveend", loadFromBounds);
+      let moveDebounce: ReturnType<typeof setTimeout> | null = null;
+      map.on("moveend", () => {
+        if (moveDebounce) clearTimeout(moveDebounce);
+        moveDebounce = setTimeout(loadFromBounds, 400);
+      });
       loadFromBounds();
     }
 
@@ -413,7 +417,7 @@ export function AccessibilityMap() {
       </div>
 
       {showCoverage && (
-        <section className="coverage-summary" aria-live="polite" style={{ border: "1px solid var(--line)", borderRadius: 10, padding: "0.9rem 1rem", background: "var(--wash)", marginBottom: "1rem" }}>
+        <section className="coverage-summary" aria-live="polite">
           {coverage ? (
             <>
               <h3 style={{ marginTop: 0 }}>Evidence coverage in this view</h3>
@@ -422,17 +426,17 @@ export function AccessibilityMap() {
                 <em>Unknown is not proof of clear.</em> Cell size ~{Math.round(coverage.cellSizeMeters)} m.
                 {coverageLoading && " Updating…"}
               </p>
-              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", fontSize: "0.92rem" }}>
-                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#c9d2cd", border: "1px solid #8a8a8a", marginRight: 6, verticalAlign: "middle" }} />C — তথ্য নেই (Insufficient)</span>
-                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#ffcc80", border: "1px solid #8a5a00", marginRight: 6, verticalAlign: "middle" }} />B — বাধার প্রমাণ</span>
-                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#a8e6cf", border: "1px solid #0b6b4f", marginRight: 6, verticalAlign: "middle" }} />A — তথ্য আছে</span>
+              <div className="coverage-legend">
+                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#c9d2cd", border: "1px solid #8a8a8a", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />C — তথ্য নেই (Insufficient)</span>
+                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#ffcc80", border: "1px solid #8a5a00", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />B — বাধার প্রমাণ</span>
+                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#a8e6cf", border: "1px solid #0b6b4f", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />A — তথ্য আছে</span>
               </div>
               <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: 0 }}>
                 Each cell is a summary. A “C” cell may still contain a usable path — it only means no one has reported there yet. Tap a cell to zoom and see its centre. Letter inside each cell (A/B/C) matches the colour — never colour alone.
               </p>
               {selectedCell && (
-                <div style={{ marginTop: "0.8rem", padding: "0.6rem 0.8rem", background: "var(--paper)", border: "1px solid var(--accent)", borderRadius: 8 }}>
-                  <strong>Selected cell {selectedCell.cellId}</strong> — {selectedCell.status === "InsufficientInfo" ? "C — তথ্য নেই" : selectedCell.status === "ObstacleEvidence" ? `B — বাধা (${selectedCell.reportCount} reports)` : `A — তথ্য আছে`} · centre {selectedCell.centerLatitude.toFixed(5)}, {selectedCell.centerLongitude.toFixed(5)} · verified {selectedCell.verifiedCount} · stale {selectedCell.staleCount}
+                <div className="coverage-selected" role="status">
+                  <strong>Selected cell {selectedCell.cellId}</strong> — {selectedCell.status === "InsufficientInfo" ? "C — তথ্য নেই (Insufficient — travel with caution, consider verifying)" : selectedCell.status === "ObstacleEvidence" ? `B — বাধা (${selectedCell.reportCount} reports)` : `A — তথ্য আছে`} · centre {selectedCell.centerLatitude.toFixed(5)}, {selectedCell.centerLongitude.toFixed(5)} · verified {selectedCell.verifiedCount} · stale {selectedCell.staleCount}
                   <br />
                   <span style={{ fontSize: "0.9rem" }}>Reports in this cell: {reports.filter(r => r.latitude >= selectedCell.minLatitude && r.latitude <= selectedCell.maxLatitude && r.longitude >= selectedCell.minLongitude && r.longitude <= selectedCell.maxLongitude).length} — click a report below or pan to see them.</span>{" "}
                   <button type="button" onClick={() => setSelectedCell(null)} style={{ marginLeft: 8, fontSize: "0.85rem" }}>Clear selection</button>
@@ -440,7 +444,7 @@ export function AccessibilityMap() {
               )}
             </>
           ) : (
-            <p style={{ margin: 0 }}>{coverageLoading ? "Loading coverage…" : "Coverage not yet loaded — pan the map or wait a moment."} <em>Legend: C grey = Insufficient, B orange = Obstacle, A green = Evidence — always letter+colour.</em></p>
+            <p style={{ margin: 0 }} className="coverage-empty">{coverageLoading ? "Loading coverage…" : "Pan to Dhaka — coverage will appear. No cell is proven safe."} <em>Legend: C grey = Insufficient, B orange = Obstacle, A green = Evidence — always letter+colour, never colour alone.</em></p>
           )}
         </section>
       )}
