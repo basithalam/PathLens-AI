@@ -11,6 +11,7 @@ import {
 import { StatusBadge } from "@/components/StatusBadge";
 import { EvidenceSection } from "@/components/evidence/EvidenceSection";
 import { ComparisonSection } from "@/components/comparisons/ComparisonSection";
+import { QuickFeedback } from "@/components/feedback/QuickFeedback";
 
 export const dynamic = "force-dynamic";
 
@@ -163,6 +164,8 @@ export default async function ReportDetailsPage({ params }: ReportDetailsProps) 
           </ul>
         )}
       </section>
+
+      <QuickFeedback reportId={report.id} />
 
       <EvidenceSection reportId={report.id} initialEvidence={evidence} />
 

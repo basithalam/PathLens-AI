@@ -130,6 +130,30 @@ public static class ReportEndpoints
                 : Results.Ok(updated);
         });
 
+        group.MapPost("/{id:guid}/feedback", async (
+            Guid id,
+            CreateFeedbackRequest request,
+            HttpContext httpContext,
+            FeedbackService feedbackService,
+            CancellationToken cancellationToken) =>
+        {
+            if (string.IsNullOrWhiteSpace(request.Kind))
+                return Results.ValidationProblem(new Dictionary<string, string[]> { ["kind"] = ["Feedback kind is required."] }, statusCode: 400);
+
+            var actorId = httpContext.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value is string sub && Guid.TryParse(sub, out var parsed) ? parsed : (Guid?)null;
+
+            try
+            {
+                var result = await feedbackService.CreateAsync(id, request, actorId, cancellationToken);
+                if (result is null) return Results.Problem(title: "Report not found", statusCode: 404);
+                return Results.Created($"/api/reports/{id}/feedback/{result.Id}", result);
+            }
+            catch (ArgumentException ex)
+            {
+                return Results.ValidationProblem(new Dictionary<string, string[]> { ["kind"] = [ex.Message] }, statusCode: 400);
+            }
+        });
+
         return app;
     }
 }

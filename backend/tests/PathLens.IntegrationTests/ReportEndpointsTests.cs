@@ -229,4 +229,31 @@ public class ReportEndpointsTests : IClassFixture<WebApplicationFactory<Program>
         var response = await _client.GetAsync($"/api/reports/{Guid.NewGuid()}");
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Feedback_valid_kind_returns_201_and_audit()
+    {
+        var create = await _client.PostAsJsonAsync("/api/reports", ValidReport());
+        var reportId = (await create.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        var feedback = await _client.PostAsJsonAsync($"/api/reports/{reportId}/feedback", new { kind = "StillVisible", note = "Still blocked today" });
+        Assert.Equal(HttpStatusCode.Created, feedback.StatusCode);
+        var body = await feedback.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("StillVisible", body.GetProperty("kind").GetString());
+    }
+
+    [Fact]
+    public async Task Feedback_invalid_kind_returns_400()
+    {
+        var create = await _client.PostAsJsonAsync("/api/reports", ValidReport());
+        var reportId = (await create.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("id").GetGuid();
+        var feedback = await _client.PostAsJsonAsync($"/api/reports/{reportId}/feedback", new { kind = "Bogus", note = (string?)null });
+        Assert.Equal(HttpStatusCode.BadRequest, feedback.StatusCode);
+    }
+
+    [Fact]
+    public async Task Feedback_missing_report_returns_404()
+    {
+        var feedback = await _client.PostAsJsonAsync($"/api/reports/{Guid.NewGuid()}/feedback", new { kind = "NotSure", note = "Unsure" });
+        Assert.Equal(HttpStatusCode.NotFound, feedback.StatusCode);
+    }
 }

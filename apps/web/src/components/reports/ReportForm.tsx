@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createReport } from "@/lib/api-client";
+import { MiniMapPicker } from "@/components/map/MiniMapPicker";
 
 const OBSTACLE_TYPES = [
   "BlockedSidewalk",
@@ -43,6 +44,7 @@ export function ReportForm() {
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [locationNote, setLocationNote] = useState<string | null>(null);
+  const [showMiniMap, setShowMiniMap] = useState(false);
 
   function useMyLocation() {
     if (!navigator.geolocation) {
@@ -191,8 +193,24 @@ export function ReportForm() {
         <button type="button" onClick={useMyLocation}>
           Use my location
         </button>{" "}
+        <button type="button" onClick={() => setShowMiniMap(v => !v)} style={{ marginLeft: 8 }}>
+          {showMiniMap ? "Hide map picker" : "Pick on map"}
+        </button>{" "}
         {locationNote && <span>{locationNote}</span>}
       </p>
+      {showMiniMap && (
+        <div style={{ border: "1px solid var(--line)", borderRadius: 8, overflow: "hidden", height: 260, position: "relative" }}>
+          <MiniMapPicker
+            latitude={latitude ? Number(latitude) : null}
+            longitude={longitude ? Number(longitude) : null}
+            onPick={(lat, lon) => {
+              setLatitude(String(lat.toFixed(6)));
+              setLongitude(String(lon.toFixed(6)));
+              setLocationNote(`Picked on map — ${lat.toFixed(5)}, ${lon.toFixed(5)}. Drag marker or click again to adjust.`);
+            }}
+          />
+        </div>
+      )}
       <p className="status-source">
         Coordinates you enter are a claim about where the obstacle is, not a verified fact.
         Photo upload and AI analysis arrive in Phase 2.

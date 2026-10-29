@@ -63,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<Application.Users.IAuthService, Auth.AuthService>();
         services.AddScoped<Application.Reviews.IReviewRepository, ReviewRepository>();
         services.AddScoped<Application.Reviews.ReviewService>();
+        services.AddScoped<FeedbackService>();
 
         // AI provider: real Meta by default; Mock only when Ai:Provider=Mock is
         // set explicitly (tests / labelled demo). The key stays server-side.

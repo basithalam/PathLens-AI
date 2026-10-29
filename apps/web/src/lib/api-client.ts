@@ -189,6 +189,26 @@ export type CreateReportResult =
   | { ok: true; report: AccessibilityReport }
   | { ok: false; errors: Record<string, string[]>; message: string };
 
+export async function submitFeedback(
+  reportId: string,
+  input: { kind: string; note?: string | null },
+): Promise<{ ok: true } | { ok: false; message: string }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/reports/${reportId}/feedback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ kind: input.kind, note: input.note ?? null }),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (response.ok) return { ok: true };
+    const problem = (await response.json().catch(() => null)) as { detail?: string; title?: string; errors?: Record<string, string[]> } | null;
+    const msg = problem?.errors ? Object.values(problem.errors).flat().join(" ") : problem?.detail ?? problem?.title ?? `Feedback failed (${response.status})`;
+    return { ok: false, message: msg };
+  } catch {
+    return { ok: false, message: "The API is not reachable." };
+  }
+}
+
 export async function createReport(input: CreateReportInput): Promise<CreateReportResult> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/reports`, {
