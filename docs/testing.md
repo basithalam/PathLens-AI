@@ -28,4 +28,4 @@ See [evaluation/README.md](../evaluation/README.md). The runner compares labelle
 
 ## Current status
 
-Backend: 53 tests passing (25 unit + 28 integration). Frontend: lint, typecheck, and production build passing. One build warning remains: the SixLabors ImageSharp license notice (see security.md).
+Backend: 92 tests passing (39 unit + 53 integration: reports, evidence, comparisons, map viewport/summary/coverage, routes, auth/audit, cameras, duplicate, feedback). Frontend: lint, typecheck, and production build passing. One build warning remains: the SixLabors ImageSharp license notice (see security.md). F5a/b/c coverage + F6 feedback all covered by integration tests.

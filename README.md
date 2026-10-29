@@ -172,7 +172,7 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 
 ## Status
 
-🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–6 are complete: reports and evidence persist, analysis and comparison work end-to-end (mock AI provider until a Meta AI key is configured), reports are explorable on a map, walking routes can be compared, and human review is authenticated and audited. Builds and tests pass.
+🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–6 + F1–F6 are complete: reports/evidence persist, analysis/comparison end-to-end, map with coverage grid (C/B/A, cache, click-to-zoom), routes with explainable ranking + wheelchair v1, human review + duplicate + feedback, cameras A–E (live NYC gate blocked honestly). 92 tests (39 unit + 53 integration) + frontend lint/typecheck/build green.
 
 ## License
 
