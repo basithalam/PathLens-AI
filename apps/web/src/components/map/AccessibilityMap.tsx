@@ -80,6 +80,7 @@ export function AccessibilityMap() {
   const [coverageLoading, setCoverageLoading] = useState(false);
   const showCoverageRef = useRef(false);
   showCoverageRef.current = showCoverage;
+  const [selectedCell, setSelectedCell] = useState<CoverageCell | null>(null);
 
   const filtersRef = useRef({ obstacleType: "", verificationStatus: "" });
   filtersRef.current = { obstacleType, verificationStatus };
@@ -142,6 +143,7 @@ export function AccessibilityMap() {
       ];
       const isObstacle = cell.status === "ObstacleEvidence";
       const isInsufficient = cell.status === "InsufficientInfo";
+      const letter = isInsufficient ? "C" : isObstacle ? "B" : "A";
       const rectangle = L.rectangle(bounds, {
         color: isInsufficient ? "#8a8a8a" : isObstacle ? "#8a5a00" : "#0b6b4f",
         weight: 1,
@@ -158,8 +160,21 @@ export function AccessibilityMap() {
       rectangle.bindPopup(
         `<strong>${label}</strong><br/>Centre ${cell.centerLatitude.toFixed(5)}, ${cell.centerLongitude.toFixed(5)}<br/>Reports: ${cell.reportCount}, verified: ${cell.verifiedCount}<br/>Newest evidence: ${escapeHtml(newest)}<br/><em>No cell is proven safe. Pan to see reports inside it.</em>`
       );
+      rectangle.on("click", () => {
+        setSelectedCell(cell);
+        const map = mapRef.current as import("leaflet").Map | null;
+        if (map) map.fitBounds(bounds, { maxZoom: 17 });
+      });
       (rectangle as unknown as { options: Record<string, unknown> }).options["ariaLabel"] = `Coverage cell ${cell.cellId}, ${label}`;
       rectangle.addTo(layer);
+
+      const letterIcon = L.divIcon({
+        className: "coverage-letter",
+        html: `<span class="coverage-letter-inner coverage-letter-${letter.toLowerCase()}" aria-hidden="true">${letter}</span>`,
+        iconSize: [18, 18],
+        iconAnchor: [9, 9],
+      });
+      L.marker([cell.centerLatitude, cell.centerLongitude], { icon: letterIcon, interactive: false, keyboard: false }).addTo(layer);
     }
   }
 
@@ -397,22 +412,36 @@ export function AccessibilityMap() {
         </label>
       </div>
 
-      {showCoverage && coverage && (
+      {showCoverage && (
         <section className="coverage-summary" aria-live="polite" style={{ border: "1px solid var(--line)", borderRadius: 10, padding: "0.9rem 1rem", background: "var(--wash)", marginBottom: "1rem" }}>
-          <h3 style={{ marginTop: 0 }}>Evidence coverage in this view</h3>
-          <p style={{ margin: "0.4rem 0" }}>
-            <strong>{coverage.summary.totalCells} cells</strong> · {coverage.summary.coveredCells} with evidence, {coverage.summary.insufficientCells} without —{" "}
-            <em>Unknown is not proof of clear.</em> Cell size ~{Math.round(coverage.cellSizeMeters)} m.
-            {coverageLoading && " Updating…"}
-          </p>
-          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", fontSize: "0.92rem" }}>
-            <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#c9d2cd", border: "1px solid #8a8a8a", marginRight: 6, verticalAlign: "middle" }} />C — তথ্য নেই (Insufficient)</span>
-            <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#ffcc80", border: "1px solid #8a5a00", marginRight: 6, verticalAlign: "middle" }} />B — বাধার প্রমাণ</span>
-            <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#a8e6cf", border: "1px solid #0b6b4f", marginRight: 6, verticalAlign: "middle" }} />A — তথ্য আছে</span>
-          </div>
-          <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: 0 }}>
-            Each cell is a summary. A “C” cell may still contain a usable path — it only means no one has reported there yet. Tap a cell to see its centre and counts.
-          </p>
+          {coverage ? (
+            <>
+              <h3 style={{ marginTop: 0 }}>Evidence coverage in this view</h3>
+              <p style={{ margin: "0.4rem 0" }}>
+                <strong>{coverage.summary.totalCells} cells</strong> · {coverage.summary.coveredCells} with evidence, {coverage.summary.insufficientCells} without —{" "}
+                <em>Unknown is not proof of clear.</em> Cell size ~{Math.round(coverage.cellSizeMeters)} m.
+                {coverageLoading && " Updating…"}
+              </p>
+              <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", fontSize: "0.92rem" }}>
+                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#c9d2cd", border: "1px solid #8a8a8a", marginRight: 6, verticalAlign: "middle" }} />C — তথ্য নেই (Insufficient)</span>
+                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#ffcc80", border: "1px solid #8a5a00", marginRight: 6, verticalAlign: "middle" }} />B — বাধার প্রমাণ</span>
+                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#a8e6cf", border: "1px solid #0b6b4f", marginRight: 6, verticalAlign: "middle" }} />A — তথ্য আছে</span>
+              </div>
+              <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: 0 }}>
+                Each cell is a summary. A “C” cell may still contain a usable path — it only means no one has reported there yet. Tap a cell to zoom and see its centre. Letter inside each cell (A/B/C) matches the colour — never colour alone.
+              </p>
+              {selectedCell && (
+                <div style={{ marginTop: "0.8rem", padding: "0.6rem 0.8rem", background: "var(--paper)", border: "1px solid var(--accent)", borderRadius: 8 }}>
+                  <strong>Selected cell {selectedCell.cellId}</strong> — {selectedCell.status === "InsufficientInfo" ? "C — তথ্য নেই" : selectedCell.status === "ObstacleEvidence" ? `B — বাধা (${selectedCell.reportCount} reports)` : `A — তথ্য আছে`} · centre {selectedCell.centerLatitude.toFixed(5)}, {selectedCell.centerLongitude.toFixed(5)} · verified {selectedCell.verifiedCount} · stale {selectedCell.staleCount}
+                  <br />
+                  <span style={{ fontSize: "0.9rem" }}>Reports in this cell: {reports.filter(r => r.latitude >= selectedCell.minLatitude && r.latitude <= selectedCell.maxLatitude && r.longitude >= selectedCell.minLongitude && r.longitude <= selectedCell.maxLongitude).length} — click a report below or pan to see them.</span>{" "}
+                  <button type="button" onClick={() => setSelectedCell(null)} style={{ marginLeft: 8, fontSize: "0.85rem" }}>Clear selection</button>
+                </div>
+              )}
+            </>
+          ) : (
+            <p style={{ margin: 0 }}>{coverageLoading ? "Loading coverage…" : "Coverage not yet loaded — pan the map or wait a moment."} <em>Legend: C grey = Insufficient, B orange = Obstacle, A green = Evidence — always letter+colour.</em></p>
+          )}
         </section>
       )}
 

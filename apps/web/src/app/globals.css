@@ -368,6 +368,40 @@ body {
   overflow: hidden;
 }
 
+.coverage-letter {
+  background: transparent;
+  border: none;
+}
+
+.coverage-letter-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 11px;
+  line-height: 1;
+  border: 1px solid var(--paper);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.35);
+}
+
+.coverage-letter-c {
+  background: #c9d2cd;
+  color: #3a3a3a;
+}
+
+.coverage-letter-b {
+  background: #ffcc80;
+  color: #5a3a00;
+}
+
+.coverage-letter-a {
+  background: #a8e6cf;
+  color: #0b3d2e;
+}
+
 .map-marker {
   background: transparent;
   border: none;

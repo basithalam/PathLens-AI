@@ -4,9 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import "leaflet/dist/leaflet.css";
 import {
+  getCoverage,
   recommendRoutes,
   DEFAULT_ROUTE_PREFERENCES,
+  type CoverageResponse,
   type EvaluatedRoute,
+  type MapViewport,
   type RoutePreferences,
   type RouteRecommendation,
 } from "@/lib/api-client";
@@ -45,6 +48,7 @@ export function RoutePlanner() {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<import("leaflet").Map | null>(null);
   const layerRef = useRef<import("leaflet").LayerGroup | null>(null);
+  const coverageLayerRef = useRef<import("leaflet").LayerGroup | null>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
 
   const [originLat, setOriginLat] = useState("23.8103");
@@ -80,6 +84,9 @@ export function RoutePlanner() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [coverage, setCoverage] = useState<CoverageResponse | null>(null);
+  const [showCoverage, setShowCoverage] = useState(false);
+  const [coverageLoading, setCoverageLoading] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -100,6 +107,7 @@ export function RoutePlanner() {
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
+      coverageLayerRef.current = L.layerGroup().addTo(map);
       layerRef.current = L.layerGroup().addTo(map);
 
       // Map clicks fill whichever endpoint is currently being picked.
@@ -121,9 +129,54 @@ export function RoutePlanner() {
       cancelled = true;
       mapRef.current?.remove();
       mapRef.current = null;
+      coverageLayerRef.current = null;
       layerRef.current = null;
     };
   }, []);
+
+  function renderCoverage(cells: import("@/lib/api-client").CoverageCell[]) {
+    const L = leafletRef.current;
+    const layer = coverageLayerRef.current as unknown as import("leaflet").LayerGroup | null;
+    if (!L || !layer) return;
+    layer.clearLayers();
+    if (!showCoverage) return;
+    for (const cell of cells) {
+      const bounds: [[number, number], [number, number]] = [
+        [cell.minLatitude, cell.minLongitude],
+        [cell.maxLatitude, cell.maxLongitude],
+      ];
+      const isObstacle = cell.status === "ObstacleEvidence";
+      const isInsufficient = cell.status === "InsufficientInfo";
+      const letter = isInsufficient ? "C" : isObstacle ? "B" : "A";
+      const label = isInsufficient ? "C — তথ্য নেই" : isObstacle ? `B — বাধা (${cell.reportCount})` : `A — তথ্য আছে`;
+      const rect = L.rectangle(bounds, {
+        color: isInsufficient ? "#8a8a8a" : isObstacle ? "#8a5a00" : "#0b6b4f",
+        weight: 1,
+        opacity: 0.5,
+        fillColor: isInsufficient ? "#c9d2cd" : isObstacle ? "#ffcc80" : "#a8e6cf",
+        fillOpacity: 0.28,
+      });
+      rect.bindTooltip(`<strong>${label}</strong><br/>Cell ${cell.cellId} · ${cell.reportCount} reports<br/><em>Unknown ≠ clear</em>`, { sticky: true });
+      rect.addTo(layer);
+      const letterIcon = L.divIcon({
+        className: "coverage-letter",
+        html: `<span class="coverage-letter-inner coverage-letter-${letter.toLowerCase()}">${letter}</span>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+      });
+      L.marker([cell.centerLatitude, cell.centerLongitude], { icon: letterIcon, interactive: false, keyboard: false }).addTo(layer);
+    }
+  }
+
+  async function fetchCoverage(viewport: MapViewport) {
+    if (!showCoverage) return;
+    setCoverageLoading(true);
+    const result = await getCoverage(viewport);
+    setCoverageLoading(false);
+    if (!result) return;
+    setCoverage(result);
+    renderCoverage(result.cells);
+  }
 
   function drawRoutes(data: RouteRecommendation, highlight: number) {
     const L = leafletRef.current;
@@ -131,6 +184,17 @@ export function RoutePlanner() {
     const map = mapRef.current;
     if (!L || !layer || !map) {
       return;
+    }
+
+    // Coverage drawn underneath routes, so clear coverage first then routes
+    if (showCoverage) {
+      const bounds = ((): MapViewport | null => {
+        const lats = data.routes.flatMap(r => r.geometry.map(p => p.latitude));
+        const lons = data.routes.flatMap(r => r.geometry.map(p => p.longitude));
+        if (lats.length === 0) return null;
+        return { minLatitude: Math.min(...lats), maxLatitude: Math.max(...lats), minLongitude: Math.min(...lons), maxLongitude: Math.max(...lons) };
+      })();
+      if (bounds) void fetchCoverage(bounds);
     }
 
     layer.clearLayers();
@@ -179,6 +243,19 @@ export function RoutePlanner() {
     }
     // drawRoutes reads current refs and state.
   }, [recommendation, selectedIndex]);
+
+  useEffect(() => {
+    if (!showCoverage) {
+      (coverageLayerRef.current as unknown as import("leaflet").LayerGroup | null)?.clearLayers();
+      setCoverage(null);
+      return;
+    }
+    if (recommendation) drawRoutes(recommendation, selectedIndex);
+    else if (mapRef.current) {
+      const b = (mapRef.current as import("leaflet").Map).getBounds();
+      void fetchCoverage({ minLatitude: b.getSouth(), maxLatitude: b.getNorth(), minLongitude: b.getWest(), maxLongitude: b.getEast() });
+    }
+  }, [showCoverage]);
 
   async function plan() {
     setMessage(null);
@@ -288,6 +365,16 @@ export function RoutePlanner() {
             Prefer shortest — distance counts earlier in ranking
           </label>
         </fieldset>
+
+        <label style={{ marginTop: "0.6rem" }}>
+          <input type="checkbox" checked={showCoverage} onChange={(e) => setShowCoverage(e.target.checked)} /> Coverage layer under routes — see where evidence exists vs insufficient (C grey = insufficient, B orange = obstacle, A green = evidence; letter+colour, never colour alone)
+        </label>
+        {showCoverage && coverage && (
+          <p style={{ fontSize: "0.9rem", background: "var(--wash)", padding: "0.5rem 0.7rem", borderRadius: 8 }}>
+            Covering {coverage.summary.totalCells} cells · {coverage.summary.coveredCells} with evidence, {coverage.summary.insufficientCells} without — <em>Unknown is not clear; route may cross C cells.</em>{" "}
+            {coverageLoading && "Updating…"} Cell size ~{Math.round(coverage.cellSizeMeters)} m.
+          </p>
+        )}
 
         <p>
           Clicking the map fills the {pickMode}. Then plan the trip. Routes use a
