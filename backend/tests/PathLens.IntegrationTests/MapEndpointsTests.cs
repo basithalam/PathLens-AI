@@ -85,4 +85,38 @@ public class MapEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
         Assert.True(summary.GetProperty("totalReports").GetInt32() >= 1);
         Assert.True(summary.GetProperty("byObstacleType").TryGetProperty("BlockedSidewalk", out _));
     }
+
+    [Fact]
+    public async Task Coverage_returns_grid_with_summary_and_status_strings()
+    {
+        await CreateReportAsync(23.8103, 90.4125);
+
+        var coverage = await _client.GetFromJsonAsync<JsonElement>(
+            "/api/map/coverage?minLatitude=23.8&maxLatitude=23.82&minLongitude=90.4&maxLongitude=90.43");
+
+        Assert.True(coverage.GetProperty("cells").GetArrayLength() > 0);
+        Assert.True(coverage.GetProperty("summary").GetProperty("totalCells").GetInt32() > 0);
+        Assert.True(coverage.GetProperty("summary").GetProperty("insufficientCells").GetInt32() >= 0);
+        // New: status is a string, not an integer
+        var first = coverage.GetProperty("cells").EnumerateArray().First();
+        Assert.True(first.GetProperty("status").ValueKind == JsonValueKind.String);
+        var status = first.GetProperty("status").GetString();
+        Assert.Contains(status, new[] { "InsufficientInfo", "ObstacleEvidence", "EvidencePresent", "Mixed" });
+    }
+
+    [Fact]
+    public async Task Coverage_invalid_viewport_returns_400()
+    {
+        var response = await _client.GetAsync(
+            "/api/map/coverage?minLatitude=24&maxLatitude=23&minLongitude=90&maxLongitude=91");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Coverage_invalid_cellSize_returns_400()
+    {
+        var response = await _client.GetAsync(
+            "/api/map/coverage?minLatitude=23&maxLatitude=24&minLongitude=90&maxLongitude=91&cellSizeMeters=5000");
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
 }

@@ -5,9 +5,12 @@ import Link from "next/link";
 import "leaflet/dist/leaflet.css";
 import {
   getCameras,
+  getCoverage,
   getReportsInViewport,
   type AccessibilityReport,
   type CameraSource,
+  type CoverageCell,
+  type CoverageResponse,
   type MapViewport,
 } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -54,6 +57,7 @@ export function AccessibilityMap() {
   const mapRef = useRef<unknown>(null);
   const layerRef = useRef<unknown>(null);
   const cameraLayerRef = useRef<unknown>(null);
+  const coverageLayerRef = useRef<unknown>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
 
   const [reports, setReports] = useState<AccessibilityReport[]>([]);
@@ -71,6 +75,11 @@ export function AccessibilityMap() {
   const [obstacleType, setObstacleType] = useState("");
   const [verificationStatus, setVerificationStatus] = useState("");
   const [locationNote, setLocationNote] = useState<string | null>(null);
+  const [coverage, setCoverage] = useState<CoverageResponse | null>(null);
+  const [showCoverage, setShowCoverage] = useState(false);
+  const [coverageLoading, setCoverageLoading] = useState(false);
+  const showCoverageRef = useRef(false);
+  showCoverageRef.current = showCoverage;
 
   const filtersRef = useRef({ obstacleType: "", verificationStatus: "" });
   filtersRef.current = { obstacleType, verificationStatus };
@@ -120,6 +129,53 @@ export function AccessibilityMap() {
     }
   }
 
+  function renderCoverage(cells: CoverageCell[]) {
+    const L = leafletRef.current;
+    const layer = coverageLayerRef.current as import("leaflet").LayerGroup | null;
+    if (!L || !layer) return;
+    layer.clearLayers();
+    if (!showCoverageRef.current) return;
+    for (const cell of cells) {
+      const bounds: [[number, number], [number, number]] = [
+        [cell.minLatitude, cell.minLongitude],
+        [cell.maxLatitude, cell.maxLongitude],
+      ];
+      const isObstacle = cell.status === "ObstacleEvidence";
+      const isInsufficient = cell.status === "InsufficientInfo";
+      const rectangle = L.rectangle(bounds, {
+        color: isInsufficient ? "#8a8a8a" : isObstacle ? "#8a5a00" : "#0b6b4f",
+        weight: 1,
+        opacity: 0.6,
+        fillColor: isInsufficient ? "#c9d2cd" : isObstacle ? "#ffcc80" : "#a8e6cf",
+        fillOpacity: isInsufficient ? 0.35 : 0.38,
+      });
+      const label = isInsufficient ? "C — তথ্য নেই" : isObstacle ? `B — বাধা (${cell.reportCount})` : `A — তথ্য আছে (${cell.reportCount})`;
+      const newest = cell.newestEvidenceAt ? new Date(cell.newestEvidenceAt).toLocaleDateString() : "—";
+      rectangle.bindTooltip(
+        `<strong>${label}</strong><br/>Cell ${escapeHtml(cell.cellId)} · ${cell.reportCount} report(s), verified ${cell.verifiedCount}<br/>Newest: ${escapeHtml(newest)}${cell.staleCount ? ` · stale ${cell.staleCount}` : ""}<br/><em>C is unknown, not proof of clear.</em>`,
+        { sticky: true }
+      );
+      rectangle.bindPopup(
+        `<strong>${label}</strong><br/>Centre ${cell.centerLatitude.toFixed(5)}, ${cell.centerLongitude.toFixed(5)}<br/>Reports: ${cell.reportCount}, verified: ${cell.verifiedCount}<br/>Newest evidence: ${escapeHtml(newest)}<br/><em>No cell is proven safe. Pan to see reports inside it.</em>`
+      );
+      (rectangle as unknown as { options: Record<string, unknown> }).options["ariaLabel"] = `Coverage cell ${cell.cellId}, ${label}`;
+      rectangle.addTo(layer);
+    }
+  }
+
+  async function fetchCoverage(viewport: MapViewport) {
+    if (!showCoverageRef.current) return;
+    setCoverageLoading(true);
+    const result = await getCoverage(viewport, undefined, {
+      obstacleType: filtersRef.current.obstacleType || undefined,
+      verificationStatus: filtersRef.current.verificationStatus || undefined,
+    });
+    setCoverageLoading(false);
+    if (result === null) return;
+    setCoverage(result);
+    renderCoverage(result.cells);
+  }
+
   async function loadReports(viewport: MapViewport) {
     viewportRef.current = viewport;
     renderCameras();
@@ -138,6 +194,7 @@ export function AccessibilityMap() {
     setError(null);
     setReports(result);
     renderMarkers(result);
+    void fetchCoverage(viewport);
   }
 
   function renderMarkers(items: AccessibilityReport[]) {
@@ -184,6 +241,7 @@ export function AccessibilityMap() {
           '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       }).addTo(map);
 
+      coverageLayerRef.current = L.layerGroup().addTo(map);
       layerRef.current = L.layerGroup().addTo(map);
       cameraLayerRef.current = L.layerGroup().addTo(map);
 
@@ -215,6 +273,7 @@ export function AccessibilityMap() {
       const map = mapRef.current as import("leaflet").Map | null;
       map?.remove();
       mapRef.current = null;
+      coverageLayerRef.current = null;
       layerRef.current = null;
       cameraLayerRef.current = null;
     };
@@ -227,6 +286,26 @@ export function AccessibilityMap() {
   useEffect(() => {
     renderCameras();
   }, [showCameras]);
+
+  // Coverage toggle: fetch or clear layer.
+  useEffect(() => {
+    const map = mapRef.current as import("leaflet").Map | null;
+    if (!map) return;
+    if (!showCoverage) {
+      const layer = coverageLayerRef.current as import("leaflet").LayerGroup | null;
+      layer?.clearLayers();
+      setCoverage(null);
+      return;
+    }
+    const bounds = map.getBounds();
+    void fetchCoverage({
+      minLatitude: bounds.getSouth(),
+      maxLatitude: bounds.getNorth(),
+      minLongitude: bounds.getWest(),
+      maxLongitude: bounds.getEast(),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showCoverage]);
 
   // Reload the current viewport when filters change.
   useEffect(() => {
@@ -308,7 +387,34 @@ export function AccessibilityMap() {
           />{" "}
           Show cameras (square C markers)
         </label>
+        <label>
+          <input
+            type="checkbox"
+            checked={showCoverage}
+            onChange={(event) => setShowCoverage(event.target.checked)}
+          />{" "}
+          Coverage layer: where we have /don&apos;t have evidence
+        </label>
       </div>
+
+      {showCoverage && coverage && (
+        <section className="coverage-summary" aria-live="polite" style={{ border: "1px solid var(--line)", borderRadius: 10, padding: "0.9rem 1rem", background: "var(--wash)", marginBottom: "1rem" }}>
+          <h3 style={{ marginTop: 0 }}>Evidence coverage in this view</h3>
+          <p style={{ margin: "0.4rem 0" }}>
+            <strong>{coverage.summary.totalCells} cells</strong> · {coverage.summary.coveredCells} with evidence, {coverage.summary.insufficientCells} without —{" "}
+            <em>Unknown is not proof of clear.</em> Cell size ~{Math.round(coverage.cellSizeMeters)} m.
+            {coverageLoading && " Updating…"}
+          </p>
+          <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", fontSize: "0.92rem" }}>
+            <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#c9d2cd", border: "1px solid #8a8a8a", marginRight: 6, verticalAlign: "middle" }} />C — তথ্য নেই (Insufficient)</span>
+            <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#ffcc80", border: "1px solid #8a5a00", marginRight: 6, verticalAlign: "middle" }} />B — বাধার প্রমাণ</span>
+            <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#a8e6cf", border: "1px solid #0b6b4f", marginRight: 6, verticalAlign: "middle" }} />A — তথ্য আছে</span>
+          </div>
+          <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: 0 }}>
+            Each cell is a summary. A “C” cell may still contain a usable path — it only means no one has reported there yet. Tap a cell to see its centre and counts.
+          </p>
+        </section>
+      )}
 
       {locationNote && <p>{locationNote}</p>}
       {loading && <p aria-live="polite">Loading reports for this area…</p>}

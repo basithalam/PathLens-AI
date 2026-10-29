@@ -472,6 +472,54 @@ export function getMapSummary(): Promise<MapSummary | null> {
   return fetchJson<MapSummary>("/api/map/summary");
 }
 
+export interface CoverageCell {
+  cellId: string;
+  centerLatitude: number;
+  centerLongitude: number;
+  minLatitude: number;
+  minLongitude: number;
+  maxLatitude: number;
+  maxLongitude: number;
+  status: string;
+  reportCount: number;
+  verifiedCount: number;
+  newestEvidenceAt: string | null;
+  oldestEvidenceAt: string | null;
+  staleCount: number;
+}
+
+export interface CoverageSummary {
+  totalCells: number;
+  coveredCells: number;
+  insufficientCells: number;
+  obstacleCells: number;
+  evidenceCells: number;
+}
+
+export interface CoverageResponse {
+  cells: CoverageCell[];
+  summary: CoverageSummary;
+  cellSizeMeters: number;
+  viewport: MapViewport;
+}
+
+export function getCoverage(
+  viewport: MapViewport,
+  cellSizeMeters?: number,
+  filters: { obstacleType?: string; verificationStatus?: string } = {},
+): Promise<CoverageResponse | null> {
+  const params = new URLSearchParams({
+    minLatitude: String(viewport.minLatitude),
+    maxLatitude: String(viewport.maxLatitude),
+    minLongitude: String(viewport.minLongitude),
+    maxLongitude: String(viewport.maxLongitude),
+  });
+  if (cellSizeMeters) params.set("cellSizeMeters", String(cellSizeMeters));
+  if (filters.obstacleType) params.set("obstacleType", filters.obstacleType);
+  if (filters.verificationStatus) params.set("verificationStatus", filters.verificationStatus);
+  return fetchJson<CoverageResponse>(`/api/map/coverage?${params.toString()}`);
+}
+
 export interface NearbyObstacle {
   reportId: string;
   title: string;
