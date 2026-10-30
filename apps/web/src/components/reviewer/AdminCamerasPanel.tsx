@@ -36,7 +36,7 @@ export function AdminCamerasPanel() {
   useEffect(() => { void load(); }, [load]);
   useEffect(() => { const id = setInterval(() => setUser(getSessionUser()), 1000); return () => clearInterval(id); }, []);
 
-  if (!user || user.role !== "Admin") return <p>Admin লগইন করুন — <a href="#top">উপরে</a> reviewer/admin ফর্মে <code>admin@pathlens.local / Admin@123</code> দিয়ে লগইন করলে এখানে ফর্ম আসবে।</p>;
+  if (!user || user.role !== "Admin") return <p>Admin sign-in required — log in above with <code>admin@pathlens.local / Admin@123</code> to register cameras.</p>;
 
   async function onRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -47,12 +47,12 @@ export function AdminCamerasPanel() {
         provider, externalId, label, city, latitude: Number(lat), longitude: Number(lon), feedImageUrl: feedUrl, cadenceSeconds: Number(cadence), permissionNote: perm,
       }),
     });
-    if (res.ok) { setMsg("ক্যামেরা রেজিস্টার হয়েছে।"); await load(); }
-    else setMsg(`হয়নি (${res.status}): ${(await res.text()).slice(0, 400)}`);
+    if (res.ok) { setMsg("Camera registered successfully."); await load(); }
+    else setMsg(`Failed (${res.status}): ${(await res.text()).slice(0, 400)}`);
   }
   async function toggle(c: Cam) {
     const r = await authFetch(`/api/cameras/${c.id}`, { method: "PATCH", body: JSON.stringify({ enabled: !c.enabled }) });
-    setMsg(r.ok ? (c.enabled ? "নিষ্ক্রিয়।" : "সক্রিয়।") : `বদলানো যায়নি (${r.status})`);
+    setMsg(r.ok ? (c.enabled ? "Disabled." : "Enabled.") : `Update failed (${r.status})`);
     if (r.ok) await load();
   }
   async function poll(id: string) {
@@ -74,14 +74,14 @@ export function AdminCamerasPanel() {
         <label>FeedImageUrl <input value={feedUrl} onChange={(e) => setFeedUrl(e.target.value)} required /></label>
         <label>Cadence <input value={cadence} onChange={(e) => setCadence(e.target.value)} required /></label>
         <label>PermissionNote <input value={perm} onChange={(e) => setPerm(e.target.value)} required /></label>
-        <button type="submit">রেজিস্টার</button>
+        <button type="submit">Register camera</button>
       </form>
-      <h3>ক্যামেরা ({cameras.length})</h3>
+      <h3>Cameras ({cameras.length})</h3>
       <ul>
         {cameras.map((c) => (
           <li key={c.id}>
-            <strong>{c.label}</strong> ({c.provider}) — {c.enabled ? "সক্রিয়" : "নিষ্ক্রিয়"} <button onClick={() => toggle(c)}>{c.enabled ? "বন্ধ" : "চালু"}</button> <button onClick={() => poll(c.id)}>Poll</button>
-            <br />{c.feedImageUrl} {c.lastError ? `· ত্রুটি: ${c.lastError}` : ""}
+            <strong>{c.label}</strong> ({c.provider}) — {c.enabled ? "Active" : "Inactive"} <button onClick={() => toggle(c)}>{c.enabled ? "Disable" : "Enable"}</button> <button onClick={() => poll(c.id)}>Poll now</button>
+            <br />{c.feedImageUrl} {c.lastError ? `· Error: ${c.lastError}` : ""}
           </li>
         ))}
       </ul>

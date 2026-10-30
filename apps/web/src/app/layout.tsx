@@ -17,10 +17,13 @@ export default function RootLayout({
         <SiteHeader />
         <main className="page">{children}</main>
         <footer className="site-footer">
-          <p>
-            PathLens AI never labels a route safe just because no obstacle was
-            reported. Unknown means unknown.
-          </p>
+          <div className="site-footer__inner">
+            <p>
+              PathLens AI never labels a route safe just because no obstacle was reported.
+              <strong> Unknown means unknown.</strong>
+            </p>
+            <p className="site-footer__meta">Evidence-aware · Built for the Meta Global AI Hackathon 2026</p>
+          </div>
         </footer>
       </body>
     </html>

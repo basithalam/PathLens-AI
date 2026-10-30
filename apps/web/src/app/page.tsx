@@ -10,27 +10,69 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="intro">
-        <h1>Can this path be used right now — and how sure are we?</h1>
-        <p className="lede">
-          PathLens AI collects photo evidence of pedestrian obstacles, compares
-          older and newer evidence from the same place, and explains how fresh
-          and trustworthy that information is. It is being built for the Meta
-          Global AI Developer Hackathon 2026.
+      <section className="hero">
+        <div className="hero__badge">
+          <span className="hero__dot" aria-hidden="true" /> Meta Global AI Hackathon 2026 · San Francisco pilot
+        </div>
+        <h1 className="hero__title">
+          Can this path be used <span>right now</span> — and how sure are we?
+        </h1>
+        <p className="hero__lede">
+          PathLens AI collects photo evidence of pedestrian obstacles, compares older and newer evidence from the same
+          place, and explains how fresh and trustworthy that information is. No false sense of safety.
         </p>
-        <p className="home-actions">
-          <Link href="/map" className="primary-button">
-            Explore the map
-          </Link>{" "}
-          <Link href="/report/new">Report an obstacle</Link>{" "}
-          <Link href="/reports">Browse reports</Link>{" "}
-          <Link href="/routes">Plan a route</Link>
-        </p>
-        <p className="limitations">
-          Limitations, stated up front: an obstacle that is not visible in a
-          newer photo has not been proven removed, and a route with no reports
-          is not a proven clear route.
-        </p>
+        <div className="hero__actions">
+          <Link href="/map" className="btn btn--primary">
+            Explore the map <span aria-hidden="true">→</span>
+          </Link>
+          <Link href="/report/new" className="btn btn--ghost">
+            Report an obstacle
+          </Link>
+          <Link href="/routes" className="btn btn--ghost">
+            Plan a route
+          </Link>
+        </div>
+        <div className="hero__trust">
+          <div className="hero__trust-card">
+            <strong>Evidence-aware</strong>
+            <span>Every claim shows age, source, and verification. Unknown stays unknown.</span>
+          </div>
+          <div className="hero__trust-card">
+            <strong>Human in the loop</strong>
+            <span>Reviewers verify, dispute, or reject — with a full audit trail.</span>
+          </div>
+          <div className="hero__trust-card">
+            <strong>Honest by design</strong>
+            <span>Not visible ≠ removed. No reports ≠ clear.</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="feature-grid" aria-label="Key capabilities">
+        <Link href="/map" className="feature-card">
+          <div className="feature-card__icon" aria-hidden="true">
+            ◉
+          </div>
+          <h3>Accessibility Map</h3>
+          <p>OSM + Leaflet with coverage grid (C/B/A). Click a cell to zoom and filter reports.</p>
+          <span className="feature-card__link">Open map →</span>
+        </Link>
+        <Link href="/routes" className="feature-card">
+          <div className="feature-card__icon" aria-hidden="true">
+            ↝
+          </div>
+          <h3>Route Planner</h3>
+          <p>OSRM foot routing ranked by known obstacles, verification, and unknown share.</p>
+          <span className="feature-card__link">Plan a route →</span>
+        </Link>
+        <Link href="/reports" className="feature-card">
+          <div className="feature-card__icon" aria-hidden="true">
+            ◎
+          </div>
+          <h3>Reports & Evidence</h3>
+          <p>Photo timeline, AI comparison, and feedback that never auto-verifies.</p>
+          <span className="feature-card__link">Browse reports →</span>
+        </Link>
       </section>
 
       <section aria-labelledby="system-status-heading" className="status-panel">
