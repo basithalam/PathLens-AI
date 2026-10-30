@@ -224,12 +224,18 @@ export function AccessibilityMap() {
     for (const report of items) {
       const icon = L.divIcon({
         className: "map-marker",
-        html: `<span class="map-marker-pin map-marker-${report.verificationStatus.toLowerCase()}" title="${escapeHtml(report.title)}"><span class="map-marker-letter">${markerLetter(report)}</span></span>`,
+        html: `<span class="map-marker-pin map-marker-${report.verificationStatus.toLowerCase()}" title="${escapeHtml(report.title)}"><span class="map-marker-letter" aria-hidden="true">${markerLetter(report)}</span><span class="sr-only">${report.verificationStatus} ${report.obstacleType}</span></span>`,
         iconSize: [30, 30],
         iconAnchor: [15, 15],
       });
 
-      const marker = L.marker([report.latitude, report.longitude], { icon, title: report.title });
+      const marker = L.marker([report.latitude, report.longitude], {
+        icon,
+        title: report.title,
+        alt: `${report.title} — ${report.verificationStatus} — ${report.obstacleType}`,
+        keyboard: true,
+        riseOnHover: true,
+      });
       marker.bindPopup(
         `<strong>${escapeHtml(report.title)}</strong><br/>${escapeHtml(report.obstacleType)} · ${escapeHtml(report.verificationStatus)}<br/><a href="/reports/${report.id}">Open report</a>`,
       );

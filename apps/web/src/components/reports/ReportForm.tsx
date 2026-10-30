@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createReport } from "@/lib/api-client";
 import { MiniMapPicker } from "@/components/map/MiniMapPicker";
+import { enqueueReport, getQueue } from "@/lib/offline-queue";
 
 const OBSTACLE_TYPES = [
   "BlockedSidewalk",
@@ -56,11 +57,14 @@ export function ReportForm() {
       (position) => {
         setLatitude(String(position.coords.latitude));
         setLongitude(String(position.coords.longitude));
-        setLocationNote(
-          `Location filled from your browser (accuracy about ${Math.round(position.coords.accuracy)} m). Check it before submitting.`,
-        );
+        const acc = Math.round(position.coords.accuracy);
+        let note = `Location filled from your browser (accuracy about ${acc} m). Check it before submitting.`;
+        if (acc > 50) note += " ⚠️ Accuracy is low (>50m) — drag the map pin to fine-tune.";
+        if (acc > 100) note += " Very low — please verify on map.";
+        setLocationNote(note);
       },
       () => setLocationNote("Location permission was denied. Enter coordinates manually."),
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
     );
   }
 
@@ -70,7 +74,7 @@ export function ReportForm() {
     setMessage(null);
     setErrors({});
 
-    const result = await createReport({
+    const payload = {
       title,
       description: description.trim() ? description : null,
       obstacleType,
@@ -80,12 +84,29 @@ export function ReportForm() {
       hasStairs: hasStairs === "" ? null : hasStairs === "yes",
       hasRamp: hasRamp === "" ? null : hasRamp === "yes",
       surface: surface === "" ? null : surface,
-    });
+    };
+
+    // H4.3 offline queue — if navigator is offline, queue locally
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      const queued = enqueueReport(payload);
+      setSubmitting(false);
+      setMessage(`You are offline — report queued locally (${queued.id.slice(0, 8)}). It will be sent when you are back online. Queue: ${getQueue().length} pending.`);
+      return;
+    }
+
+    const result = await createReport(payload);
 
     setSubmitting(false);
 
     if (result.ok) {
       router.push(`/reports/${result.report.id}`);
+      return;
+    }
+
+    // Network error → offer to queue
+    if (!navigator.onLine || result.message.includes("not reachable")) {
+      const queued = enqueueReport(payload);
+      setMessage(`Could not reach the API — report queued locally (${queued.id.slice(0, 8)}). Retry when online. Queue: ${getQueue().length}`);
       return;
     }
 

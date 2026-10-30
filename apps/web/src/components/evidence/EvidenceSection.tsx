@@ -11,6 +11,7 @@ import {
   type EvidenceItem,
 } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
+import { compressImageFile } from "@/lib/offline-queue";
 
 const ACCEPTED = "image/jpeg,image/png,image/webp";
 const MAX_BYTES = 10 * 1024 * 1024;
@@ -205,9 +206,14 @@ export function EvidenceSection({
     }
 
     setProgress(0);
+    // H4.3 client compress to <1MB before upload (saves bandwidth on wheelchair tray mobile)
+    const toUpload = await compressImageFile(selected);
+    if (toUpload.size !== selected.size) {
+      setMessage(`Compressed from ${(selected.size / 1024).toFixed(0)} KB to ${(toUpload.size / 1024).toFixed(0)} KB before upload.`);
+    }
     const result = await uploadEvidence(
       reportId,
-      selected,
+      toUpload,
       setProgress,
       captureTime ? new Date(captureTime).toISOString() : undefined,
     );

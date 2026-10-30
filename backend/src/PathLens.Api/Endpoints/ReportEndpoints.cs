@@ -154,6 +154,44 @@ public static class ReportEndpoints
             }
         });
 
+        // H4.4 Weekly feedback → AI error grouping: summary for reviewers
+        group.MapGet("/feedback/summary", async (
+            PathLens.Infrastructure.Persistence.PathLensDbContext dbContext,
+            CancellationToken cancellationToken) =>
+        {
+            // Aggregate audit events where Action is Feedback* (includes WrongOrStale)
+            var all = await Microsoft.EntityFrameworkCore.EntityFrameworkQueryableExtensions.ToListAsync(dbContext.ReviewAuditEvents.Where(e => e.Action.StartsWith("Feedback")), cancellationToken);
+
+            var byKind = all
+                .GroupBy(e => e.NewValue ?? "Unknown")
+                .Select(g => new { kind = g.Key, count = g.Count(), action = g.First().Action })
+                .OrderByDescending(x => x.count)
+                .ToList();
+
+            var wrongOrStale = all.Where(e => e.Action == "FeedbackWrongOrStale").ToList();
+            // Group WrongOrStale by note keyword heuristics (wrong type vs visibility vs stale vs other)
+            string classify(string? note)
+            {
+                if (string.IsNullOrWhiteSpace(note)) return "no-note";
+                var n = note.ToLowerInvariant();
+                if (n.Contains("type") || n.Contains("stairs") || n.Contains("ramp") || n.Contains("surface")) return "wrong-type";
+                if (n.Contains("visible") || n.Contains("photo") || n.Contains("angle") || n.Contains("light")) return "visibility";
+                if (n.Contains("old") || n.Contains("stale") || n.Contains("time") || n.Contains("change")) return "stale";
+                return "other";
+            }
+
+            var wrongGroups = wrongOrStale.GroupBy(e => classify(e.Note)).Select(g => new { cause = g.Key, count = g.Count() }).ToList();
+
+            return Results.Ok(new
+            {
+                totalFeedback = all.Count,
+                byKind,
+                wrongOrStaleTotal = wrongOrStale.Count,
+                wrongOrStaleByCause = wrongGroups,
+                note = "WrongOrStale is grouped weekly by cause (wrong-type vs visibility vs stale). Review notes, not counts alone, drive AI prompt/model fixes."
+            });
+        });
+
         return app;
     }
 }

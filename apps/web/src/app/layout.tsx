@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   title: "PathLens AI — Evidence-Aware Accessibility Intelligence",
   description:
     "PathLens AI helps people judge whether a pedestrian path is likely usable, using photo evidence compared over time — and says plainly when it does not know.",
+  manifest: "/manifest.json",
+  themeColor: "#0b6b4f",
 };
 
 export default function RootLayout({
@@ -13,6 +15,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="apple-touch-icon" href="/marker-icon.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+      </head>
       <body>
         <SiteHeader />
         <main className="page">{children}</main>
