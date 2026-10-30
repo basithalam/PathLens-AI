@@ -51,6 +51,7 @@ const REVIEW_ACTIONS = ["HumanVerified", "Disputed", "Rejected"] as const;
 
 export function ReviewerDashboard() {
   const [user, setUser] = useState<SessionUser | null>(null);
+  const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState("reviewer@pathlens.local");
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState<string | null>(null);
@@ -79,6 +80,7 @@ export function ReviewerDashboard() {
   }, []);
 
   useEffect(() => {
+    setMounted(true);
     const existing = getSessionUser();
     if (existing) {
       setUser(existing);
