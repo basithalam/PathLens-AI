@@ -178,6 +178,8 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 
 **H2 (2026-10-30):** honest demo — Meta Gate A 404 (`api.meta.ai/compat/v1/...` not found) + Groq 401 documented in `docs/AI_GATE_A_REPORT.md`; SF camera 525/timeout in `docs/camera-live-gate.md` (both blocked, no fabrication); Mock pipeline `evaluation/results.json` 3/3 correct proof; `docs/AI_EVALUATION.md` + `docs/DEMO_SCRIPT.md` updated (2-min honest script). Secrets never committed (see `docs/SECURITY.md`).
 
+**H3 (2026-10-30):** scale foundation — PostGIS dual-mode `ST_DWithin/ST_Within` with fallback (see `H3_POSTGIS_REPORT.md`), `SKIP LOCKED` for 2 workers, `StaleEvidenceDays` configurable (see `ROUTING_WHEELCHAIR_VALIDATION.md`), camera thresholds documented (`camera-quality-thresholds.md`). Build 0W0E, 39 pass, next 8 routes. See `H3_FIX_REPORT.md`.
+
 ## License
 
 To be decided.

@@ -11,10 +11,17 @@ public interface IRouteRecommendationRepository
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }
 
+public sealed class RouteEvaluationOptions
+{
+    public const string SectionName = "Routing";
+    public int StaleEvidenceDays { get; set; } = 30;
+}
+
 public sealed class RouteRecommendationService(
     IRoutingService routingService,
     IReportRepository reportRepository,
-    IRouteRecommendationRepository recommendationRepository)
+    IRouteRecommendationRepository recommendationRepository,
+    Microsoft.Extensions.Options.IOptions<RouteEvaluationOptions>? routingOptions = null)
 {
     /// <summary>Reports closer than this to the route count as known obstacles on it.</summary>
     public const double ObstacleRadiusMeters = 50;
@@ -24,6 +31,8 @@ public sealed class RouteRecommendationService(
 
     /// <summary>Evidence older than this is called stale in explanations — never silently fresh.</summary>
     public const int StaleEvidenceDays = 30;
+
+    private int EffectiveStaleDays => routingOptions?.Value?.StaleEvidenceDays is int v && v > 0 ? v : StaleEvidenceDays;
 
     public async Task<RouteRecommendationResponse> RecommendAsync(
         GeoPoint origin, GeoPoint destination, CancellationToken cancellationToken,
@@ -96,9 +105,9 @@ public sealed class RouteRecommendationService(
                     var ageText = ageDays < 1
                         ? "evidence less than a day old"
                         : $"evidence {ageDays:0} day(s) old";
-                    if (ageDays > StaleEvidenceDays)
+                    if (ageDays > EffectiveStaleDays)
                     {
-                        ageText += $" — stale (over {StaleEvidenceDays} days; conditions may have changed)";
+                        ageText += $" — stale (over {EffectiveStaleDays} days; conditions may have changed)";
                     }
 
                     var certainty = obstacle.VerificationStatus == "HumanVerified"
@@ -112,12 +121,12 @@ public sealed class RouteRecommendationService(
                 }
 
                 var certainCount = nearby.Count(info => info.VerificationStatus == "HumanVerified");
-                var staleCount = nearby.Count(info => (now - info.EvidenceAt).TotalDays > StaleEvidenceDays);
+                var staleCount = nearby.Count(info => (now - info.EvidenceAt).TotalDays > EffectiveStaleDays);
                 explanation.Add(
                     $"Certainty split for this route: {certainCount} certain (human-verified) obstacle(s), " +
                     $"{nearby.Count - certainCount} uncertain (unverified, AI-only, disputed, or camera-detected). " +
                     (staleCount > 0
-                        ? $"{staleCount} obstacle(s) rely on stale evidence (over {StaleEvidenceDays} days old)."
+                        ? $"{staleCount} obstacle(s) rely on stale evidence (over {EffectiveStaleDays} days old)."
                         : "No obstacle here relies on stale evidence."));
             }
 
@@ -136,7 +145,7 @@ public sealed class RouteRecommendationService(
             var hasConfirmedStairs = nearby.Any(info =>
                 info.VerificationStatus == "HumanVerified" &&
                 (info.HasStairs == true || info.ObstacleType == "StairsOrStep"));
-            var routeStaleCount = nearby.Count(info => (now - info.EvidenceAt).TotalDays > StaleEvidenceDays);
+            var routeStaleCount = nearby.Count(info => (now - info.EvidenceAt).TotalDays > EffectiveStaleDays);
 
             if (hasConfirmedStairs)
             {

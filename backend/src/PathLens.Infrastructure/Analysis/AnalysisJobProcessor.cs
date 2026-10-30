@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using PathLens.Application.Ai;
 using PathLens.Application.Storage;
+using PathLens.Domain.Evidence;
 using PathLens.Domain.Reports;
 using PathLens.Infrastructure.Persistence;
 
@@ -54,50 +55,79 @@ public sealed class AnalysisJobProcessor(
         using var scope = scopeFactory.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<PathLensDbContext>();
 
-        var job = await dbContext.AnalysisJobs
-            .Where(candidate => candidate.Status == AnalysisStatus.Pending)
-            .OrderBy(candidate => candidate.CreatedAt)
-            .FirstOrDefaultAsync(stoppingToken);
-
-        if (job is null)
+        // H3.2 Distributed lock: SKIP LOCKED so two API/worker instances against the same DB
+        // never process the same Pending job. Transaction holds the row lock only while claimed.
+        AnalysisJob? job = null;
+        EvidenceItem? evidence = null;
+        await using (var tx = await dbContext.Database.BeginTransactionAsync(stoppingToken))
         {
-            return;
-        }
+            try
+            {
+                job = await dbContext.AnalysisJobs
+                    .FromSqlRaw("""
+                        SELECT * FROM analysis_jobs
+                        WHERE status = 'Pending'
+                        ORDER BY created_at
+                        LIMIT 1
+                        FOR UPDATE SKIP LOCKED
+                        """)
+                    .FirstOrDefaultAsync(stoppingToken);
+            }
+            catch
+            {
+                // Fallback for DBs without SKIP LOCKED support (older PG or test provider)
+                job = await dbContext.AnalysisJobs
+                    .Where(candidate => candidate.Status == AnalysisStatus.Pending)
+                    .OrderBy(candidate => candidate.CreatedAt)
+                    .FirstOrDefaultAsync(stoppingToken);
+            }
 
-        var evidence = await dbContext.EvidenceItems
-            .FirstOrDefaultAsync(item => item.Id == job.EvidenceItemId, stoppingToken);
-        if (evidence is null)
-        {
-            job.MarkFailed("Evidence item no longer exists.", DateTimeOffset.UtcNow);
+            if (job is null)
+            {
+                await tx.RollbackAsync(stoppingToken);
+                return;
+            }
+
+            evidence = await dbContext.EvidenceItems
+                .FirstOrDefaultAsync(item => item.Id == job.EvidenceItemId, stoppingToken);
+            if (evidence is null)
+            {
+                job.MarkFailed("Evidence item no longer exists.", DateTimeOffset.UtcNow);
+                await dbContext.SaveChangesAsync(stoppingToken);
+                await tx.CommitAsync(stoppingToken);
+                return;
+            }
+
+            job.MarkProcessing(DateTimeOffset.UtcNow);
+            evidence.MarkAnalysisProcessing();
             await dbContext.SaveChangesAsync(stoppingToken);
-            return;
+            await tx.CommitAsync(stoppingToken);
         }
 
-        job.MarkProcessing(DateTimeOffset.UtcNow);
-        evidence.MarkAnalysisProcessing();
-        await dbContext.SaveChangesAsync(stoppingToken);
+        if (job is null || evidence is null) return;
+        AnalysisJob currentJob = job!;
+        EvidenceItem currentEvidence = evidence!;
 
         // Quality gate (F3): an unsuitable camera frame is stored evidence,
         // but no AI call is spent on it. The job records why, and the pair
         // comparison (if any) stays Inconclusive rather than guessed.
-        if (evidence.SourceType == PathLens.Domain.Evidence.EvidenceSourceType.CameraFeed &&
-            evidence.IsUnsuitableForAnalysis)
+        if (currentEvidence.SourceType == PathLens.Domain.Evidence.EvidenceSourceType.CameraFeed &&
+            currentEvidence.IsUnsuitableForAnalysis)
         {
-            job.MarkFailed(
-                $"Camera frame not analysed: {evidence.QualityNote ?? "frame quality too low."}",
+            currentJob.MarkFailed($"Camera frame not analysed: {currentEvidence.QualityNote ?? "frame quality too low."}",
                 DateTimeOffset.UtcNow);
-            evidence.MarkAnalysisFailed();
+            currentEvidence.MarkAnalysisFailed();
             await dbContext.SaveChangesAsync(stoppingToken);
 
             try
             {
                 var postProcessor = scope.ServiceProvider
                     .GetRequiredService<Cameras.CameraEvidencePostProcessor>();
-                await postProcessor.ProcessUnsuitableAsync(evidence, stoppingToken);
+                await postProcessor.ProcessUnsuitableAsync(currentEvidence, stoppingToken);
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Camera unsuitable-frame comparison failed for evidence {EvidenceId}.", evidence.Id);
+                logger.LogWarning(ex, "Camera unsuitable-frame comparison failed for evidence {EvidenceId}.", currentEvidence.Id);
             }
 
             return;
@@ -106,7 +136,7 @@ public sealed class AnalysisJobProcessor(
         try
         {
             var storage = scope.ServiceProvider.GetRequiredService<IObjectStorage>();
-            await using var stream = await storage.OpenReadAsync(evidence.StorageKey, stoppingToken)
+            await using var stream = await storage.OpenReadAsync(currentEvidence.StorageKey, stoppingToken)
                 ?? throw new InvalidOperationException("The evidence file is missing from storage.");
 
             using var memory = new MemoryStream();
@@ -115,9 +145,9 @@ public sealed class AnalysisJobProcessor(
 
             var analysisService = scope.ServiceProvider.GetRequiredService<IImageAnalysisService>();
             var result = await analysisService.AnalyzeAsync(
-                new ImageAnalysisRequest(bytes, evidence.ContentType), stoppingToken);
+                new ImageAnalysisRequest(bytes, currentEvidence.ContentType), stoppingToken);
 
-            evidence.MarkAnalysisCompleted(
+            currentEvidence.MarkAnalysisCompleted(
                 ImageAnalysisResultParser.Serialize(result),
                 result.Provider,
                 result.Model,
@@ -125,48 +155,48 @@ public sealed class AnalysisJobProcessor(
 
             // Keep the parent report's evidence freshness up to date.
             var report = await dbContext.Reports.FirstOrDefaultAsync(
-                candidate => candidate.Id == evidence.ReportId, stoppingToken);
-            report?.RecordEvidence(evidence.UploadedAt);
+                candidate => candidate.Id == currentEvidence.ReportId, stoppingToken);
+            report?.RecordEvidence(currentEvidence.UploadedAt);
 
-            job.MarkCompleted(DateTimeOffset.UtcNow);
+            currentJob.MarkCompleted(DateTimeOffset.UtcNow);
             await dbContext.SaveChangesAsync(stoppingToken);
 
             // Camera snapshots: auto-compare with the prior snapshot from the
             // same camera. A failure here must not fail the analysis itself.
-            if (evidence.SourceType == PathLens.Domain.Evidence.EvidenceSourceType.CameraFeed)
+            if (currentEvidence.SourceType == PathLens.Domain.Evidence.EvidenceSourceType.CameraFeed)
             {
                 try
                 {
                     var postProcessor = scope.ServiceProvider
                         .GetRequiredService<Cameras.CameraEvidencePostProcessor>();
-                    await postProcessor.ProcessAsync(evidence, stoppingToken);
+                    await postProcessor.ProcessAsync(currentEvidence, stoppingToken);
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(ex, "Camera auto-comparison failed for evidence {EvidenceId}.", evidence.Id);
+                    logger.LogWarning(ex, "Camera auto-comparison failed for evidence {EvidenceId}.", currentEvidence.Id);
                 }
             }
         }
         catch (Exception ex) when (ex is HttpRequestException or TimeoutException or TaskCanceledException)
         {
-            if (job.Attempts < MaxAttempts && !stoppingToken.IsCancellationRequested)
+            if (currentJob.Attempts < MaxAttempts && !stoppingToken.IsCancellationRequested)
             {
-                logger.LogWarning(ex, "Transient analysis failure for job {JobId}; requeueing.", job.Id);
-                job.Requeue($"Transient failure, retrying: {ex.Message}");
-                evidence.ResetForAnalysis();
+                logger.LogWarning(ex, "Transient analysis failure for job {JobId}; requeueing.", currentJob.Id);
+                currentJob.Requeue($"Transient failure, retrying: {ex.Message}");
+                currentEvidence.ResetForAnalysis();
             }
             else
             {
-                logger.LogWarning(ex, "Analysis job {JobId} failed.", job.Id);
-                job.MarkFailed(ex.Message, DateTimeOffset.UtcNow);
-                evidence.MarkAnalysisFailed();
+                logger.LogWarning(ex, "Analysis job {JobId} failed.", currentJob.Id);
+                currentJob.MarkFailed(ex.Message, DateTimeOffset.UtcNow);
+                currentEvidence.MarkAnalysisFailed();
             }
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Analysis job {JobId} failed.", job.Id);
-            job.MarkFailed(ex.Message, DateTimeOffset.UtcNow);
-            evidence.MarkAnalysisFailed();
+            logger.LogWarning(ex, "Analysis job {JobId} failed.", currentJob.Id);
+            currentJob.MarkFailed(ex.Message, DateTimeOffset.UtcNow);
+            currentEvidence.MarkAnalysisFailed();
         }
 
         await dbContext.SaveChangesAsync(stoppingToken);

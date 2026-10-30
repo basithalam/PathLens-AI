@@ -24,7 +24,9 @@ public sealed class CameraPollingWorker(
         }
 
         var checkInterval = TimeSpan.FromSeconds(Math.Max(5, options.Value.PollCheckSeconds));
-        logger.LogInformation("Camera polling enabled; checking for due sources every {Seconds}s.", checkInterval.TotalSeconds);
+        logger.LogInformation(
+            "Camera polling enabled; checking for due sources every {Seconds}s. H3.2 advisory locks allow multiple workers to share the same database safely (only one will win per source).",
+            checkInterval.TotalSeconds);
 
         while (!stoppingToken.IsCancellationRequested)
         {

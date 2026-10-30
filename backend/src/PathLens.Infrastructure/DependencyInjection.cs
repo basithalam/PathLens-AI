@@ -23,10 +23,15 @@ public static class DependencyInjection
     {
         var connectionString = configuration.GetConnectionString("DefaultConnection");
 
-        // NetTopologySuite/PostGIS is deferred to Phase 4: the local PostgreSQL
-        // install has no PostGIS, so geometry must not enter the model yet.
-        services.AddDbContext<PathLensDbContext>(options =>
-            options.UseNpgsql(connectionString));
+        // H3.1 PostGIS dual-mode: enable NetTopologySuite translation so ST_MakePoint/
+        // ST_DWithin SQL can be composed; actual extension is probed at runtime via
+        // PostGisHelper (Docker PostGIS uses it, local 5433 falls back to lat/lon).
+        services.AddDbContext<PathLensDbContext>((sp, options) =>
+        {
+            options.UseNpgsql(connectionString, o => o.UseNetTopologySuite());
+            // Keep legacy timestamp behaviour; Npgsql 8+ warns otherwise
+            AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        });
 
         services.AddHealthChecks()
             .AddCheck<DatabaseHealthCheck>("database");
@@ -43,6 +48,7 @@ public static class DependencyInjection
         // Routing: real OSRM by default; MockRouting only when explicitly set
         // (tests). Provider failures surface as unavailable, never as fake routes.
         services.Configure<Routing.RoutingOptions>(configuration.GetSection(Routing.RoutingOptions.SectionName));
+        services.Configure<Application.Routing.RouteEvaluationOptions>(configuration.GetSection(Application.Routing.RouteEvaluationOptions.SectionName));
         services.AddHttpClient(nameof(Routing.OsrmRoutingService));
         if (string.Equals(configuration["Routing:Provider"], "Mock", StringComparison.OrdinalIgnoreCase))
         {

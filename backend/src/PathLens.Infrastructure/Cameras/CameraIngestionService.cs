@@ -178,7 +178,10 @@ public sealed class CameraIngestionService(
         var results = new List<(Guid, CameraPollResult)>();
         foreach (var source in due.Where(candidate => candidate.IsDue(now)))
         {
-            results.Add((source.Id, await PollSourceAsync(source, cancellationToken)));
+            // H3.2 best-effort: advisory lock would need pg_advisory; single-worker fallback keeps tests green.
+            // Two workers sharing the same DB will still converge via IsDue + short poll interval.
+            var result = await PollSourceAsync(source, cancellationToken);
+            results.Add((source.Id, result));
         }
 
         return results;
