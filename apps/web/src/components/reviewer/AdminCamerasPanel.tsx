@@ -79,6 +79,22 @@ export function AdminCamerasPanel() {
     if (r.ok) { setMsg("Camera updated via UI."); setEditingId(null); await load(); }
     else setMsg(`Update failed (${r.status}): ${(await r.text()).slice(0, 400)}`);
   }
+  async function enableAll() {
+    setMsg("Enabling all cameras…");
+    for (const c of cameras) if (!c.enabled && c.hasPermissionNote) await authFetch(`/api/cameras/${c.id}`, { method: "PATCH", body: JSON.stringify({ enabled: true }) });
+    await load(); setMsg(`Enabled all eligible cameras (${cameras.length}).`);
+  }
+  async function pollAll() {
+    setMsg("Polling all active cameras…");
+    for (const c of cameras) if (c.enabled) await authFetch(`/api/cameras/${c.id}/poll`, { method: "POST" });
+    await load(); setMsg("Polled all active cameras.");
+  }
+  async function importFromDatumfeed(city: string, limit: number) {
+    setMsg(`Importing ${limit} active cameras for ${city} from Datumfeed…`);
+    const r = await authFetch(`/api/cameras/import?city=${encodeURIComponent(city)}&limit=${limit}`, { method: "POST" });
+    if (r.ok) { const j = await r.json(); setMsg(`Imported ${j.imported} cameras for ${city} — ${j.skipped} skipped (duplicates).`); await load(); }
+    else setMsg(`Import failed (${r.status}): ${(await r.text()).slice(0, 500)}`);
+  }
 
   return (
     <div className="admin-panel">
@@ -95,6 +111,12 @@ export function AdminCamerasPanel() {
         <label>PermissionNote <input value={perm} onChange={(e) => setPerm(e.target.value)} required /></label>
         <button type="submit">Register camera</button>
       </form>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "1rem 0" }}>
+        <button onClick={enableAll} className="btn btn--primary btn--sm">Enable all</button>
+        <button onClick={pollAll} className="btn btn--primary btn--sm">Poll all active</button>
+        <button onClick={() => importFromDatumfeed("austin", 10)} className="btn btn--ghost btn--sm">Import 10 from Datumfeed (Austin)</button>
+        <button onClick={() => importFromDatumfeed("sanfrancisco", 10)} className="btn btn--ghost btn--sm">Import 10 from Datumfeed (SF)</button>
+      </div>
       <h3>Cameras ({cameras.length})</h3>
       {cameras.length === 0 ? (
         <p className="empty-state">No cameras registered yet. Use the form above to add your first SF / Datumfeed camera.</p>
