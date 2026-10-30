@@ -30,11 +30,14 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
 
   return (
     <>
-      <h1>Accessibility reports</h1>
-      <p>
-        Reports are user claims about possible obstacles. A report is not a verified
-        fact until a reviewer checks it. <Link href="/report/new">Report an obstacle</Link>
-      </p>
+      <div className="page-header">
+        <div className="page-header__eyebrow">Community reports</div>
+        <h1>Accessibility reports</h1>
+        <p>
+          Reports are user claims about possible obstacles. A report is not a verified fact until a reviewer checks it.
+          <Link href="/report/new"> Report an obstacle</Link>
+        </p>
+      </div>
 
       <form method="get" className="filter-bar" aria-label="Filter reports">
         <label>
