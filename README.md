@@ -184,6 +184,8 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 
 **H5 (2026-10-30):** production hardened — JWT fail-closed, CORS multi-origin, rate limiting login 5/min upload 10/hour (429), moderation blocklist, privacy retention `PRIVACY_RETENTION.md` (30d/1y/GDPR soft-delete `DELETE /api/reports/{id}`), CI `ci.yml`, health OSRM+AI, docs dedup. Build 0W0E. See `H5_FIX_REPORT.md`.
 
+**H6 (2026-10-30):** SF pilot ready — SF research `SF_RESEARCH.md` (OSRM 5 samples 1478-2756m), i18n `lib/i18n.tsx` EN/বাংলা + Unicode report, analytics `GET /api/admin/stats` + `AdminStatsPanel` + `ReputationPanel` Bronze/Silver/Gold, SF sole pilot Dhaka deferred (no camera). Build 0W0E. See `H6_FIX_REPORT.md`.
+
 ## License
 
 To be decided.
