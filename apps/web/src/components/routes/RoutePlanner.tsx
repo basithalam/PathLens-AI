@@ -51,10 +51,10 @@ export function RoutePlanner() {
   const coverageLayerRef = useRef<import("leaflet").LayerGroup | null>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
 
-  const [originLat, setOriginLat] = useState("23.8103");
-  const [originLon, setOriginLon] = useState("90.4125");
-  const [destLat, setDestLat] = useState("23.8150");
-  const [destLon, setDestLon] = useState("90.4200");
+  const [originLat, setOriginLat] = useState("37.7749");
+  const [originLon, setOriginLon] = useState("-122.4194");
+  const [destLat, setDestLat] = useState("37.7790");
+  const [destLon, setDestLon] = useState("-122.4100");
   const [pickMode, setPickModeState] = useState<PickMode>("origin");
   const pickModeRef = useRef<PickMode>("origin");
 
@@ -98,7 +98,7 @@ export function RoutePlanner() {
       }
 
       leafletRef.current = L;
-      const map = L.map(containerRef.current).setView([23.8125, 90.416], 14);
+      const map = L.map(containerRef.current).setView([37.7749, -122.4194], 14);
       mapRef.current = map;
 
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
