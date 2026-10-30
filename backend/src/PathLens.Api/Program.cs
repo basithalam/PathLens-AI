@@ -148,6 +148,7 @@ app.MapComparisonEndpoints();
 app.MapMapEndpoints();
 app.MapRouteEndpoints();
 app.MapCameraEndpoints();
+app.MapAdminEndpoints();
 
 if (app.Environment.IsDevelopment())
 {

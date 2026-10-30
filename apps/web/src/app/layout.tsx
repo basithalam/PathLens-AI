@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SiteHeader } from "@/components/SiteHeader";
+import { LocaleProvider } from "@/lib/i18n";
 
 export const metadata: Metadata = {
   title: "PathLens AI — Evidence-Aware Accessibility Intelligence",
@@ -20,8 +21,9 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
       </head>
       <body>
-        <SiteHeader />
-        <main className="page">{children}</main>
+        <LocaleProvider>
+          <SiteHeader />
+          <main className="page">{children}</main>
         <footer className="site-footer">
           <div className="site-footer__inner">
             <p>
@@ -31,6 +33,7 @@ export default function RootLayout({
             <p className="site-footer__meta">Evidence-aware · Built for the Meta Global AI Hackathon 2026</p>
           </div>
         </footer>
+        </LocaleProvider>
       </body>
     </html>
   );

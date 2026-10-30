@@ -1,4 +1,6 @@
 import { AdminCamerasPanel } from "@/components/reviewer/AdminCamerasPanel";
+import { AdminStatsPanel } from "@/components/admin/AdminStatsPanel";
+import { ReputationPanel } from "@/components/admin/ReputationPanel";
 
 export default function AdminPage() {
   return (
@@ -18,6 +20,8 @@ export default function AdminPage() {
         Tip: Enable the camera after creation, then use <em>Poll now</em> to fetch an image immediately. It appears on the
         map as a square <code>C</code>.
       </p>
+      <AdminStatsPanel />
+      <ReputationPanel />
     </>
   );
 }

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { LocaleSwitch } from "@/lib/i18n";
 
 export function SiteHeader() {
   return (
@@ -20,6 +23,7 @@ export function SiteHeader() {
           <Link href="/reviewer">Reviewer</Link>
           <Link href="/admin">Admin</Link>
         </nav>
+        <LocaleSwitch />
       </div>
     </header>
   );
