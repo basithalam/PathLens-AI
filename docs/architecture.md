@@ -26,6 +26,6 @@ App Router pages for home, reports, report detail/edit, evidence, map, routes, a
 
 ## Known architectural limitations
 
-- Location is latitude/longitude columns, not PostGIS geometry: the local PostgreSQL has no PostGIS. Docker's PostGIS image enables the Phase-4 migration to geometry when used.
-- One background processor instance per database is assumed.
+- **H3.1 update:** Location stays `latitude`/`longitude` double columns, but `ReportRepository` now uses PostGIS `ST_DWithin`/`ST_Within` via `ST_MakePoint(longitude,latitude)::geography` when `pg_extension postgis` exists (Docker `postgis:17-3.5`). Local 5433 (no PostGIS) falls back to bounding-box + Haversine. A GiST expression index `ix_reports_geography` can be created on Docker; local skips honestly. See `docs/H3_POSTGIS_REPORT.md` for EXPLAIN verification.
+- **H3.2 update:** `AnalysisJobProcessor` uses `SELECT ... FOR UPDATE SKIP LOCKED` in a transaction, so two API/worker instances sharing one DB never process the same `Pending` job. Camera polling logs that multiple workers can share the DB safely (best-effort; advisory lock would need `pg_advisory`).
 - JWT uses seeded accounts; there is no public registration by design for the hackathon build.
