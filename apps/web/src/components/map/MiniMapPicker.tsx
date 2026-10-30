@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { fixLeafletIcons } from "@/lib/leaflet-icons";
 
 export function MiniMapPicker({ latitude, longitude, onPick }: { latitude: number | null; longitude: number | null; onPick: (lat: number, lon: number) => void }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -16,6 +17,7 @@ export function MiniMapPicker({ latitude, longitude, onPick }: { latitude: numbe
       const L = await import("leaflet");
       if (cancelled || !ref.current || mapRef.current) return;
       leafletRef.current = L;
+      fixLeafletIcons(L);
       const center: [number, number] = latitude !== null && longitude !== null ? [latitude, longitude] : [37.7749, -122.4194];
       const map = L.map(ref.current, { zoomControl: true }).setView(center, 15);
       mapRef.current = map as unknown;

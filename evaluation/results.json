@@ -1,0 +1,71 @@
+﻿{
+    "summary":  {
+                    "generatedAt":  "2026-10-30T11:57:35.9323609Z",
+                    "apiBaseUrl":  "http://localhost:5145",
+                    "manifest":  "evaluation/manifest.example.csv",
+                    "images":  {
+                                   "total":  3,
+                                   "correct":  3,
+                                   "incorrect":  0,
+                                   "inconclusive":  0,
+                                   "errors":  0
+                               },
+                    "pairs":  {
+                                  "total":  1,
+                                  "correct":  1,
+                                  "incorrect":  0,
+                                  "inconclusive":  0,
+                                  "errors":  0
+                              },
+                    "note":  "A 20-30 image set is a demo evaluation, never proof of general accuracy. Inconclusive is reported separately from incorrect."
+                },
+    "images":  [
+                   {
+                       "id":  "sample-1",
+                       "reportId":  "ccd3d1b7-d3f9-438b-972a-11fd24d6ec61",
+                       "evidenceId":  "a6a847cb-9057-418f-a5cf-e86c88355216",
+                       "expectedObstacle":  "Unknown",
+                       "actualObstacle":  "Unknown",
+                       "confidence":  0,
+                       "provider":  "Mock",
+                       "model":  "mock-deterministic-v1",
+                       "pairId":  "",
+                       "captureTimeUtc":  "2026-10-25T10:00:00Z",
+                       "verdict":  "Correct"
+                   },
+                   {
+                       "id":  "sample-2",
+                       "reportId":  "cdfdf2c3-b55e-4a5f-a833-46a38c61263b",
+                       "evidenceId":  "6d4fb6ad-c320-4f9c-9555-970c48595c3d",
+                       "expectedObstacle":  "Unknown",
+                       "actualObstacle":  "Unknown",
+                       "confidence":  0,
+                       "provider":  "Mock",
+                       "model":  "mock-deterministic-v1",
+                       "pairId":  "pair-1",
+                       "captureTimeUtc":  "2026-10-27T10:00:00Z",
+                       "verdict":  "Correct"
+                   },
+                   {
+                       "id":  "sample-3",
+                       "reportId":  "cdfdf2c3-b55e-4a5f-a833-46a38c61263b",
+                       "evidenceId":  "db5d2adb-7ffe-4a96-a7bf-caa0393e4202",
+                       "expectedObstacle":  "Unknown",
+                       "actualObstacle":  "Unknown",
+                       "confidence":  0,
+                       "provider":  "Mock",
+                       "model":  "mock-deterministic-v1",
+                       "pairId":  "pair-1",
+                       "captureTimeUtc":  "2026-10-26T10:00:00Z",
+                       "verdict":  "Correct"
+                   }
+               ],
+    "pairs":  [
+                  {
+                      "pairId":  "pair-1",
+                      "expectedOutcome":  "Inconclusive",
+                      "actualOutcome":  "Inconclusive",
+                      "verdict":  "Correct"
+                  }
+              ]
+}

@@ -5,8 +5,7 @@ services:
     environment:
       POSTGRES_DB: pathlens
       POSTGRES_USER: postgres
-      # Local development only. Set a real password outside this file for any shared environment.
-      POSTGRES_PASSWORD: pathlens_local_dev
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pathlens_local_dev}
     ports:
       - "5432:5432"
     volumes:
@@ -17,5 +16,82 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pathlens-api
+    environment:
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=pathlens;Username=postgres;Password=${POSTGRES_PASSWORD:-pathlens_local_dev}
+      Jwt__SigningKey: ${JWT_SIGNING_KEY:-LOCAL_DEV_ONLY_CHANGE_ME_PATHLENS_SIGNING_KEY_32CHARS}
+      Jwt__Issuer: ${JWT_ISSUER:-PathLens}
+      Jwt__Audience: ${JWT_AUDIENCE:-PathLensWeb}
+      Cors__FrontendOrigin: ${FRONTEND_ORIGIN:-http://localhost:3000}
+      Routing__OsrmBaseUrl: ${OSRM_BASE_URL:-https://router.project-osrm.org}
+      Storage__RootPath: /app/storage
+      # AI provider — set MetaAi__ApiKey/Endpoint/Model outside this file for live runs
+      Ai__Provider: ${AI_PROVIDER:-Meta}
+      MetaAi__Endpoint: ${META_AI_ENDPOINT:-}
+      MetaAi__Model: ${META_AI_MODEL:-}
+      MetaAi__ApiKey: ${META_AI_API_KEY:-}
+      Cameras__PollingEnabled: ${CAMERAS_POLLING_ENABLED:-false}
+      DOTNET_ROLE: api
+    ports:
+      - "${API_PORT:-5145}:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - pathlens-storage:/app/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:5145}
+    container_name: pathlens-web
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:5145}
+    ports:
+      - "${WEB_PORT:-3000}:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # Optional headless worker (same image, different entrypoint).
+  # Run ONLY api OR worker per database (see ARCHITECTURE.md). Enable via:
+  #   docker compose --profile worker up -d
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: pathlens-worker
+    profiles: ["worker"]
+    environment:
+      DOTNET_ROLE: worker
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Development}
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=pathlens;Username=postgres;Password=${POSTGRES_PASSWORD:-pathlens_local_dev}
+      Ai__Provider: ${AI_PROVIDER:-Meta}
+      MetaAi__Endpoint: ${META_AI_ENDPOINT:-}
+      MetaAi__Model: ${META_AI_MODEL:-}
+      MetaAi__ApiKey: ${META_AI_API_KEY:-}
+      Cameras__PollingEnabled: ${CAMERAS_POLLING_ENABLED:-false}
+      Storage__RootPath: /app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - pathlens-storage:/app/storage
+    restart: unless-stopped
+
 volumes:
   pathlens-db-data:
+  pathlens-storage:

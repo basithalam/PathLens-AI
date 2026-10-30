@@ -14,6 +14,7 @@ import {
   type MapViewport,
 } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
+import { fixLeafletIcons } from "@/lib/leaflet-icons";
 
 const OBSTACLE_TYPES = [
   "BlockedSidewalk",
@@ -247,6 +248,7 @@ export function AccessibilityMap() {
       }
 
       leafletRef.current = L;
+      fixLeafletIcons(L);
       const map = L.map(containerRef.current).setView(DEFAULT_CENTER, 13);
       mapRef.current = map;
 

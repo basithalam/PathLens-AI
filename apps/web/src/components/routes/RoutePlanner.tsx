@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import "leaflet/dist/leaflet.css";
+import { fixLeafletIcons } from "@/lib/leaflet-icons";
 import {
   getCoverage,
   recommendRoutes,
@@ -98,6 +99,7 @@ export function RoutePlanner() {
       }
 
       leafletRef.current = L;
+      fixLeafletIcons(L);
       const map = L.map(containerRef.current).setView([37.7749, -122.4194], 14);
       mapRef.current = map;
 

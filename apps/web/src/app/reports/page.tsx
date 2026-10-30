@@ -18,6 +18,17 @@ interface ReportsPageProps {
   searchParams: Promise<{ search?: string; obstacleType?: string; page?: string }>;
 }
 
+function buildPageHref(
+  baseParams: { search?: string; obstacleType?: string },
+  page: number,
+): string {
+  const sp = new URLSearchParams();
+  if (baseParams.search) sp.set("search", baseParams.search);
+  if (baseParams.obstacleType) sp.set("obstacleType", baseParams.obstacleType);
+  sp.set("page", String(page));
+  return `/reports?${sp.toString()}`;
+}
+
 export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const params = await searchParams;
   const page = Math.max(1, Number(params.page ?? 1) || 1);
@@ -84,8 +95,8 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
             ))}
           </ul>
           <nav aria-label="Pagination" className="pagination">
-            {page > 1 && <Link href={`/reports?page=${page - 1}`}>Previous</Link>}
-            {result.items.length === 10 && <Link href={`/reports?page=${page + 1}`}>Next</Link>}
+            {page > 1 && <Link href={buildPageHref(params, page - 1)}>Previous</Link>}
+            {result.items.length === 10 && <Link href={buildPageHref(params, page + 1)}>Next</Link>}
           </nav>
         </>
       )}

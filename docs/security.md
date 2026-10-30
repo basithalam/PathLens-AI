@@ -30,4 +30,4 @@
 
 - No rate limiting or account registration/recovery in the hackathon build.
 - The local PostgreSQL uses trust authentication on a private port (development only); the Docker setup uses a password.
-- ImageSharp 4 requires a (free community) license key for Release builds; the build warns until one is configured.
+- [H1 Fix] ImageSharp: downgraded to 3.1.8 (Apache 2.0) to unblock Release builds for the hackathon. Production should move to 4.x with a paid/community license (see `backend/src/PathLens.Infrastructure/PathLens.Infrastructure.csproj` NoWarn) or switch to SkiaSharp.
