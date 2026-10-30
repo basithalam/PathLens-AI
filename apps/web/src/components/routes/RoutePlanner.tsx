@@ -507,7 +507,7 @@ function RouteCard({
                   {obstacle.obstacleType}, {obstacle.verificationStatus}, about{" "}
                   {Math.round(obstacle.distanceMeters)} m from the route, evidence{" "}
                   {new Date(obstacle.evidenceAt).toLocaleDateString()} ({ageDays} day(s) old
-                  {ageDays > 30 ? " — stale, conditions may have changed" : ""}) · {certainty}
+                  {ageDays > 30 ? " — stale (H3.3 StaleEvidenceDays=30 default, backend configurable)" : ""}) · {certainty}
                   {obstacle.isCameraCandidate
                     ? " — a person has not confirmed this."
                     : ""}
