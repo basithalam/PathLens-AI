@@ -29,6 +29,9 @@ export function AdminCamerasPanel() {
   const [feedUrl, setFeedUrl] = useState("https://datumfeed.com/api/cameras/SF_001/image");
   const [perm, setPerm] = useState("Datumfeed Developer Agreement 2026-10-30, powered by Datumfeed, SF demo");
   const [cadence, setCadence] = useState("60");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editFeedUrl, setEditFeedUrl] = useState("");
+  const [editPerm, setEditPerm] = useState("");
 
   const load = useCallback(async () => {
     const r = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:5145"}/api/cameras`, { cache: "no-store" });
@@ -61,6 +64,20 @@ export function AdminCamerasPanel() {
     const r = await authFetch(`/api/cameras/${id}/poll`, { method: "POST" });
     setMsg(`Poll ${r.status}: ${(await r.text()).slice(0, 500)}`);
     await load();
+  }
+  function startEdit(c: Cam) {
+    setEditingId(c.id);
+    setEditFeedUrl(c.feedImageUrl);
+    setEditPerm("");
+  }
+  async function saveEdit(c: Cam) {
+    const payload: Record<string, string> = {};
+    if (editFeedUrl.trim() && editFeedUrl !== c.feedImageUrl) payload.feedImageUrl = editFeedUrl.trim();
+    if (editPerm.trim()) payload.permissionNote = editPerm.trim();
+    if (Object.keys(payload).length === 0) { setEditingId(null); return; }
+    const r = await authFetch(`/api/cameras/${c.id}`, { method: "PATCH", body: JSON.stringify(payload) });
+    if (r.ok) { setMsg("Camera updated via UI."); setEditingId(null); await load(); }
+    else setMsg(`Update failed (${r.status}): ${(await r.text()).slice(0, 400)}`);
   }
 
   return (
@@ -99,14 +116,33 @@ export function AdminCamerasPanel() {
                     <strong>{c.label}</strong>
                     <span className="table-meta">{c.provider} · {c.city}</span>
                   </td>
-                  <td className="table-mono">{c.feedImageUrl}</td>
+                  <td className="table-mono">
+                    {editingId === c.id ? (
+                      <input value={editFeedUrl} onChange={(e) => setEditFeedUrl(e.target.value)} style={{ width: "100%" }} placeholder="https://datumfeed.com/.../image.jpg" />
+                    ) : (
+                      c.feedImageUrl
+                    )}
+                    {editingId === c.id && (
+                      <input value={editPerm} onChange={(e) => setEditPerm(e.target.value)} style={{ width: "100%", marginTop: 6 }} placeholder="Update permissionNote (optional)" />
+                    )}
+                  </td>
                   <td>
                     <span className={`pill ${c.enabled ? "pill--on" : "pill--off"}`}>{c.enabled ? "Active" : "Inactive"}</span>
                     {c.lastError && <span className="table-meta table-meta--error">Error: {c.lastError}</span>}
                   </td>
                   <td className="table-actions">
-                    <button onClick={() => toggle(c)} className="btn btn--ghost btn--sm">{c.enabled ? "Disable" : "Enable"}</button>
-                    <button onClick={() => poll(c.id)} className="btn btn--primary btn--sm">Poll now</button>
+                    {editingId === c.id ? (
+                      <>
+                        <button onClick={() => saveEdit(c)} className="btn btn--primary btn--sm">Save</button>
+                        <button onClick={() => setEditingId(null)} className="btn btn--ghost btn--sm">Cancel</button>
+                      </>
+                    ) : (
+                      <>
+                        <button onClick={() => startEdit(c)} className="btn btn--ghost btn--sm">Edit</button>
+                        <button onClick={() => toggle(c)} className="btn btn--ghost btn--sm">{c.enabled ? "Disable" : "Enable"}</button>
+                        <button onClick={() => poll(c.id)} className="btn btn--primary btn--sm">Poll now</button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))}
