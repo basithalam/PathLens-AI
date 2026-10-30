@@ -23,6 +23,8 @@ public sealed class AccessibilityReportConfiguration : IEntityTypeConfiguration<
         builder.HasIndex(report => report.ObstacleType);
         builder.HasIndex(report => report.VerificationStatus);
         builder.HasIndex(report => report.CreatedAt);
+        builder.HasQueryFilter(report => !report.IsDeleted);
+        builder.HasIndex(report => report.IsDeleted);
         builder.HasIndex(report => new { report.Latitude, report.Longitude });
         builder.HasIndex(report => report.CameraSourceId);
         builder.HasIndex(report => report.PossibleDuplicateOfReportId);

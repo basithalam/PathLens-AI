@@ -34,7 +34,9 @@ public static class DependencyInjection
         });
 
         services.AddHealthChecks()
-            .AddCheck<DatabaseHealthCheck>("database");
+            .AddCheck<DatabaseHealthCheck>("database")
+            .AddCheck<OsrmHealthCheck>("osrm")
+            .AddCheck<AiProviderHealthCheck>("ai-provider");
 
         services.AddScoped<IReportRepository, ReportRepository>();
         services.AddScoped<ReportService>();

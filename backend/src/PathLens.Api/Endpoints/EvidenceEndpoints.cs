@@ -99,7 +99,7 @@ public static class EvidenceEndpoints
             return created is null
                 ? Results.Problem(title: "Report not found", statusCode: 404)
                 : Results.Created($"/api/evidence/{created.Id}", created);
-        }).WithTags("Evidence");
+        }).RequireRateLimiting("evidence-upload").WithTags("Evidence");
 
         app.MapGet("/api/reports/{reportId:guid}/evidence", async (
             Guid reportId,

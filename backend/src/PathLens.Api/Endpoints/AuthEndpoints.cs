@@ -25,7 +25,7 @@ public static class AuthEndpoints
             return login is null
                 ? Results.Problem(title: "Invalid email or password", statusCode: 401)
                 : Results.Ok(login);
-        }).WithTags("Auth");
+        }).RequireRateLimiting("login").WithTags("Auth");
 
         app.MapGet("/api/auth/me", (ClaimsPrincipal principal) =>
         {

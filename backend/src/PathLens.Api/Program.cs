@@ -1,7 +1,9 @@
 using System.Text;
 using System.Text.Json;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -30,8 +32,13 @@ builder.Services.AddMemoryCache();
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
-var jwtSigningKey = builder.Configuration["Jwt:SigningKey"]
-    ?? "LOCAL_DEV_ONLY_CHANGE_ME_PATHLENS_SIGNING_KEY_32CHARS";
+var jwtSigningKey = builder.Configuration["Jwt:SigningKey"];
+if (string.IsNullOrWhiteSpace(jwtSigningKey))
+{
+    if (builder.Environment.IsProduction())
+        throw new InvalidOperationException("Jwt:SigningKey must be set in Production — refusing to start with fallback key.");
+    jwtSigningKey = "LOCAL_DEV_ONLY_CHANGE_ME_PATHLENS_SIGNING_KEY_32CHARS";
+}
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -52,10 +59,31 @@ builder.Services.AddAuthorizationBuilder()
     .AddPolicy(CameraEndpoints.AdminPolicy, policy =>
         policy.RequireRole("Admin"));
 
-var frontendOrigin = builder.Configuration["Cors:FrontendOrigin"] ?? "http://localhost:3000";
+var frontendOrigins = (builder.Configuration["Cors:FrontendOrigin"] ?? "http://localhost:3000")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 builder.Services.AddCors(options =>
     options.AddPolicy("frontend", policy =>
-        policy.WithOrigins(frontendOrigin).AllowAnyHeader().AllowAnyMethod()));
+        policy.WithOrigins(frontendOrigins).AllowAnyHeader().AllowAnyMethod().AllowCredentials()));
+
+// H5.1 Rate limiting: login 5/min, upload 10/hour via built-in RateLimiter
+builder.Services.AddRateLimiter(limiter =>
+{
+    limiter.AddFixedWindowLimiter("login", o =>
+    {
+        o.Window = TimeSpan.FromMinutes(1);
+        o.PermitLimit = 5;
+        o.QueueLimit = 0;
+        o.AutoReplenishment = true;
+    });
+    limiter.AddFixedWindowLimiter("evidence-upload", o =>
+    {
+        o.Window = TimeSpan.FromHours(1);
+        o.PermitLimit = 10;
+        o.QueueLimit = 2;
+        o.AutoReplenishment = true;
+    });
+    limiter.RejectionStatusCode = 429;
+});
 
 var app = builder.Build();
 
@@ -82,6 +110,7 @@ app.Use(async (context, next) =>
     }
 });
 
+app.UseRateLimiter();
 app.UseCors("frontend");
 app.UseAuthentication();
 app.UseAuthorization();

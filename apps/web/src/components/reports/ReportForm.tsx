@@ -237,6 +237,14 @@ export function ReportForm() {
         Photo upload and AI analysis arrive in Phase 2.
       </p>
 
+      <label style={{ display: "flex", gap: 8, alignItems: "flex-start", marginTop: 12 }}>
+        <input type="checkbox" required aria-label="Consent to store report and photo per retention policy" />
+        <span style={{ fontSize: "0.88rem" }}>
+          I confirm this photo is my own, contains no identifiable faces/plates, and I consent to storage under the{" "}
+          <a href="/privacy" target="_blank">retention policy</a> (camera 30d, evidence 1y, report until deleted). I can request deletion via report delete.
+        </span>
+      </label>
+
       <button type="submit" disabled={submitting} className="primary-button">
         {submitting ? "Saving…" : "Create report"}
       </button>

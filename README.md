@@ -180,6 +180,10 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 
 **H3 (2026-10-30):** scale foundation — PostGIS dual-mode `ST_DWithin/ST_Within` with fallback (see `H3_POSTGIS_REPORT.md`), `SKIP LOCKED` for 2 workers, `StaleEvidenceDays` configurable (see `ROUTING_WHEELCHAIR_VALIDATION.md`), camera thresholds documented (`camera-quality-thresholds.md`). Build 0W0E, 39 pass, next 8 routes. See `H3_FIX_REPORT.md`.
 
+**H4 (2026-10-30):** real user & trust — hallway protocol `USER_TESTING.md`, a11y marker keyboard alt + `a11y-audit.ts` + `TEST_PLAN.md` A11y, PWA `manifest.json` + `sw.js` + `offline-queue.ts` + GPS warning, feedback `GET /api/reports/feedback/summary` grouped weekly. Build 0W0E, 39 pass, next 5.15kB. See `H4_FIX_REPORT.md`.
+
+**H5 (2026-10-30):** production hardened — JWT fail-closed, CORS multi-origin, rate limiting login 5/min upload 10/hour (429), moderation blocklist, privacy retention `PRIVACY_RETENTION.md` (30d/1y/GDPR soft-delete `DELETE /api/reports/{id}`), CI `ci.yml`, health OSRM+AI, docs dedup. Build 0W0E. See `H5_FIX_REPORT.md`.
+
 ## License
 
 To be decided.

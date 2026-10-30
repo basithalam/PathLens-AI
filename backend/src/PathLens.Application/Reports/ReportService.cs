@@ -21,6 +21,13 @@ public sealed class ReportService(IReportRepository repository)
             ParseSurface(request.Surface),
             HasAnyAttribute(request.HasStairs, request.HasRamp, request.Surface) ? "Reporter" : null);
 
+        // H5.1 moderation: profanity queues for review (never silently dropped). NSFW placeholder flags but does not block.
+        var moderationNote = ContentModeration.ModerateTitle(report.Title) ?? ContentModeration.ModerateDescription(report.Description);
+        if (moderationNote is not null)
+        {
+            report.SetVerificationStatus(VerificationStatus.Disputed, DateTimeOffset.UtcNow); // queue for review
+        }
+
         await repository.AddAsync(report, cancellationToken);
         await repository.SaveChangesAsync(cancellationToken);
 
@@ -72,6 +79,10 @@ public sealed class ReportService(IReportRepository repository)
             ReportRequestValidator.ParseSeverity(request.Severity),
             DateTimeOffset.UtcNow);
 
+        // H5.1 re-moderate on edit
+        if (ContentModeration.ContainsProfanity(report.Title) || ContentModeration.ContainsProfanity(report.Description))
+            report.SetVerificationStatus(VerificationStatus.Disputed, DateTimeOffset.UtcNow);
+
         if (request.HasStairs is not null || request.HasRamp is not null || request.Surface is not null)
         {
             report.SetAttributes(
@@ -84,6 +95,15 @@ public sealed class ReportService(IReportRepository repository)
 
         await repository.SaveChangesAsync(cancellationToken);
         return ToResponse(report);
+    }
+
+    public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var report = await repository.GetByIdAsync(id, cancellationToken);
+        if (report is null) return false;
+        report.SoftDelete(DateTimeOffset.UtcNow);
+        await repository.SaveChangesAsync(cancellationToken);
+        return true;
     }
 
     public async Task<IReadOnlyList<ReportResponse>> InViewportAsync(

@@ -44,6 +44,10 @@ public sealed class AccessibilityReport
     public DateTimeOffset UpdatedAt { get; private set; }
     public DateTimeOffset? LastEvidenceAt { get; private set; }
 
+    // H5.2 GDPR soft-delete — never hard-deleted, excluded from queries
+    public bool IsDeleted { get; private set; }
+    public DateTimeOffset? DeletedAt { get; private set; }
+
     public static bool IsValidLatitude(double value) => value is >= -90 and <= 90;
     public static bool IsValidLongitude(double value) => value is >= -180 and <= 180;
 
@@ -138,6 +142,14 @@ public sealed class AccessibilityReport
     public void SetVerificationStatus(VerificationStatus status, DateTimeOffset now)
     {
         VerificationStatus = status;
+        UpdatedAt = now;
+    }
+
+    public void SoftDelete(DateTimeOffset now)
+    {
+        if (IsDeleted) return;
+        IsDeleted = true;
+        DeletedAt = now;
         UpdatedAt = now;
     }
 

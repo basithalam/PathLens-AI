@@ -112,6 +112,15 @@ public static class ReportEndpoints
                 : Results.Ok(report);
         });
 
+        group.MapDelete("/{id:guid}", async (
+            Guid id,
+            ReportService service,
+            CancellationToken cancellationToken) =>
+        {
+            var deleted = await service.DeleteAsync(id, cancellationToken);
+            return deleted ? Results.NoContent() : Results.Problem(title: "Report not found", statusCode: 404);
+        }).RequireAuthorization().WithTags("Reports");
+
         group.MapPatch("/{id:guid}", async (
             Guid id,
             UpdateReportRequest request,
