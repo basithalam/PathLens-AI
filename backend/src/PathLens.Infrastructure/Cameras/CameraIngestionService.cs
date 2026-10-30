@@ -51,6 +51,15 @@ public sealed class CameraIngestionService(
 
             using var request = new HttpRequestMessage(HttpMethod.Get, source.FeedImageUrl);
             request.Headers.UserAgent.ParseAdd("PathLensAI/0.1 (accessibility evidence; contact: github.com/basithalam/PathLens-AI)");
+            if (source.Provider == CameraProvider.Datumfeed || source.Provider == CameraProvider.GenericPublicFeed)
+            {
+                var datumKey = options.Value.DatumfeedApiKey;
+                if (!string.IsNullOrWhiteSpace(datumKey))
+                {
+                    request.Headers.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", datumKey.Trim());
+                }
+            }
 
             using var response = await client.SendAsync(request, linked.Token);
             if (!response.IsSuccessStatusCode)

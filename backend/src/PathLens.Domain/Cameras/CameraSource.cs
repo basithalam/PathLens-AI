@@ -8,6 +8,7 @@ public enum CameraProvider
     SfMta,
     Caltrans,
     GenericPublicFeed,
+    Datumfeed,
     Mapillary,
     ManualAuthorised,
 }

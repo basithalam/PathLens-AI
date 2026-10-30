@@ -57,5 +57,9 @@ Thumbs.db
 *.tmp
 *.swp
 
+# Datumfeed / camera provider secrets (never commit real keys)
+Cameras__DatumfeedApiKey
+.env.camera
+
 # Local dev database cluster
 .local/

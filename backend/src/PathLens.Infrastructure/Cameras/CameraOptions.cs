@@ -29,4 +29,7 @@ public sealed class CameraOptions
 
     /// <summary>Perceptual-hash Hamming distance above this means the camera view changed.</summary>
     public int ViewChangeHashDistance { get; set; } = 30;
+
+    /// <summary>Optional bearer token for providers that require it (Datumfeed, 511NY/SF). Leave empty if the feed is public.</summary>
+    public string? DatumfeedApiKey { get; set; }
 }
