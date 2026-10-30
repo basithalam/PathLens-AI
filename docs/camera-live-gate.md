@@ -1,6 +1,6 @@
 # Camera Live-Source Gate — Evidence Record
 
-Status: **SWITCHED to San Francisco, CA — BLOCKED on both legs (2026-10-30 probe)**. No real camera source is enabled, no permission note fabricated. Phases A–E (registry, ingestion, dedupe, auto-comparison, candidates, map/report/route/reviewer UX, budget, privacy, tests) remain green. Demo city: San Francisco, CA (37.7749,-122.4194); Dhaka = Phase-2 expansion.
+Status: **SWITCHED to San Francisco, CA — BLOCKED on both legs (2026-10-30 probe)**. No real camera source is enabled, no permission note fabricated. Phases A–E (registry, ingestion, dedupe, auto-comparison, candidates, map/report/route/reviewer UX, budget, privacy, tests) remain green. Demo city: San Francisco, CA (37.7749,-122.4194) — sole pilot; Dhaka deferred — no camera source available, SF is the focus.
 
 ## What was verified
 

@@ -3,7 +3,7 @@
 **Goal:** idea.txt §6 — বাস্তব wheelchair user দিয়ে পরীক্ষা না করলে Impact 0। এই প্রোটোকল 3–5 জন mobility limitation থাকা ব্যক্তির সাথে 20-মিনিট hallway test এর জন্য।
 
 ## Recruitment (honest)
-- 3–5 participants: wheelchair users (manual/electric) + 1 caregiver/assistant mix, SF Bay বা Dhaka local। Recruit via accessibility NGO, university disability support, hospital rehab (consent + no coercion).
+- 3–5 participants: wheelchair users (manual/electric) + 1 caregiver/assistant mix, SF Bay local (Dhaka deferred — no camera source). Recruit via SF Bay accessibility NGO, university disability support, hospital rehab (consent + no coercion).
 - Compensation: local rate + transport + snack। No real name published without written consent — quotes use participant P1/P2 with role only.
 - Status **2026-10-30: NOT YET RECRUITED** — protocol ready, recruitment pending H4 approval + funds/time। Until then, this file records plan + anticipated backlog, not fabricated results.
 
@@ -41,7 +41,7 @@
 
 ## Quotes (pending real runs)
 > P1 (manual wheelchair, SF): “[pending — after run]”  
-> P2 (caregiver, Dhaka): “[pending — after H6 Dhaka pilot]”
+> P2 (caregiver, SF Bay): “[pending — after run, 2nd group]”
 
 ## Weekly review
 After every 3 runs, triage backlog, fix top 2 UI items, re-test 2 participants. Record in `docs/H4_FIX_REPORT.md` (next file).
