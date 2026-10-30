@@ -4,6 +4,10 @@ public enum CameraProvider
 {
     NycDot,
     FiveOneOneNy,
+    FiveOneOneSfBay,
+    SfMta,
+    Caltrans,
+    GenericPublicFeed,
     Mapillary,
     ManualAuthorised,
 }

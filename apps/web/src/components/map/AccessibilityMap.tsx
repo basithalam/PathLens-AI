@@ -27,8 +27,8 @@ const OBSTACLE_TYPES = [
 
 const VERIFICATION_STATUSES = ["Unverified", "HumanVerified", "Disputed", "Rejected"];
 
-// Default view: Dhaka. The map asks for reports wherever the user pans.
-const DEFAULT_CENTER: [number, number] = [23.8103, 90.4125];
+// Default view: San Francisco, CA (demo city). The map asks for reports wherever the user pans.
+const DEFAULT_CENTER: [number, number] = [37.7749, -122.4194];
 
 function escapeHtml(value: string): string {
   return value
@@ -444,7 +444,7 @@ export function AccessibilityMap() {
               )}
             </>
           ) : (
-            <p style={{ margin: 0 }} className="coverage-empty">{coverageLoading ? "Loading coverage…" : "Pan to Dhaka — coverage will appear. No cell is proven safe."} <em>Legend: C grey = Insufficient, B orange = Obstacle, A green = Evidence — always letter+colour, never colour alone.</em></p>
+            <p style={{ margin: 0 }} className="coverage-empty">{coverageLoading ? "Loading coverage…" : "Pan to San Francisco — coverage will appear. No cell is proven safe."} <em>Legend: C grey = Insufficient, B orange = Obstacle, A green = Evidence — always letter+colour, never colour alone.</em></p>
           )}
         </section>
       )}

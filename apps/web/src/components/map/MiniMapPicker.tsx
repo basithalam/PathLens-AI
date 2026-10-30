@@ -16,7 +16,7 @@ export function MiniMapPicker({ latitude, longitude, onPick }: { latitude: numbe
       const L = await import("leaflet");
       if (cancelled || !ref.current || mapRef.current) return;
       leafletRef.current = L;
-      const center: [number, number] = latitude !== null && longitude !== null ? [latitude, longitude] : [23.8103, 90.4125];
+      const center: [number, number] = latitude !== null && longitude !== null ? [latitude, longitude] : [37.7749, -122.4194];
       const map = L.map(ref.current, { zoomControl: true }).setView(center, 15);
       mapRef.current = map as unknown;
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: '&copy; OpenStreetMap contributors' }).addTo(map);

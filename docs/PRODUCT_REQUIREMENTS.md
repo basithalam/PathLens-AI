@@ -15,6 +15,9 @@ Wheelchair users need to know before travel: is a ramp blocked, is an old obstac
 - **Review:** JWT (reviewer@pathlens.local / Reviewer@123, admin@pathlens.local / Admin@123), queue (unverified + conflicting + stale cameras + duplicate suggestions), audit trail, camera candidates.
 - **Feedback (F6):** `POST /api/reports/{id}/feedback` 4 kinds (StillVisible/NotInNewPhoto/WrongOrStale/NotSure), audit, anonymous→admin fallback, never auto-verifies; frontend quick capture map picker + QuickFeedback buttons.
 
+## Demo city
+San Francisco, CA (37.7749,-122.4194) — map default + camera candidates (511SF Bay / SFMTA / Caltrans / GenericPublicFeed). NYC leg blocked honestly (camera-live-gate.md); Dhaka is Phase-2 expansion.
+
 ## Non-goals (F7+)
 Live city-wide coverage, guaranteed wheelchair-safe routing, native app, real-time moderation at scale, custom model training, Mapillary live — per Blueprint §1.3.
 
