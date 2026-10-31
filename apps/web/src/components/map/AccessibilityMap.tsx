@@ -152,7 +152,7 @@ export function AccessibilityMap() {
         fillColor: isInsufficient ? "#c9d2cd" : isObstacle ? "#ffcc80" : "#a8e6cf",
         fillOpacity: isInsufficient ? 0.35 : 0.38,
       });
-      const label = isInsufficient ? "C — তথ্য নেই" : isObstacle ? `B — বাধা (${cell.reportCount})` : `A — তথ্য আছে (${cell.reportCount})`;
+      const label = isInsufficient ? "C — Insufficient" : isObstacle ? `B — Obstacle (${cell.reportCount})` : `A — Evidence (${cell.reportCount})`;
       const newest = cell.newestEvidenceAt ? new Date(cell.newestEvidenceAt).toLocaleDateString() : "—";
       rectangle.bindTooltip(
         `<strong>${label}</strong><br/>Cell ${escapeHtml(cell.cellId)} · ${cell.reportCount} report(s), verified ${cell.verifiedCount}<br/>Newest: ${escapeHtml(newest)}${cell.staleCount ? ` · stale ${cell.staleCount}` : ""}<br/><em>C is unknown, not proof of clear.</em>`,
@@ -435,16 +435,16 @@ export function AccessibilityMap() {
                 {coverageLoading && " Updating…"}
               </p>
               <div className="coverage-legend">
-                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#c9d2cd", border: "1px solid #8a8a8a", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />C — তথ্য নেই (Insufficient)</span>
-                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#ffcc80", border: "1px solid #8a5a00", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />B — বাধার প্রমাণ</span>
-                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#a8e6cf", border: "1px solid #0b6b4f", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />A — তথ্য আছে</span>
+                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#c9d2cd", border: "1px solid #8a8a8a", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />C — Insufficient (no data)</span>
+                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#ffcc80", border: "1px solid #8a5a00", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />B — Obstacle evidence</span>
+                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#a8e6cf", border: "1px solid #0b6b4f", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />A — Evidence present</span>
               </div>
               <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: 0 }}>
                 Each cell is a summary. A “C” cell may still contain a usable path — it only means no one has reported there yet. Tap a cell to zoom and see its centre. Letter inside each cell (A/B/C) matches the colour — never colour alone.
               </p>
               {selectedCell && (
                 <div className="coverage-selected" role="status">
-                  <strong>Selected cell {selectedCell.cellId}</strong> — {selectedCell.status === "InsufficientInfo" ? "C — তথ্য নেই (Insufficient — travel with caution, consider verifying)" : selectedCell.status === "ObstacleEvidence" ? `B — বাধা (${selectedCell.reportCount} reports)` : `A — তথ্য আছে`} · centre {selectedCell.centerLatitude.toFixed(5)}, {selectedCell.centerLongitude.toFixed(5)} · verified {selectedCell.verifiedCount} · stale {selectedCell.staleCount}
+                  <strong>Selected cell {selectedCell.cellId}</strong> — {selectedCell.status === "InsufficientInfo" ? "C — Insufficient (no data — travel with caution)" : selectedCell.status === "ObstacleEvidence" ? `B — Obstacle (${selectedCell.reportCount} reports)` : `A — Evidence`} · centre {selectedCell.centerLatitude.toFixed(5)}, {selectedCell.centerLongitude.toFixed(5)} · verified {selectedCell.verifiedCount} · stale {selectedCell.staleCount}
                   <br />
                   <span style={{ fontSize: "0.9rem" }}>Reports in this cell: {reports.filter(r => r.latitude >= selectedCell.minLatitude && r.latitude <= selectedCell.maxLatitude && r.longitude >= selectedCell.minLongitude && r.longitude <= selectedCell.maxLongitude).length} — click a report below or pan to see them.</span>{" "}
                   <button type="button" onClick={() => setSelectedCell(null)} style={{ marginLeft: 8, fontSize: "0.85rem" }}>Clear selection</button>

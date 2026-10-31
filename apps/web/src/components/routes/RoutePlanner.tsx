@@ -150,7 +150,7 @@ export function RoutePlanner() {
       const isObstacle = cell.status === "ObstacleEvidence";
       const isInsufficient = cell.status === "InsufficientInfo";
       const letter = isInsufficient ? "C" : isObstacle ? "B" : "A";
-      const label = isInsufficient ? "C — তথ্য নেই" : isObstacle ? `B — বাধা (${cell.reportCount})` : `A — তথ্য আছে`;
+      const label = isInsufficient ? "C — Insufficient" : isObstacle ? `B — Obstacle (${cell.reportCount})` : `A — Evidence`;
       const rect = L.rectangle(bounds, {
         color: isInsufficient ? "#8a8a8a" : isObstacle ? "#8a5a00" : "#0b6b4f",
         weight: 1,
