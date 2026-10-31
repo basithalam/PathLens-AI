@@ -40,9 +40,11 @@ jobs:
             set -e
             cd /opt/pathlens || (echo "Cloning at /opt/pathlens" && sudo mkdir -p /opt && sudo chown $USER:$USER /opt && git clone https://github.com/basithalam/PathLens-AI.git /opt/pathlens && cd /opt/pathlens)
             cd /opt/pathlens
-            # Avoid credential prompt on public repo (Hetzner has no git credential helper)
-            git config --global credential.helper "" || true
-            GIT_TERMINAL_PROMPT=0 git pull --ff-only origin main || (echo "git pull failed — resetting to origin/main" && git fetch origin main && git reset --hard origin/main)
+            # Public repo — force https without credential prompt (Hetzner has no helper)
+            git remote set-url origin https://github.com/basithalam/PathLens-AI.git || true
+            git config --global --unset credential.helper || true
+            git config credential.helper "" || true
+            GIT_ASKPASS=echo GIT_TERMINAL_PROMPT=0 git pull --ff-only origin main || (echo "git pull failed — fetching via https" && GIT_ASKPASS=echo GIT_TERMINAL_PROMPT=0 git fetch https://github.com/basithalam/PathLens-AI.git main && git reset --hard FETCH_HEAD)
             # Write .env for compose (never committed) — Hetzner multi-tenant ports must stay
             cat > .env <<EOF
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
