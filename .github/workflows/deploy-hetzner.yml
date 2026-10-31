@@ -1,0 +1,65 @@
+name: Deploy to Hetzner (Live Demo)
+
+# Hetzner VPS 94.130.109.67 — deploys backend + frontend via docker compose on push to main.
+# Required GitHub Secrets (Settings → Secrets → Actions):
+#   HETZNER_HOST=94.130.109.67, HETZNER_USER=deploy, HETZNER_SSH_KEY (private key), HETZNER_SSH_PORT (optional, default 22)
+#   POSTGRES_PASSWORD, JWT_SIGNING_KEY, JWT_ISSUER, JWT_AUDIENCE, FRONTEND_ORIGIN, NEXT_PUBLIC_API_BASE_URL, OSRM_BASE_URL
+# Optional: META_AI_ENDPOINT, META_AI_MODEL, META_AI_API_KEY, DATUMFEED_API_KEY, CAMERAS_POLLING_ENABLED
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with: { dotnet-version: '10.0.x' }
+      - run: dotnet build backend/PathLens.slnx -c Release
+      - uses: actions/setup-node@v4
+        with: { node-version: 20, cache: 'npm', cache-dependency-path: 'apps/web/package-lock.json' }
+      - run: npm ci --prefix apps/web
+      - run: npm run build --prefix apps/web
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Deploy via SSH to Hetzner
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HETZNER_HOST }}
+          username: ${{ secrets.HETZNER_USER }}
+          key: ${{ secrets.HETZNER_SSH_KEY }}
+          port: ${{ secrets.HETZNER_SSH_PORT || 22 }}
+          script: |
+            set -e
+            cd /opt/pathlens || (echo "Cloning at /opt/pathlens" && sudo mkdir -p /opt && sudo chown $USER:$USER /opt && git clone https://github.com/basithalam/PathLens-AI.git /opt/pathlens && cd /opt/pathlens)
+            cd /opt/pathlens
+            git pull origin main
+            # Write .env for compose (never committed)
+            cat > .env <<EOF
+            POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+            JWT_SIGNING_KEY=${{ secrets.JWT_SIGNING_KEY }}
+            JWT_ISSUER=${{ secrets.JWT_ISSUER || 'PathLens' }}
+            JWT_AUDIENCE=${{ secrets.JWT_AUDIENCE || 'PathLensWeb' }}
+            FRONTEND_ORIGIN=${{ secrets.FRONTEND_ORIGIN || 'http://94.130.109.67:3000' }}
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL || 'http://94.130.109.67:5145' }}
+            OSRM_BASE_URL=${{ secrets.OSRM_BASE_URL || 'https://router.project-osrm.org' }}
+            AI_PROVIDER=${{ secrets.AI_PROVIDER || 'Mock' }}
+            META_AI_ENDPOINT=${{ secrets.META_AI_ENDPOINT || '' }}
+            META_AI_MODEL=${{ secrets.META_AI_MODEL || '' }}
+            META_AI_API_KEY=${{ secrets.META_AI_API_KEY || '' }}
+            CAMERAS_POLLING_ENABLED=${{ secrets.CAMERAS_POLLING_ENABLED || 'false' }}
+            EOF
+            docker compose pull || true
+            docker compose up --build -d
+            sleep 10
+            curl -f http://localhost:5145/health/live || (docker compose logs api --tail 100 && exit 1)
+            curl -f http://localhost:5145/health/ready || echo "ready degraded (DB/OSRM/AI check) — see health response"
+            curl -f http://localhost:3000/ || echo "web not yet ready"
+            docker compose ps
