@@ -65,9 +65,9 @@ public sealed class AnalysisJobProcessor(
             {
                 job = await dbContext.AnalysisJobs
                     .FromSqlRaw("""
-                        SELECT * FROM analysis_jobs
-                        WHERE status = 'Pending'
-                        ORDER BY created_at
+                        SELECT * FROM "analysis_jobs"
+                        WHERE "Status" = 'Pending'
+                        ORDER BY "CreatedAt"
                         LIMIT 1
                         FOR UPDATE SKIP LOCKED
                         """)
