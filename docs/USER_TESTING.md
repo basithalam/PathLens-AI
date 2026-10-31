@@ -6,6 +6,7 @@
 - 3–5 participants: wheelchair users (manual/electric) + 1 caregiver/assistant mix, SF Bay local (Dhaka deferred — no camera source). Recruit via SF Bay accessibility NGO, university disability support, hospital rehab (consent + no coercion).
 - Compensation: local rate + transport + snack। No real name published without written consent — quotes use participant P1/P2 with role only.
 - Status **2026-10-30: NOT YET RECRUITED** — protocol ready, recruitment pending H4 approval + funds/time। Until then, this file records plan + anticipated backlog, not fabricated results.
+- Update **2026-10-31 H8:** 1 proxy run completed (reviewer, NOT wheelchair user) — see `H8_WHEELCHAIR_USER_TEST.md` for P0 metrics + 2 backlog fixes; real wheelchair recruitment still pending (P1/P2 after consent).
 
 ## Consent template (copy to paper form)
 > আমি PathLens AI hallway test এ স্বেচ্ছায় অংশ নিচ্ছি। আমার screen/interaction record করা হতে পারে demo-র জন্য, কিন্তু আমার নাম/ছবি public হবে না লিখিত অনুমতি ছাড়া। আমি যেকোনো সময় থামতে পারি। যোগাযোগ: [organiser email]।  
@@ -42,6 +43,9 @@
 ## Quotes (pending real runs)
 > P1 (manual wheelchair, SF): “[pending — after run]”  
 > P2 (caregiver, SF Bay): “[pending — after run, 2nd group]”
+
+## Update 2026-10-31 H8 P0 proxy
+> P0-proxy (accessibility reviewer, 2026-10-31): “AvoidStairs toggle-টা বুঝতে পেরেছি — লাল hasConfirmedStairs badge decisively ছিল। Unknown 40% mane keu report koreni — eta age bujhtam na, coverage C grey dekhে bujhlam.” — NOT a wheelchair user, honest proxy. Real P1/P2 pending.
 
 ## Weekly review
 After every 3 runs, triage backlog, fix top 2 UI items, re-test 2 participants. Record in `docs/H4_FIX_REPORT.md` (next file).
