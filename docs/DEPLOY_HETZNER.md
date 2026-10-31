@@ -1,6 +1,6 @@
-# Deploy to Hetzner — Live Demo (94.130.109.67)
+# Deploy to Hetzner — Live Demo (94.130.109.67 → https://pathlens.cognitivebd.com)
 
-**Host:** `94.130.109.67` | **User:** `deploy` | **Stack:** `docker compose` at `/opt/pathlens` (api 5145, web 3000, db 5432 PostGIS + storage)
+**Host:** `94.130.109.67` | **User:** `deploy` | **Demo URL:** `https://pathlens.cognitivebd.com` | **Stack:** `docker compose` at `/opt/pathlens` (api 5145, web 3000, db 5432 PostGIS + storage, Caddy/Nginx → 443)
 
 ## Setup on Hetzner VPS (once)
 ```bash
@@ -28,8 +28,8 @@ POSTGRES_PASSWORD=<strong>
 JWT_SIGNING_KEY=<32+ char, fail-closed in Production>
 JWT_ISSUER=PathLens
 JWT_AUDIENCE=PathLensWeb
-FRONTEND_ORIGIN=http://94.130.109.67:3000
-NEXT_PUBLIC_API_BASE_URL=http://94.130.109.67:5145
+FRONTEND_ORIGIN=https://pathlens.cognitivebd.com
+NEXT_PUBLIC_API_BASE_URL=https://pathlens.cognitivebd.com
 OSRM_BASE_URL=https://router.project-osrm.org
 AI_PROVIDER=Mock
 # Optional live:
@@ -41,7 +41,10 @@ CAMERAS_POLLING_ENABLED=false
 ```
 
 ## How CD works
-`push main` → `.github/workflows/deploy-hetzner.yml` `verify` (build) → `deploy` via `appleboy/ssh-action` → `ssh deploy@94.130.109.67` → `git pull` → write `.env` from secrets → `docker compose up --build -d` → `curl /health/live` verify → live at `http://94.130.109.67:3000` (web) + `:5145/health/live` (api). Worker profile: `docker compose --profile worker up -d` (not both per DB).
+`push main` → `.github/workflows/deploy-hetzner.yml` `verify` (build) → `deploy` via `appleboy/ssh-action` → `ssh deploy@94.130.109.67` → `git pull` → write `.env` from secrets → `docker compose up --build -d` → `curl /health/live` verify → live at `https://pathlens.cognitivebd.com` (Caddy reverse proxy → web 3000 + api 5145) + `https://pathlens.cognitivebd.com/health/live`. Worker profile: `docker compose --profile worker up -d` (not both per DB).
+
+## DNS
+`pathlens.cognitivebd.com` → `A 94.130.109.67` (Cloudflare/Hetzner DNS). Caddy: `pathlens.cognitivebd.com { reverse_proxy web:3000; handle /api/* { reverse_proxy api:8080 } handle /health/* { reverse_proxy api:8080 } }` + auto TLS.
 
 ## Vercel alternative
 Frontend can stay on Vercel `pathlens-ai.vercel.app` with `NEXT_PUBLIC_API_BASE_URL=http://94.130.109.67:5145` (CORS allows `FRONTEND_ORIGIN`), but Hetzner single-VPS is cheaper and has local PostGIS.

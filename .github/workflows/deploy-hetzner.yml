@@ -1,9 +1,9 @@
 name: Deploy to Hetzner (Live Demo)
 
-# Hetzner VPS 94.130.109.67 — deploys backend + frontend via docker compose on push to main.
+# Hetzner VPS 94.130.109.67 — demo URL https://pathlens.cognitivebd.com — deploys backend + frontend via docker compose on push to main.
 # Required GitHub Secrets (Settings → Secrets → Actions):
 #   HETZNER_HOST=94.130.109.67, HETZNER_USER=deploy, HETZNER_SSH_KEY (private key), HETZNER_SSH_PORT (optional, default 22)
-#   POSTGRES_PASSWORD, JWT_SIGNING_KEY, JWT_ISSUER, JWT_AUDIENCE, FRONTEND_ORIGIN, NEXT_PUBLIC_API_BASE_URL, OSRM_BASE_URL
+#   POSTGRES_PASSWORD, JWT_SIGNING_KEY, JWT_ISSUER, JWT_AUDIENCE, FRONTEND_ORIGIN=https://pathlens.cognitivebd.com, NEXT_PUBLIC_API_BASE_URL=https://pathlens.cognitivebd.com/api (or https://pathlens.cognitivebd.com), OSRM_BASE_URL
 # Optional: META_AI_ENDPOINT, META_AI_MODEL, META_AI_API_KEY, DATUMFEED_API_KEY, CAMERAS_POLLING_ENABLED
 
 on:
@@ -47,8 +47,8 @@ jobs:
             JWT_SIGNING_KEY=${{ secrets.JWT_SIGNING_KEY }}
             JWT_ISSUER=${{ secrets.JWT_ISSUER || 'PathLens' }}
             JWT_AUDIENCE=${{ secrets.JWT_AUDIENCE || 'PathLensWeb' }}
-            FRONTEND_ORIGIN=${{ secrets.FRONTEND_ORIGIN || 'http://94.130.109.67:3000' }}
-            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL || 'http://94.130.109.67:5145' }}
+            FRONTEND_ORIGIN=${{ secrets.FRONTEND_ORIGIN || 'https://pathlens.cognitivebd.com' }}
+            NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL || 'https://pathlens.cognitivebd.com' }}
             OSRM_BASE_URL=${{ secrets.OSRM_BASE_URL || 'https://router.project-osrm.org' }}
             AI_PROVIDER=${{ secrets.AI_PROVIDER || 'Mock' }}
             META_AI_ENDPOINT=${{ secrets.META_AI_ENDPOINT || '' }}
