@@ -220,7 +220,7 @@ export function ReportForm() {
         {locationNote && <span>{locationNote}</span>}
       </p>
       {showMiniMap && (
-        <div style={{ border: "1px solid var(--line)", borderRadius: 8, overflow: "hidden", height: 260, position: "relative" }}>
+        <div style={{ border: "1px solid var(--line)", borderRadius: 8, overflow: "hidden", height: 320, position: "relative" }}>
           <MiniMapPicker
             latitude={latitude ? Number(latitude) : null}
             longitude={longitude ? Number(longitude) : null}
