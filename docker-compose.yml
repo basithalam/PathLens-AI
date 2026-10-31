@@ -6,8 +6,10 @@ services:
       POSTGRES_DB: pathlens
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pathlens_local_dev}
+    expose:
+      - "5432"
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - pathlens-db-data:/var/lib/postgresql/data
     healthcheck:
@@ -37,8 +39,10 @@ services:
       MetaAi__ApiKey: ${META_AI_API_KEY:-}
       Cameras__PollingEnabled: ${CAMERAS_POLLING_ENABLED:-false}
       DOTNET_ROLE: api
+    expose:
+      - "8080"
     ports:
-      - "${API_PORT:-5145}:8080"
+      - "127.0.0.1:${API_PORT:-5145}:8080"
     depends_on:
       db:
         condition: service_healthy
@@ -60,8 +64,10 @@ services:
     container_name: pathlens-web
     environment:
       NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:5145}
+    expose:
+      - "3000"
     ports:
-      - "${WEB_PORT:-3000}:3000"
+      - "127.0.0.1:${WEB_PORT:-3000}:3000"
     depends_on:
       api:
         condition: service_healthy
