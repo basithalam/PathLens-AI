@@ -40,8 +40,10 @@ jobs:
             set -e
             cd /opt/pathlens || (echo "Cloning at /opt/pathlens" && sudo mkdir -p /opt && sudo chown $USER:$USER /opt && git clone https://github.com/basithalam/PathLens-AI.git /opt/pathlens && cd /opt/pathlens)
             cd /opt/pathlens
-            git pull origin main
-            # Write .env for compose (never committed)
+            # Avoid credential prompt on public repo (Hetzner has no git credential helper)
+            git config --global credential.helper "" || true
+            GIT_TERMINAL_PROMPT=0 git pull --ff-only origin main || (echo "git pull failed — resetting to origin/main" && git fetch origin main && git reset --hard origin/main)
+            # Write .env for compose (never committed) — Hetzner multi-tenant ports must stay
             cat > .env <<EOF
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
             JWT_SIGNING_KEY=${{ secrets.JWT_SIGNING_KEY }}
@@ -55,11 +57,16 @@ jobs:
             META_AI_MODEL=${{ secrets.META_AI_MODEL || '' }}
             META_AI_API_KEY=${{ secrets.META_AI_API_KEY || '' }}
             CAMERAS_POLLING_ENABLED=${{ secrets.CAMERAS_POLLING_ENABLED || 'false' }}
+            WEB_PORT=3001
+            API_PORT=5145
+            DB_PORT=5433
+            ASPNETCORE_ENVIRONMENT=Production
             EOF
+            cat .env | grep -v PASSWORD | grep -v JWT_SIGNING | grep -v API_KEY || true
             docker compose pull || true
             docker compose up --build -d
             sleep 10
-            curl -f http://localhost:5145/health/live || (docker compose logs api --tail 100 && exit 1)
-            curl -f http://localhost:5145/health/ready || echo "ready degraded (DB/OSRM/AI check) — see health response"
-            curl -f http://localhost:3000/ || echo "web not yet ready"
+            curl -f http://127.0.0.1:5145/health/live || (docker compose logs api --tail 100 && exit 1)
+            curl -f http://127.0.0.1:5145/health/ready || echo "ready degraded (DB/OSRM/AI check) — see health response"
+            curl -f http://127.0.0.1:3001/ || echo "web not yet ready — check WEB_PORT=3001"
             docker compose ps
