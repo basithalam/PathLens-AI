@@ -1,28 +1,28 @@
 # Hallway User Testing — PathLens AI (H4.1)
 
-**Goal:** idea.txt §6 — বাস্তব wheelchair user দিয়ে পরীক্ষা না করলে Impact 0। এই প্রোটোকল 3–5 জন mobility limitation থাকা ব্যক্তির সাথে 20-মিনিট hallway test এর জন্য।
+**Goal:** Without testing with real wheelchair users, impact is 0 (idea.txt §6). This protocol is for a 20-minute hallway test with 3–5 people with mobility limitations.
 
 ## Recruitment (honest)
-- 3–5 participants: wheelchair users (manual/electric) + 1 caregiver/assistant mix, SF Bay local (Dhaka deferred — no camera source). Recruit via SF Bay accessibility NGO, university disability support, hospital rehab (consent + no coercion).
-- Compensation: local rate + transport + snack। No real name published without written consent — quotes use participant P1/P2 with role only.
-- Status **2026-10-30: NOT YET RECRUITED** — protocol ready, recruitment pending H4 approval + funds/time। Until then, this file records plan + anticipated backlog, not fabricated results.
+- 3–5 participants: wheelchair users (manual/electric) + 1 caregiver/assistant mix, SF Bay local (Dhaka deferred — no camera source). Recruit via SF Bay accessibility NGO, university disability support, hospital rehab (consent, no coercion).
+- Compensation: local rate + transport + snack. No real name published without written consent — quotes use participant P1/P2 with role only.
+- Status **2026-10-30: NOT YET RECRUITED** — protocol ready, recruitment pending H4 approval + funds/time. Until then, this file records plan + anticipated backlog, not fabricated results.
 - Update **2026-10-31 H8:** 1 proxy run completed (reviewer, NOT wheelchair user) — see `H8_WHEELCHAIR_USER_TEST.md` for P0 metrics + 2 backlog fixes; real wheelchair recruitment still pending (P1/P2 after consent).
 
 ## Consent template (copy to paper form)
-> আমি PathLens AI hallway test এ স্বেচ্ছায় অংশ নিচ্ছি। আমার screen/interaction record করা হতে পারে demo-র জন্য, কিন্তু আমার নাম/ছবি public হবে না লিখিত অনুমতি ছাড়া। আমি যেকোনো সময় থামতে পারি। যোগাযোগ: [organiser email]।  
+> I voluntarily take part in the PathLens AI hallway test. My screen/interaction may be recorded for the demo, but my name/photo will not be public without written permission. I can stop at any time. Contact: [organiser email].  
 > Participant signature: ______ Date: ______ Organiser: ______
 
 ## Protocol — Same task for all (10 min task + 10 min interview)
 
 **Setup:** Laptop/tablet on desk, mobile on wheelchair tray, SF map centered 37.7749,-122.4194 with ~13 seeded reports, 3 routes, 1 stale camera. No help until stuck 2 min.
 
-1. **Destination select (2 min):** "তুমি Market St & 5th থেকে Ferry Building যেতে চাও — destination টাইপ করো।" Observe: can they type/select? Do they notice coverage grid?
-2. **Route A vs B (4 min):** Show 3 routes cards: Route 1 short + 1 stale stair, Route 2 longer 0 obstacles, Route 3 40% unknown. Ask: "কোনটা নেবে? কেন?" Observe: do they read explanation lines, certain/uncertain split, `avoidStairs` toggle, hasConfirmedStairs note?
-3. **Unknown% (2 min):** "এই route-এ 40% unknown মানে কী?" Expected: "কেউ report করেনি, তাই clear না" — not "safe". Observe confusion.
-4. **Feedback (2 min):** On a stale report, "এটা এখনো আছে কি না জানাবে — Quick Feedback 4 button থেকে একটা ট্যাপ করো।" Observe: do they understand StillVisible vs NotInNewPhoto vs WrongOrStale vs NotSure? Note "Not in new photo ≠ removed" warning.
+1. **Destination select (2 min):** "You want to go from Market St & 5th to Ferry Building — type the destination." Observe: can they type/select? Do they notice coverage grid?
+2. **Route A vs B (4 min):** Show 3 route cards: Route 1 short + 1 stale stair, Route 2 longer 0 obstacles, Route 3 40% unknown. Ask: "Which would you take? Why?" Observe: do they read explanation lines, certain/uncertain split, `avoidStairs` toggle, hasConfirmedStairs note?
+3. **Unknown% (2 min):** "What does 40% unknown on this route mean?" Expected: "Nobody reported here, so not proven clear" — not "safe". Observe confusion.
+4. **Feedback (2 min):** On a stale report, "Tell us if this is still there — tap one of the 4 Quick Feedback buttons." Observe: do they understand StillVisible vs NotInNewPhoto vs WrongOrStale vs NotSure? Note "Not in new photo ≠ removed" warning.
 
 **Post-task interview (10 min, record audio with consent):**
-- গন্তব্য পাওয়া সহজ ছিল? Route পার্থক্য বুঝেছ? Unknown কী মনে হলো? কোন তথ্য সবচেয়ে দরকারী? App কি অতিরিক্ত নির্ভরশীল বানাচ্ছে? What would stop you from using this before a real trip?
+- Was it easy to find the destination? Did you understand Route differences? What did Unknown mean to you? What info was most useful? Does the app make you over-reliant? What would stop you from using this before a real trip?
 
 ## Metrics (to fill after runs)
 | Metric | How | Target |
@@ -30,7 +30,7 @@
 | Task success (route chosen with reason) | Observer + recording | ≥4/5 |
 | Unknown% correct paraphrase | Interview quote | ≥3/5 |
 | Feedback kind correct (given scenario) | Tap accuracy | ≥3/5 |
-| SUS (10-item, Bangla) | Paper | ≥68 |
+| SUS (10-item, English) | Paper | ≥68 |
 | Time on route decision | Stopwatch | <3 min |
 
 ## Anticipated backlog (from design review, to validate with users)
@@ -41,11 +41,13 @@
 - [ ] GPS accuracy warning missing in MiniMapPicker (H4.3)
 
 ## Quotes (pending real runs)
-> P1 (manual wheelchair, SF): “[pending — after run]”  
-> P2 (caregiver, SF Bay): “[pending — after run, 2nd group]”
+> P1 (manual wheelchair, SF): "[pending — after run]"  
+> P2 (caregiver, SF Bay): "[pending — after run, 2nd group]"
 
 ## Update 2026-10-31 H8 P0 proxy
-> P0-proxy (accessibility reviewer, 2026-10-31): “AvoidStairs toggle-টা বুঝতে পেরেছি — লাল hasConfirmedStairs badge decisively ছিল। Unknown 40% mane keu report koreni — eta age bujhtam na, coverage C grey dekhে bujhlam.” — NOT a wheelchair user, honest proxy. Real P1/P2 pending.
+> P0-proxy (accessibility reviewer, 2026-10-31): "I understood the AvoidStairs toggle — the red hasConfirmedStairs badge was decisive. Unknown 40% means nobody reported here — I didn't get that before, I got it seeing the grey C cells on coverage." — NOT a wheelchair user, honest proxy. Real P1/P2 pending.
+
+> Original Bangla quote (for local record): "AvoidStairs toggle-টা বুঝতে পেরেছি — লাল hasConfirmedStairs badge decisively ছিল। Unknown 40% mane keu report koreni — eta age bujhtam na, coverage C grey dekhে bujhlam."
 
 ## Weekly review
 After every 3 runs, triage backlog, fix top 2 UI items, re-test 2 participants. Record in `docs/H4_FIX_REPORT.md` (next file).
