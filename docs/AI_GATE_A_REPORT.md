@@ -20,6 +20,17 @@ Verify that `MetaImageAnalysisService` (OpenAI-compatible `POST {Endpoint}/chat/
 
 Groq and api.meta.ai probes used `Invoke-RestMethod` with `image_url` data URI + `llama-4-maverick-vision` model (15s timeout).
 
+## Probes run 2026-10-31 (H7 Live Proof Sprint — now)
+
+| # | Endpoint | Key alias | Result |
+|---|---|---|---|
+| 1 | `https://api.meta.ai/compat/v1/chat/completions` | `LLM_1134...` | **404 Not Found** — Path not found (retested H7) |
+| 2 | `https://api.llama.com/v1/chat/completions` | `LLM_1134...` | **401 Unauthorized** — key not valid for this host |
+| 3 | `https://llama-api.meta.com/v1/chat/completions` | `LLM_1134...` | **DNS unresolved** — `llama-api.meta.com` not resolvable |
+| 4 | `https://api.groq.com/openai/v1/chat/completions` | `gsk_9ce6...` | **401 + substring error** — Invalid API Key (same as 10-30) |
+
+**Interpretation H7:** No host accepts the current `LLM_...`/`gsk_...` keys. Real Meta AI pipeline is code-complete (`MetaImageAnalysisService` throws `Meta AI is not configured` → 502 never invents) but live call blocked on key/host mismatch. Requirement "Meta API to successful Request" ≠ "full pipeline" — we prove pipeline via Mock + unit test until user supplies correct `Endpoint/Model/ApiKey`.
+
 ## Interpretation
 - The Meta endpoint in `.local/set-meta-env.ps1` (`api.meta.ai/compat/v1/...`) **does not exist** as typed — 404 proves path mismatch. Correct host may be `https://api.llama-api.com` or the deployment-specific OpenAI-compatible URL from your Meta developer console.
 - The Groq key on disk (`gsk_9ce6...`) returned 401 — expired, revoked, or scoped to a different project/region.
