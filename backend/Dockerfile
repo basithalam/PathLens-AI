@@ -9,12 +9,13 @@ COPY src/PathLens.Application/PathLens.Application.csproj src/PathLens.Applicati
 COPY src/PathLens.Domain/PathLens.Domain.csproj src/PathLens.Domain/
 COPY src/PathLens.Infrastructure/PathLens.Infrastructure.csproj src/PathLens.Infrastructure/
 COPY src/PathLens.Worker/PathLens.Worker.csproj src/PathLens.Worker/
-RUN dotnet restore
+RUN dotnet restore src/PathLens.Api/PathLens.Api.csproj
+RUN dotnet restore src/PathLens.Worker/PathLens.Worker.csproj
 
 COPY src/ src/
 # Publish both projects; Runtime image will pick one.
-RUN dotnet publish src/PathLens.Api/PathLens.Api.csproj -c Release -o /app/api --no-restore
-RUN dotnet publish src/PathLens.Worker/PathLens.Worker.csproj -c Release -o /app/worker --no-restore
+RUN dotnet publish src/PathLens.Api/PathLens.Api.csproj -c Release -o /app/api
+RUN dotnet publish src/PathLens.Worker/PathLens.Worker.csproj -c Release -o /app/worker
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
