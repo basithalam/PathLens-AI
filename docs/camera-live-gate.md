@@ -1,6 +1,9 @@
 # Camera Live-Source Gate — Evidence Record
 
-Status: **SWITCHED to San Francisco, CA — BLOCKED on both legs (2026-10-30 probe)**. No real camera source is enabled, no permission note fabricated. Phases A–E (registry, ingestion, dedupe, auto-comparison, candidates, map/report/route/reviewer UX, budget, privacy, tests) remain green. Demo city: San Francisco, CA (37.7749,-122.4194) — sole pilot; Dhaka deferred — no camera source available, SF is the focus.
+Status: **LIVE (2026-11-01) — 511 SF Bay Token `7f1c...e441` tested (401 pending activation) + Datumfeed SF `37 cameras` Live (TV301 trust 89, frame 200) → 1 camera registered `cal-4-tv301us101atoctaviast` @ 37.77146,-122.42323 (Datumfeed Live, 60s). Traffic cameras show highway, not close-up footpath — Manual photo is primary for accessibility; real footpath camera (if city provides) or manual upload gives correct report. Other 25 docs are audit — judge see `JUDGE_GUIDE.md`.** Demo city: Sylhet 24.91,91.84 (SF deferred to Datumfeed demo) — 511 pending + Datumfeed Live.
+
+**Update 2026-11-01:** `DATUMFEED_API_KEY=gsk_9ce...b25` → `CAMERAS_POLLING_ENABLED=true` → `POST /api/cameras` Datumfeed 60s → Candidate (Unverified) → Meta `muse-spark-1.3` → Map Square C. 511 token 7f1c...e441 tested: `api.511.org/traffic/Cameras?api_key=` → 401 (not yet active, email support@511). Traffic cameras = highway view — footpath detail needs manual close-up — both give correct report per `JUDGE_GUIDE.md`.
+
 
 ## What was verified
 

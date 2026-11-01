@@ -1,6 +1,10 @@
 # PathLens AI
 
-**Evidence-Aware Accessibility Intelligence**
+**Evidence-Aware Accessibility Intelligence — Judge: Start at `docs/JUDGE_GUIDE.md` (3-min demo, 1 page)**
+
+**Live:** https://pathlens.cognitivebd.com | **Health:** https://pathlens.cognitivebd.com/health/ready
+
+
 
 PathLens AI is being developed for the **Meta Global AI Developer Hackathon 2026**.
 
