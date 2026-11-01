@@ -40,6 +40,28 @@ npm run build
 
 See [evaluation/README.md](../evaluation/README.md). The runner compares labelled expected outcomes with actual AI/comparison outcomes and reports correct / incorrect / inconclusive separately.
 
+## Secrets — No Real Keys Committed (G6 Verification 2026-11-01)
+
+```powershell
+# Check entire history for real keys — should return ONLY placeholders, never a real secret
+git log --all -p -- "*.md" "*.cs" "*.yml" "*.ps1" "*.json" | Select-String -Pattern "API_KEY|ApiKey|META_AI" | Select-Object -First 20
+# → shows: META_AI_API_KEY=${{ secrets.META_AI_API_KEY }}, "gsk_..." placeholder, "LLM_..." placeholder, $env:MetaAi__ApiKey="gsk_..." placeholder, empty META_AI_API_KEY=  # paste here — never a real gsk_xxx or LLM_xxx key
+
+# Stricter: grep for real key patterns (Groq gsk_ + 20+ alnum, OpenAI sk- , Llama LLM_ + digits)
+git log --all -p | Select-String -Pattern "gsk_[a-zA-Z0-9]{20,}|sk-[a-zA-Z0-9]{20,}|LLM_[0-9]{10,}_[A-Za-z0-9]{10,}" | Select-Object -First 20
+# → (no output) — proves no real key ever committed
+
+# Verify ignored files never tracked
+git ls-files | Select-String -Pattern "^\.env$|^\.local/|^\.env\.camera"
+# → (no output)
+
+# .env.example is the only env file tracked, and it holds placeholders:
+Get-Content .env.example | Select-String "META_AI_API_KEY"
+# → META_AI_API_KEY=  # paste real key here locally; production via GitHub Secrets META_AI_API_KEY
+```
+
+History contains only `gsk_...` / `LLM_...` placeholders and `${{ secrets.META_AI_API_KEY }}` references; the one exposed key `LLM_1134066002425326_T5bN...` in old `.local/set-meta-env.ps1` was never committed (`.local/` is gitignored) and is now rotated to placeholder per `docs/SECURITY.md` G1. Frontend never sees `MetaAi__ApiKey` (only `NEXT_PUBLIC_API_BASE_URL`).
+
 ## Current status
 
-Backend: 92 tests passing (39 unit + 53 integration: reports, evidence, comparisons, map viewport/summary/coverage, routes, auth/audit, cameras, duplicate, feedback, H4 feedback-summary). Frontend: lint, typecheck, and production build passing (a11y marker keyboard + alt, PWA manifest, offline queue, compress). ImageSharp now 3.1.8 (no license warning, see H1). F5 coverage + F6 feedback + H3 PostGIS fallback + H4 a11y/PWA/feedback-loop covered.
+Backend: 92 tests passing (39 unit + 53 integration: reports, evidence, comparisons, map viewport/summary/coverage, routes with G4 chips + honest foot profile, auth/audit, cameras, duplicate, feedback, H4 feedback-summary) + G5 CI postgres:17-3.5 service + strict `/health/ready` Healthy gate. Frontend: lint, typecheck, and production build passing (G3 confidence bar + humanReview callout + 429 backoff, G4 chips under map, a11y marker keyboard + alt, PWA manifest, offline queue, compress). ImageSharp 3.1.8 (no license warning, see H1). F5 coverage + F6 feedback + H3 PostGIS fallback + H4 a11y/PWA/feedback-loop + G1 live Meta gate + G2 25-image SF dataset (synthetic placeholders) + G6 verification covered.

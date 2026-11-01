@@ -200,6 +200,16 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 
 **H7 / G1 (2026-11-01):** Meta AI Live Gate unblocked — `MetaImageAnalysisService` now fails loud with exact missing `MetaAi:Endpoint/Model/ApiKey` + truncated 401/404 body for debug (never leaks key), `AiProviderHealthCheck` lists missing fields, `docker-compose.yml` + `.env.example` default `AI_PROVIDER=Meta` with validated Groq `https://api.groq.com/openai/v1/chat/completions` + `meta-llama/llama-4-maverick-17b-128e-instruct` (or Llama API `https://api.llama.com/v1/chat/completions`), `deploy-hetzner.yml` default `Meta` (was `Mock`), `EvidenceSection.tsx` shows `Analysis failed` G1 hint + `✓ Live Meta AI provider/model` vs `Demo/mock` badge, `docs/SECURITY.md` G1 added + key rotation note. Live requires `GitHub Secrets META_AI_ENDPOINT/MODEL/API_KEY + AI_PROVIDER=Meta` then `push main`; local: paste `gsk_...` or `LLM_...` in `.local/set-meta-env.ps1` then `curl /health/ready` Healthy. See `docs/AI_GATE_A_REPORT.md` G1.
 
+**G2 (2026-11-01):** SF dataset 25 synthetic placeholders (own-generated 1024x768, no face/plate, 6-10KB, SF 37.7749,-122.4194 spread) + `manifest.sf.csv` 5 pairs (2× LikelyStillPresent, NotObserved, Conflicting, Inconclusive) + `results.sf.json` Mock pipeline proof (6 correct / 19 inconclusive, 1/5 pairs) + `scripts/seed-sf.ps1` 7 markers for judges. See `evaluation/README.md` G2 + `docs/AI_EVALUATION.md`.
+
+**G3 (2026-11-01):** Evidence UX polished — confidence bar `<40 red Low / 40-70 orange Medium / >70 green High` + yellow `Human review required` callout (blue after review) in `EvidenceSection.tsx` + `AnalysisJobProcessor` 429 5s backoff for Groq free tier (IsRateLimited → Delay → Requeue). See `docs/AI_EVALUATION.md` G3.
+
+**G4 (2026-11-01):** Routing wheelchair v2 chips — `RoutePlanner.tsx` preference chips `Preferences: [Avoid stairs ON] [Verified OFF] [Avoid stale OFF] [Shortest OFF]` under map (always visible, localStorage) + `Preferences applied:` as `pill--on` chips, honest `walking profile; not validated wheelchair profile` kept, Valhalla `wheelchair` costing still future (self-hosted OSM tags needed). See `docs/ROUTING_WHEELCHAIR_VALIDATION.md` G4 + `docs/H7_LIVE_PROOF.md` G4 screenshot.
+
+**G5 (2026-11-01):** Deploy & observability — `ci.yml` postgres:17-3.5 service + 92 tests (39 unit + 53 integration via `Ai__Provider=Mock`) + `deploy-hetzner.yml` strict `/health/ready` must Healthy or deploy fails (was degraded pass), `nginx-pathlens.conf` 3001 via `WEB_PORT`, `DEPLOY_HETZNER.md` 3001 verified.
+
+**G6 (2026-11-01):** Demo & submission ready — `docs/DEMO_SCRIPT.md` 2-min (0-20 problem, 20-50 coverage C/B/A, 50-90 G2 SF image + G3 bar/callout, 90-110 route G4 chips, 110-120 audit + G5/G6) + `docs/TEST_PLAN.md` G6 secrets grep log (`git log -p | grep API_KEY` → only placeholders, no real `gsk_`/`sk-`/`LLM_` keys) + 92 tests green. Live URL `https://pathlens.cognitivebd.com` (Hetzner 94.130.109.67 via `nginx-pathlens.conf` 3001/5145) or `docker compose up --build` + `./scripts/seed-sf.ps1`.
+
 ## License
 
 To be decided.
