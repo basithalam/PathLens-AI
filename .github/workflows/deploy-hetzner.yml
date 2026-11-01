@@ -41,14 +41,15 @@ jobs:
             set -e
             cd /opt/pathlens || (echo "Cloning at /opt/pathlens" && sudo mkdir -p /opt && sudo chown $USER:$USER /opt && git clone https://github.com/basithalam/PathLens-AI.git /opt/pathlens && cd /opt/pathlens)
             cd /opt/pathlens
-            # Public repo — force https without credential prompt (Hetzner has stale helper/token)
+            # Public repo — Hetzner has stale credential helper + no permission on /etc/gitconfig, so bypass all configs
             git remote set-url origin https://github.com/basithalam/PathLens-AI.git || true
+            # Clear any stored credentials (user-level only, no sudo needed)
             git config --global --unset credential.helper || true
-            git config --system --unset credential.helper || true
             git config credential.helper "" || true
             git config --global credential.helper "" || true
-            # Use -c to disable helper for this invocation only (covers global+system+local)
-            GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=echo git -c credential.helper= -c core.askPass=echo pull --ff-only origin main || (echo "git pull failed — fetching via https without credentials" && GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=echo git -c credential.helper= -c core.askPass=echo fetch --depth=1 https://github.com/basithalam/PathLens-AI.git main && git reset --hard FETCH_HEAD)
+            rm -f ~/.git-credentials ~/.config/git/credentials || true
+            # Bypass system/global configs entirely with temp HOME + NOSYSTEM + -c helper disable
+            GIT_CONFIG_NOSYSTEM=1 HOME=/tmp GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=echo git -c credential.helper= -c core.askPass=echo pull --ff-only origin main || (echo "git pull failed — fetching via https without credentials (bypassed system config)" && GIT_CONFIG_NOSYSTEM=1 HOME=/tmp GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=echo git -c credential.helper= -c core.askPass=echo fetch --depth=1 https://github.com/basithalam/PathLens-AI.git main && git reset --hard FETCH_HEAD)
             # Write .env for compose (never committed) — Hetzner multi-tenant ports must stay
             cat > .env <<EOF
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
