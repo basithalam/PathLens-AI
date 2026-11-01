@@ -26,12 +26,16 @@ public sealed class MetaImageAnalysisService(
         ImageAnalysisRequest request,
         CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(_options.Endpoint) ||
-            string.IsNullOrWhiteSpace(_options.ApiKey) ||
-            string.IsNullOrWhiteSpace(_options.Model))
+        var missing = new List<string>();
+        if (string.IsNullOrWhiteSpace(_options.Endpoint)) missing.Add("MetaAi:Endpoint (e.g. https://api.llama.com/v1/chat/completions or https://api.groq.com/openai/v1/chat/completions)");
+        if (string.IsNullOrWhiteSpace(_options.Model)) missing.Add("MetaAi:Model (e.g. Llama-4-Maverick-17B-128E-Instruct-FP8 or meta-llama/llama-4-maverick-17b-128e-instruct for Groq)");
+        if (string.IsNullOrWhiteSpace(_options.ApiKey)) missing.Add("MetaAi:ApiKey (server-side env MetaAi__ApiKey / GitHub Secret META_AI_API_KEY — never committed, see docs/SECURITY.md)");
+        if (missing.Count > 0)
         {
             throw new InvalidOperationException(
-                "Meta AI is not configured. Set MetaAi:Endpoint, MetaAi:Model, and the server-side MetaAi:ApiKey before running real analysis.");
+                $"Meta AI is not configured — missing: {string.Join(", ", missing)}. " +
+                "Set all three as server-side env (local: . .\\.local\\set-meta-env.ps1, production: GitHub Secrets META_AI_ENDPOINT/MODEL/API_KEY → .env via deploy-hetzner.yml). " +
+                "Without this, analysis jobs fail honestly (502) and UI shows 'Analysis failed'. For tests use Ai:Provider=Mock (labelled Demo/mock — not real AI). Phase G1 fix 2026-10-31: old api.meta.ai/compat/v1 returned 404.");
         }
 
         // Downscale and strip EXIF (including embedded GPS) before sending.
@@ -79,8 +83,10 @@ public sealed class MetaImageAnalysisService(
 
         if (!response.IsSuccessStatusCode)
         {
+            // G1 improvement: include truncated body for debugging 401/404 (key/host issues) without leaking key
+            var snippet = body.Length > 600 ? body.Substring(0, 600) + "..." : body;
             throw new HttpRequestException(
-                $"Meta AI request failed with status {(int)response.StatusCode}.");
+                $"Meta AI request failed with status {(int)response.StatusCode} at {_options.Endpoint} (model {_options.Model}). Body: {snippet}");
         }
 
         var content = ExtractMessageContent(body);

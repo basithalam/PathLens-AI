@@ -21,10 +21,16 @@ function AnalysisFindings({ item }: { item: EvidenceItem }) {
 
   if (item.analysisStatus === "Failed") {
     return (
-      <p role="alert" className="field-error">
-        Analysis failed. Use “Retry analysis” below. If the AI provider is not
-        configured, the job error on the server explains why.
-      </p>
+      <div role="alert" className="field-error">
+        <p>
+          <strong>Analysis failed.</strong> Use “Retry analysis” below. The server stores the exact reason.
+        </p>
+        <p style={{ fontSize: "0.85rem", opacity: 0.9 }}>
+          G1 hint: If <code>/health/ready</code> shows <code>ai-provider Degraded — missing MetaAi:Endpoint/Model/ApiKey</code>, set
+          <code> .local/set-meta-env.ps1</code> (Groq <code>gsk_...</code> or Llama API <code>LLM_...</code>) then restart API. Check API logs for exact 401/404 body.
+          See <code>docs/AI_GATE_A_REPORT.md</code> G1 for correct endpoint (old <code>api.meta.ai/compat/v1</code> was 404).
+        </p>
+      </div>
     );
   }
 
@@ -39,7 +45,12 @@ function AnalysisFindings({ item }: { item: EvidenceItem }) {
       {isMock && (
         <p className="mock-label" role="note">
           Demo/mock analysis — not real AI. This result exists only to exercise
-          the pipeline until a real Meta AI key is configured.
+          the pipeline until a real Meta AI key is configured (G1: set Groq gsk_... or Llama LLM_... in .local/set-meta-env.ps1).
+        </p>
+      )}
+      {!isMock && (
+        <p className="status-source" role="note" style={{ borderLeft: "3px solid #0b6b4f", paddingLeft: 8 }}>
+          ✓ Live Meta AI — provider <strong>{result.provider}</strong> {result.model ? `(${result.model})` : ""} analyzed this photo. Mock label means pipeline test only.
         </p>
       )}
       <p>

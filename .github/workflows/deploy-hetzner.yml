@@ -4,7 +4,8 @@ name: Deploy to Hetzner (Live Demo)
 # Required GitHub Secrets (Settings → Secrets → Actions):
 #   HETZNER_HOST=94.130.109.67, HETZNER_USER=deploy, HETZNER_SSH_KEY (private key), HETZNER_SSH_PORT (optional, default 22)
 #   POSTGRES_PASSWORD, JWT_SIGNING_KEY, JWT_ISSUER, JWT_AUDIENCE, FRONTEND_ORIGIN=https://pathlens.cognitivebd.com, NEXT_PUBLIC_API_BASE_URL=https://pathlens.cognitivebd.com/api (or https://pathlens.cognitivebd.com), OSRM_BASE_URL
-# Optional: META_AI_ENDPOINT, META_AI_MODEL, META_AI_API_KEY, DATUMFEED_API_KEY, CAMERAS_POLLING_ENABLED
+#   AI_PROVIDER=Meta, META_AI_ENDPOINT, META_AI_MODEL, META_AI_API_KEY (G1 live: e.g. https://api.groq.com/openai/v1/chat/completions + meta-llama/llama-4-maverick-17b-128e-instruct + gsk_... — see docs/SECURITY.md; Mock only for tests)
+# Optional: DATUMFEED_API_KEY, CAMERAS_POLLING_ENABLED
 
 on:
   push:
@@ -54,7 +55,7 @@ jobs:
             FRONTEND_ORIGIN=${{ secrets.FRONTEND_ORIGIN || 'https://pathlens.cognitivebd.com' }}
             NEXT_PUBLIC_API_BASE_URL=${{ secrets.NEXT_PUBLIC_API_BASE_URL || 'https://pathlens.cognitivebd.com' }}
             OSRM_BASE_URL=${{ secrets.OSRM_BASE_URL || 'https://router.project-osrm.org' }}
-            AI_PROVIDER=${{ secrets.AI_PROVIDER || 'Mock' }}
+            AI_PROVIDER=${{ secrets.AI_PROVIDER || 'Meta' }}
             META_AI_ENDPOINT=${{ secrets.META_AI_ENDPOINT || '' }}
             META_AI_MODEL=${{ secrets.META_AI_MODEL || '' }}
             META_AI_API_KEY=${{ secrets.META_AI_API_KEY || '' }}

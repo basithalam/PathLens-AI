@@ -152,15 +152,27 @@ Reports API (Phase 1): `POST /api/reports`, `GET /api/reports` (search, obstacle
 
 Evidence & AI analysis (Phase 2): `POST /api/reports/{id}/evidence` (multipart photo upload, JPEG/PNG/WebP up to 10 MB, validated by file content), `GET /api/reports/{id}/evidence`, `GET /api/evidence/{id}`, `GET /api/evidence/{id}/file`, `POST /api/evidence/{id}/analyze`, and `GET /api/analysis-jobs/{id}`. Photos are stored privately on local disk under a random key (`.local/storage` by default) and served only through the API. Analysis runs as a database-backed background job with bounded retry; provider output must pass the schema 1.0 validation before it is stored.
 
-Real Meta AI analysis is configured server-side only (never in the frontend):
+Real Meta AI analysis is configured server-side only (never in the frontend) — **G1 FIX 2026-10-31: old `api.meta.ai/compat/v1` 404, use Groq or Llama API**:
 
 ```powershell
-$env:MetaAi__Endpoint = "https://api.llama.com/compat/v1/chat/completions"
-$env:MetaAi__Model = "<vision-capable model id>"
-$env:MetaAi__ApiKey = "<your key>"
+# Option A - Groq (recommended, free, 30s setup): https://console.groq.com/keys
+$env:MetaAi__Endpoint = "https://api.groq.com/openai/v1/chat/completions"
+$env:MetaAi__Model = "meta-llama/llama-4-maverick-17b-128e-instruct"
+$env:MetaAi__ApiKey = "gsk_..."
+
+# Option B - Meta Llama API: https://llama.developer.meta.com/ -> API Keys
+# $env:MetaAi__Endpoint = "https://api.llama.com/v1/chat/completions"
+# $env:MetaAi__Model = "Llama-4-Maverick-17B-128E-Instruct-FP8"
+# $env:MetaAi__ApiKey = "LLM_..."
+
+# Or load from gitignored file:
+#   . .\.local\set-meta-env.ps1
+$env:Ai__Provider = "Meta"
+dotnet run --project backend/src/PathLens.Api --urls http://localhost:5145
+curl http://localhost:5145/health/ready  # ai-provider must be Healthy
 ```
 
-Without this configuration an analysis job fails with an explicit "not configured" error — it never invents a result. For tests or a clearly labelled demo, set `$env:Ai__Provider = "Mock"`; mock findings are marked in the UI as "Demo/mock analysis — not real AI". A live Meta AI image test (Blueprint Gate A) still requires a real API key.
+Without this configuration an analysis job fails with an explicit field-level error (`missing: MetaAi:Endpoint, MetaAi:Model, MetaAi:ApiKey`) — it never invents a result. For tests or a clearly labelled demo, set `$env:Ai__Provider = "Mock"`; mock findings are marked in the UI as "Demo/mock analysis — not real AI". See `docs/AI_GATE_A_REPORT.md` G1 + `docs/SECURITY.md` for rotation after exposed key `LLM_1134...` (now revoked placeholder).
 
 Evidence comparison (Phase 3): `POST /api/comparisons`, `GET /api/comparisons/{id}`, `GET /api/reports/{id}/comparisons`, and `POST /api/comparisons/{id}/review`. The deterministic rules engine checks location match, timestamp trust, and newer-photo strength before allowing `LikelyStillPresent` or `NotObservedInNewImage`; anything weak becomes `Inconclusive`, and different findings become `ConflictingEvidence`. `NotObservedInNewImage` never means an obstacle was removed. A human review is stored beside the original outcome (never overwriting it) and changes the effective outcome. The report page shows a side-by-side evidence explorer with a timeline and the review form.
 
@@ -185,6 +197,8 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 **H5 (2026-10-30):** production hardened — JWT fail-closed, CORS multi-origin, rate limiting login 5/min upload 10/hour (429), moderation blocklist, privacy retention `PRIVACY_RETENTION.md` (30d/1y/GDPR soft-delete `DELETE /api/reports/{id}`), CI `ci.yml`, health OSRM+AI, docs dedup. Build 0W0E. See `H5_FIX_REPORT.md`.
 
 **H6 (2026-10-30):** SF pilot ready (was Dhaka Pilot Ready — now SF sole pilot, Dhaka deferred no camera) — SF research `SF_RESEARCH.md` (OSRM 5 samples 1478-2756m), i18n `lib/i18n.tsx` EN/বাংলা + Unicode report, analytics `GET /api/admin/stats` + `AdminStatsPanel` + `ReputationPanel` Bronze/Silver/Gold. Build 0W0E. See `H6_FIX_REPORT.md`.
+
+**H7 / G1 (2026-11-01):** Meta AI Live Gate unblocked — `MetaImageAnalysisService` now fails loud with exact missing `MetaAi:Endpoint/Model/ApiKey` + truncated 401/404 body for debug (never leaks key), `AiProviderHealthCheck` lists missing fields, `docker-compose.yml` + `.env.example` default `AI_PROVIDER=Meta` with validated Groq `https://api.groq.com/openai/v1/chat/completions` + `meta-llama/llama-4-maverick-17b-128e-instruct` (or Llama API `https://api.llama.com/v1/chat/completions`), `deploy-hetzner.yml` default `Meta` (was `Mock`), `EvidenceSection.tsx` shows `Analysis failed` G1 hint + `✓ Live Meta AI provider/model` vs `Demo/mock` badge, `docs/SECURITY.md` G1 added + key rotation note. Live requires `GitHub Secrets META_AI_ENDPOINT/MODEL/API_KEY + AI_PROVIDER=Meta` then `push main`; local: paste `gsk_...` or `LLM_...` in `.local/set-meta-env.ps1` then `curl /health/ready` Healthy. See `docs/AI_GATE_A_REPORT.md` G1.
 
 ## License
 

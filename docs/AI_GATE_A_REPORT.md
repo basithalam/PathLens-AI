@@ -41,7 +41,39 @@ Groq and api.meta.ai probes used `Invoke-RestMethod` with `image_url` data URI +
 - When `Ai__Provider=Mock`, the pipeline is end-to-end green: upload → background job → `mock-deterministic-v1` result (`Unknown`, confidence 0) → `Inconclusive` comparison → UI shows `Demo/mock analysis — not real AI`. See `evaluation/results.json` (3 correct / 0 incorrect, Mock).
 - Schema validation (`ImageAnalysisResultParser` 1.0) and `model/provider` stamping are independent of live provider.
 
-## Unblock steps (user action)
+## PHASE G1 FIX — 2026-10-31 (Current Sprint)
+
+**What fixed:** `.local/set-meta-env.ps1` old `api.meta.ai/compat/v1` (404) replaced with validated Groq fallback as default + Llama API option. `MetaImageAnalysisService.cs` now reports exactly which `MetaAi:Endpoint/Model/ApiKey` missing + includes 401/404 body snippet for host/key debug. `AiProviderHealthCheck` reports missing fields. `docker-compose.yml`/`.env.example` updated to `Ai__Provider=Meta` + example endpoint `api.groq.com/openai/v1/chat/completions` + `meta-llama/llama-4-maverick-17b-128e-instruct`.
+
+**Validated endpoints/models for G1:**
+| Provider | Endpoint | Model | Key source |
+|---|---|---|---|
+| Meta Llama API (official) | `https://api.llama.com/v1/chat/completions` | `Llama-4-Maverick-17B-128E-Instruct-FP8` | https://llama.developer.meta.com/ -> API Keys |
+| Groq (free, recommended for hackathon) | `https://api.groq.com/openai/v1/chat/completions` | `meta-llama/llama-4-maverick-17b-128e-instruct` | https://console.groq.com/keys |
+
+**Unblock steps (user action) — DO THIS NOW:**
+1. Create Groq key (30s): https://console.groq.com/keys -> Create -> copy `gsk_...` **or** Llama API key from https://llama.developer.meta.com/.
+2. Local test:
+   ```powershell
+   # edit D:\PathLens AI\.local\set-meta-env.ps1 and paste key into $env:MetaAi__ApiKey
+   . .\.local\set-meta-env.ps1
+   dotnet run --project backend/src/PathLens.Api --urls http://localhost:5145
+   curl http://localhost:5145/health/ready  # should be Healthy with ai-provider Healthy
+   ```
+3. Deploy fix:
+   ```powershell
+   # GitHub Secrets add (Settings -> Secrets -> Actions):
+   # AI_PROVIDER=Meta, META_AI_ENDPOINT=https://api.groq.com/openai/v1/chat/completions, META_AI_MODEL=meta-llama/llama-4-maverick-17b-128e-instruct, META_AI_API_KEY=gsk_...
+   git push origin main  # deploy-hetzner.yml will write .env with real secrets and rebuild
+   ```
+4. Re-run evaluation: `.\evaluation\run-evaluation.ps1 -ManifestPath evaluation/manifest.sf.csv -OutputPath evaluation/results.json` (G2 dataset) and record `provider`+`model`+`generatedAt` below.
+
+**Next probe to fill (after key):**
+| # | Endpoint | Model | Result | Evidence |
+|---|---|---|---|---|
+| 5 | `https://api.groq.com/openai/v1/chat/completions` | `meta-llama/llama-4-maverick-17b-128e-instruct` | _pending user key_ | _will be curl/powershell log_ |
+
+## Legacy Unblock steps (pre-G1)
 1. Open your Meta developer portal → copy the **exact** OpenAI-compatible base URL + vision-capable model ID (e.g. `Llama-4-Maverick-Vision` or `Llama-4-Scout-Vision`) + API key.
 2. In PowerShell (not committed):
    ```powershell

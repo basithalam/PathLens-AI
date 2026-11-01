@@ -39,9 +39,15 @@ public sealed class AiProviderHealthCheck(IConfiguration config) : IHealthCheck
         var model = config["MetaAi:Model"];
         var hasKey = !string.IsNullOrWhiteSpace(config["MetaAi:ApiKey"]);
         if (string.Equals(provider, "Mock", StringComparison.OrdinalIgnoreCase))
-            return Task.FromResult(HealthCheckResult.Healthy("AI provider: Mock (pipeline only)."));
+            return Task.FromResult(HealthCheckResult.Healthy("AI provider: Mock (pipeline only, not real AI). Set Ai:Provider=Meta + MetaAi:Endpoint/Model/ApiKey for live (G1)."));
         if (string.IsNullOrWhiteSpace(endpoint) || string.IsNullOrWhiteSpace(model) || !hasKey)
-            return Task.FromResult(HealthCheckResult.Degraded("AI provider: not fully configured (endpoint/model/key missing) — live analysis will fail, Mock still works."));
-        return Task.FromResult(HealthCheckResult.Healthy($"AI provider: {provider} {model} @ {endpoint} (key present)."));
+        {
+            var missing = new List<string>();
+            if (string.IsNullOrWhiteSpace(endpoint)) missing.Add("MetaAi:Endpoint");
+            if (string.IsNullOrWhiteSpace(model)) missing.Add("MetaAi:Model");
+            if (!hasKey) missing.Add("MetaAi:ApiKey");
+            return Task.FromResult(HealthCheckResult.Degraded($"AI provider: not fully configured — missing {string.Join(", ", missing)} — live analysis will fail with 502 (see docs/AI_GATE_A_REPORT.md G1, set .local/set-meta-env.ps1 or GitHub Secrets). Mock still works."));
+        }
+        return Task.FromResult(HealthCheckResult.Healthy($"AI provider: {provider} {model} @ {endpoint} (key present, G1 ready)."));
     }
 }
