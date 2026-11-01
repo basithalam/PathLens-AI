@@ -41,15 +41,23 @@ jobs:
             set -e
             cd /opt/pathlens || (echo "Cloning at /opt/pathlens" && sudo mkdir -p /opt && sudo chown $USER:$USER /opt && git clone https://github.com/basithalam/PathLens-AI.git /opt/pathlens && cd /opt/pathlens)
             cd /opt/pathlens
-            # Public repo — Hetzner has stale credential helper + no permission on /etc/gitconfig, so bypass all configs
+            # DEBUG: show what git sees (to find stale token source)
+            echo "=== GIT DEBUG ==="; git remote -v || true; git config --list --show-origin | grep -i -E "credential|helper|extraHeader|insteadOf|url\." | head -20 || true; cat ~/.git-credentials 2>&1 | head -5 || true; cat ~/.config/git/credentials 2>&1 | head -5 || true; echo "=== END DEBUG ==="
+            # Public repo — Hetzner sends stale token even for public URL, so reset remote and wipe all credential sources
             git remote set-url origin https://github.com/basithalam/PathLens-AI.git || true
-            # Clear any stored credentials (user-level only, no sudo needed)
+            git remote set-url --push origin https://github.com/basithalam/PathLens-AI.git || true
+            # Remove any url.*.insteadOf that injects token, and extraHeader
             git config --global --unset credential.helper || true
-            git config credential.helper "" || true
+            git config --unset credential.helper || true
             git config --global credential.helper "" || true
-            rm -f ~/.git-credentials ~/.config/git/credentials || true
-            # Bypass system/global configs entirely with temp HOME + NOSYSTEM + -c helper disable
-            GIT_CONFIG_NOSYSTEM=1 HOME=/tmp GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=echo git -c credential.helper= -c core.askPass=echo pull --ff-only origin main || (echo "git pull failed — fetching via https without credentials (bypassed system config)" && GIT_CONFIG_NOSYSTEM=1 HOME=/tmp GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=echo git -c credential.helper= -c core.askPass=echo fetch --depth=1 https://github.com/basithalam/PathLens-AI.git main && git reset --hard FETCH_HEAD)
+            git config credential.helper "" || true
+            git config --global --unset http.https://github.com/.extraHeader || true
+            git config --unset http.https://github.com/.extraHeader || true
+            git config --global --unset url.https://x-access-token:.extraHeader || true
+            for key in $(git config --list --name-only 2>/dev/null | grep -i "extraHeader\|insteadOf" || true); do git config --global --unset "$key" || true; git config --unset "$key" || true; done
+            rm -f ~/.git-credentials ~/.config/git/credentials /tmp/.git-credentials || true
+            # Most robust: ignore ALL git configs and use ephemeral HOME
+            GIT_CONFIG_COUNT=0 GIT_CONFIG_NOSYSTEM=1 GIT_CONFIG_NOGLOBAL=1 HOME=/tmp GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=echo git -c credential.helper= -c core.askPass= -c http.extraHeader= fetch --depth=1 --no-tags https://github.com/basithalam/PathLens-AI.git main && git reset --hard FETCH_HEAD || GIT_CONFIG_COUNT=0 GIT_CONFIG_NOSYSTEM=1 HOME=/tmp GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=echo git -c credential.helper= pull --ff-only origin main
             # Write .env for compose (never committed) — Hetzner multi-tenant ports must stay
             cat > .env <<EOF
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
