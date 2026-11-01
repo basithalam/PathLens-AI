@@ -51,12 +51,12 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       </div>
 
       <form method="get" className="filter-bar" aria-label="Filter reports">
-        <label style={{ position: "relative" }}>
-          <span style={{ display: "flex", alignItems: "center", gap: ".35rem" }}>🔍 Search</span>
-          <input name="search" defaultValue={params.search ?? ""} placeholder="Title, description, location..." />
+        <label>
+          Search
+          <input name="search" defaultValue={params.search ?? ""} placeholder="Title or description" />
         </label>
         <label>
-          <span style={{ display: "flex", alignItems: "center", gap: ".35rem" }}>📋 Obstacle type</span>
+          Obstacle type
           <select name="obstacleType" defaultValue={params.obstacleType ?? ""}>
             <option value="">All types</option>
             {OBSTACLE_TYPES.map((type) => (
@@ -66,7 +66,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
             ))}
           </select>
         </label>
-        <button type="submit">Apply →</button>
+        <button type="submit">Apply filters</button>
       </form>
 
       {result === null ? (

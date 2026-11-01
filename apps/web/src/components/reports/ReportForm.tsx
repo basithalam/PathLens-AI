@@ -7,21 +7,16 @@ import { MiniMapPicker } from "@/components/map/MiniMapPicker";
 import { enqueueReport, getQueue } from "@/lib/offline-queue";
 
 const OBSTACLE_TYPES = [
-  { id: "BlockedSidewalk", label: "Blocked Sidewalk", icon: "🚧", desc: "Scooter, trash, etc." },
-  { id: "BrokenSurface", label: "Broken Surface", icon: "🕳️", desc: "Cracks, potholes" },
-  { id: "MissingOrBlockedRamp", label: "Ramp Blocked", icon: "♿", desc: "No ramp or blocked" },
-  { id: "StairsOrStep", label: "Stairs / Step", icon: "🪜", desc: "Unexpected stairs" },
-  { id: "ConstructionBarrier", label: "Construction", icon: "🚧", desc: "Fence, scaffolding" },
-  { id: "Other", label: "Other", icon: "❓", desc: "Something else" },
-  { id: "Unknown", label: "Unknown", icon: "❔", desc: "Not sure yet" },
-] as const;
+  "BlockedSidewalk",
+  "BrokenSurface",
+  "MissingOrBlockedRamp",
+  "StairsOrStep",
+  "ConstructionBarrier",
+  "Other",
+  "Unknown",
+];
 
-const SEVERITIES = [
-  { id: "Unknown", label: "Unknown", color: "#64748b", bg: "#f1f5f9" },
-  { id: "Low", label: "Low", color: "#2563eb", bg: "#dbeafe" },
-  { id: "Medium", label: "Medium", color: "#d97706", bg: "#fef3c7" },
-  { id: "High", label: "High", color: "#dc2626", bg: "#fee2e2" },
-] as const;
+const SEVERITIES = ["Unknown", "Low", "Medium", "High"];
 
 function FieldError({ errors, field }: { errors: Record<string, string[]>; field: string }) {
   const messages = errors[field] ?? errors[field[0].toUpperCase() + field.slice(1)];
@@ -37,7 +32,6 @@ function FieldError({ errors, field }: { errors: Record<string, string[]>; field
 
 export function ReportForm() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [obstacleType, setObstacleType] = useState("Unknown");
@@ -51,7 +45,7 @@ export function ReportForm() {
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [locationNote, setLocationNote] = useState<string | null>(null);
-  const [showMiniMap, setShowMiniMap] = useState(true);
+  const [showMiniMap, setShowMiniMap] = useState(false);
 
   function useMyLocation() {
     if (!navigator.geolocation) {
@@ -140,60 +134,29 @@ export function ReportForm() {
       </label>
       <FieldError errors={errors} field="description" />
 
-      <div style={{ display: "flex", gap: ".5rem", marginBottom: "1rem", padding: ".75rem", background: "var(--surface-2)", borderRadius: "var(--radius-sm)", border: "1px solid var(--line)" }}>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: ".5rem", fontWeight: 700, fontSize: ".85rem", color: step >= 1 ? "var(--brand-dark)" : "var(--muted)" }}>
-          <span style={{ width: "28px", height: "28px", borderRadius: "50%", background: step >= 1 ? "var(--brand)" : "var(--line)", color: "#fff", display: "grid", placeItems: "center", fontSize: ".8rem", fontWeight: 800 }}>1</span> What
-        </div>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: ".5rem", fontWeight: 700, fontSize: ".85rem", color: step >= 2 ? "var(--brand-dark)" : "var(--muted)" }}>
-          <span style={{ width: "28px", height: "28px", borderRadius: "50%", background: step >= 2 ? "var(--brand)" : "var(--line)", color: "#fff", display: "grid", placeItems: "center", fontSize: ".8rem", fontWeight: 800 }}>2</span> Where
-        </div>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", gap: ".5rem", fontWeight: 700, fontSize: ".85rem", color: step >= 3 ? "var(--brand-dark)" : "var(--muted)" }}>
-          <span style={{ width: "28px", height: "28px", borderRadius: "50%", background: step >= 3 ? "var(--brand)" : "var(--line)", color: "#fff", display: "grid", placeItems: "center", fontSize: ".8rem", fontWeight: 800 }}>3</span> Confirm
-        </div>
-      </div>
-
-      <div>
-        <label style={{ fontWeight: 700, fontSize: ".95rem", display: "block", marginBottom: ".5rem" }}>What did you see? Tap one</label>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: ".6rem" }}>
-          {OBSTACLE_TYPES.map((type) => (
-            <button
-              key={type.id}
-              type="button"
-              onClick={() => { setObstacleType(type.id); setStep(2); }}
-              style={{
-                display: "flex", flexDirection: "column", alignItems: "center", gap: ".35rem",
-                padding: ".85rem .5rem", borderRadius: "var(--radius-sm)", border: `2px solid ${obstacleType === type.id ? "var(--brand)" : "var(--line)"}`,
-                background: obstacleType === type.id ? "var(--brand-ghost)" : "var(--surface)", cursor: "pointer", transition: "all .15s",
-                boxShadow: obstacleType === type.id ? "0 0 0 3px rgba(15,118,110,.12)" : "none"
-              }}
-            >
-              <span style={{ fontSize: "1.5rem" }}>{type.icon}</span>
-              <span style={{ fontWeight: 700, fontSize: ".85rem", color: obstacleType === type.id ? "var(--brand-dark)" : "var(--ink)", textAlign: "center" }}>{type.label}</span>
-              <span style={{ fontSize: ".7rem", color: "var(--muted)", textAlign: "center" }}>{type.desc}</span>
-            </button>
-          ))}
-        </div>
+      <div className="form-row">
+        <label>
+          Obstacle type
+          <select value={obstacleType} onChange={(e) => setObstacleType(e.target.value)}>
+            {OBSTACLE_TYPES.map((type) => (
+              <option key={type} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+        </label>
         <FieldError errors={errors} field="obstacleType" />
-      </div>
 
-      <div>
-        <label style={{ fontWeight: 700, fontSize: ".95rem", display: "block", marginBottom: ".5rem" }}>How severe?</label>
-        <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
-          {SEVERITIES.map((level) => (
-            <button
-              key={level.id}
-              type="button"
-              onClick={() => setSeverity(level.id)}
-              style={{
-                padding: ".55rem 1rem", borderRadius: "var(--radius-pill)", border: `2px solid ${severity === level.id ? level.color : "var(--line)"}`,
-                background: severity === level.id ? level.bg : "var(--surface)", color: severity === level.id ? level.color : "var(--muted)",
-                fontWeight: 700, fontSize: ".85rem", cursor: "pointer", transition: "all .15s"
-              }}
-            >
-              {level.label}
-            </button>
-          ))}
-        </div>
+        <label>
+          Severity
+          <select value={severity} onChange={(e) => setSeverity(e.target.value)}>
+            {SEVERITIES.map((level) => (
+              <option key={level} value={level}>
+                {level}
+              </option>
+            ))}
+          </select>
+        </label>
         <FieldError errors={errors} field="severity" />
       </div>
 
@@ -213,55 +176,78 @@ export function ReportForm() {
 
       <fieldset>
         <legend>What did you actually see? (optional — Unknown is honest)</legend>
-        <p>Only set when you observed yourself. Leave Unknown — system never estimates.</p>
+        <p>
+          Only set these when you observed them yourself. Leave Unknown when
+          you did not check; the system never estimates them for you.
+        </p>
         <div className="form-row">
-          <label>Stairs? <select value={hasStairs} onChange={(e) => setHasStairs(e.target.value)}><option value="">Unknown</option><option value="yes">Yes</option><option value="no">No</option></select></label>
-          <label>Ramp? <select value={hasRamp} onChange={(e) => setHasRamp(e.target.value)}><option value="">Unknown</option><option value="yes">Yes</option><option value="no">No</option></select></label>
-          <label>Surface <select value={surface} onChange={(e) => setSurface(e.target.value)}><option value="">Unknown</option><option value="Smooth">Smooth</option><option value="Uneven">Uneven</option><option value="Broken">Broken</option></select></label>
+          <label>
+            Stairs or a step here?
+            <select value={hasStairs} onChange={(e) => setHasStairs(e.target.value)}>
+              <option value="">Unknown</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label>
+            Ramp here?
+            <select value={hasRamp} onChange={(e) => setHasRamp(e.target.value)}>
+              <option value="">Unknown</option>
+              <option value="yes">Yes</option>
+              <option value="no">No</option>
+            </select>
+          </label>
+          <label>
+            Surface
+            <select value={surface} onChange={(e) => setSurface(e.target.value)}>
+              <option value="">Unknown</option>
+              <option value="Smooth">Smooth</option>
+              <option value="Uneven">Uneven</option>
+              <option value="Broken">Broken</option>
+            </select>
+          </label>
         </div>
         <FieldError errors={errors} field="surface" />
       </fieldset>
 
-      <div style={{ background: "var(--surface-2)", border: "1px solid var(--line)", borderRadius: "var(--radius)", padding: "1.25rem", display: "grid", gap: "1rem" }}>
-        <h3 style={{ margin: 0, fontSize: "1rem", fontWeight: 800, display: "flex", alignItems: "center", gap: ".5rem" }}>📍 Where is it?</h3>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1rem" }}>
-          <label style={{ display: "grid", gap: ".4rem", fontWeight: 600, fontSize: ".85rem" }}>Latitude <input value={latitude} onChange={(e) => { setLatitude(e.target.value); setStep(3); }} inputMode="decimal" placeholder="37.7749" required style={{ border: "1px solid var(--line)", borderRadius: "var(--radius-sm)", padding: ".65rem .8rem" }} /></label>
-          <label style={{ display: "grid", gap: ".4rem", fontWeight: 600, fontSize: ".85rem" }}>Longitude <input value={longitude} onChange={(e) => setLongitude(e.target.value)} inputMode="decimal" placeholder="-122.4194" required style={{ border: "1px solid var(--line)", borderRadius: "var(--radius-sm)", padding: ".65rem .8rem" }} /></label>
+      <p>
+        <button type="button" onClick={useMyLocation}>
+          Use my location
+        </button>{" "}
+        <button type="button" onClick={() => setShowMiniMap(v => !v)} style={{ marginLeft: 8 }}>
+          {showMiniMap ? "Hide map picker" : "Pick on map"}
+        </button>{" "}
+        {locationNote && <span>{locationNote}</span>}
+      </p>
+      {showMiniMap && (
+        <div style={{ border: "1px solid var(--line)", borderRadius: 8, overflow: "hidden", height: 320, position: "relative" }}>
+          <MiniMapPicker
+            latitude={latitude ? Number(latitude) : null}
+            longitude={longitude ? Number(longitude) : null}
+            onPick={(lat, lon) => {
+              setLatitude(String(lat.toFixed(6)));
+              setLongitude(String(lon.toFixed(6)));
+              setLocationNote(`Picked on map — ${lat.toFixed(5)}, ${lon.toFixed(5)}. Drag marker or click again to adjust.`);
+            }}
+          />
         </div>
-        <div style={{ display: "flex", gap: ".5rem", flexWrap: "wrap" }}>
-          <button type="button" onClick={useMyLocation} style={{ flex: 1, minWidth: "160px", padding: ".7rem 1rem", borderRadius: "var(--radius-pill)", border: "1px solid var(--brand)", background: "var(--brand-ghost)", color: "var(--brand-dark)", fontWeight: 700, cursor: "pointer" }}>📍 Use my location</button>
-          <button type="button" onClick={() => setShowMiniMap(v => !v)} style={{ flex: 1, minWidth: "140px", padding: ".7rem 1rem", borderRadius: "var(--radius-pill)", border: "1px solid var(--line)", background: "var(--surface)", fontWeight: 600, cursor: "pointer" }}>{showMiniMap ? "Hide map" : "Show map 🗺️"}</button>
-        </div>
-        {locationNote && <div style={{ padding: ".6rem .8rem", background: "var(--accent-light)", border: "1px solid #bfdbfe", borderRadius: "var(--radius-sm)", fontSize: ".85rem", color: "var(--ink-light)" }}>{locationNote}</div>}
-        {showMiniMap && (
-          <div style={{ border: "2px solid var(--brand)", borderRadius: "var(--radius-sm)", overflow: "hidden", height: 340, position: "relative", boxShadow: "var(--shadow)" }}>
-            <MiniMapPicker
-              latitude={latitude ? Number(latitude) : null}
-              longitude={longitude ? Number(longitude) : null}
-              onPick={(lat, lon) => {
-                setLatitude(String(lat.toFixed(6)));
-                setLongitude(String(lon.toFixed(6)));
-                setLocationNote(`📍 Picked on map — ${lat.toFixed(5)}, ${lon.toFixed(5)}. Drag marker or click again to adjust.`);
-                setStep(3);
-              }}
-            />
-            <div style={{ position: "absolute", top: "8px", left: "50%", transform: "translateX(-50%)", background: "var(--ink)", color: "#fff", padding: ".4rem .7rem", borderRadius: "var(--radius-pill)", fontSize: ".75rem", fontWeight: 700, pointerEvents: "none", boxShadow: "var(--shadow-md)" }}>Tap map to set pin • Drag to adjust</div>
-          </div>
-        )}
-        <p style={{ margin: 0, fontSize: ".82rem", color: "var(--muted)", display: "flex", gap: ".4rem", alignItems: "center" }}>ℹ️ Coordinates are a claim, not verified fact. Photo + AI in next step.</p>
-      </div>
+      )}
+      <p className="status-source">
+        Coordinates you enter are a claim about where the obstacle is, not a verified fact.
+        Photo upload and AI analysis arrive in Phase 2.
+      </p>
 
-      <div style={{ background: "var(--surface)", border: "1px solid var(--line)", borderRadius: "var(--radius-sm)", padding: "1rem", display: "flex", gap: ".75rem", alignItems: "flex-start" }}>
-        <input type="checkbox" required aria-label="Consent to store report and photo per retention policy" style={{ marginTop: "3px", accentColor: "var(--brand)", width: "18px", height: "18px" }} />
-        <span style={{ fontSize: ".85rem", lineHeight: 1.5, color: "var(--muted)" }}>
-          I confirm this is my own photo with no faces/plates, and I consent to storage per <a href="/privacy" target="_blank" style={{ color: "var(--brand-dark)", fontWeight: 600 }}>retention policy</a> (camera 30d, evidence 1y). I can delete anytime.
+      <label style={{ display: "flex", gap: 8, alignItems: "flex-start", marginTop: 12 }}>
+        <input type="checkbox" required aria-label="Consent to store report and photo per retention policy" />
+        <span style={{ fontSize: "0.88rem" }}>
+          I confirm this photo is my own, contains no identifiable faces/plates, and I consent to storage under the{" "}
+          <a href="/privacy" target="_blank">retention policy</a> (camera 30d, evidence 1y, report until deleted). I can request deletion via report delete.
         </span>
-      </div>
+      </label>
 
-      <button type="submit" disabled={submitting} className="primary-button" style={{ width: "100%", justifyContent: "center", fontSize: "1rem", padding: "1rem", display: "flex", alignItems: "center", gap: ".5rem" }}>
-        {submitting ? "⏳ Creating report…" : "✅ Create report →"}
+      <button type="submit" disabled={submitting} className="primary-button">
+        {submitting ? "Saving…" : "Create report"}
       </button>
-      <p style={{ textAlign: "center", fontSize: ".82rem", color: "var(--muted)", margin: ".5rem 0 0" }}>Takes 2 seconds • You can add photos next</p>
     </form>
   );
 }
