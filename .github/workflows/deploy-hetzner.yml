@@ -41,11 +41,14 @@ jobs:
             set -e
             cd /opt/pathlens || (echo "Cloning at /opt/pathlens" && sudo mkdir -p /opt && sudo chown $USER:$USER /opt && git clone https://github.com/basithalam/PathLens-AI.git /opt/pathlens && cd /opt/pathlens)
             cd /opt/pathlens
-            # Public repo — force https without credential prompt (Hetzner has no helper)
+            # Public repo — force https without credential prompt (Hetzner has stale helper/token)
             git remote set-url origin https://github.com/basithalam/PathLens-AI.git || true
             git config --global --unset credential.helper || true
+            git config --system --unset credential.helper || true
             git config credential.helper "" || true
-            GIT_ASKPASS=echo GIT_TERMINAL_PROMPT=0 git pull --ff-only origin main || (echo "git pull failed — fetching via https" && GIT_ASKPASS=echo GIT_TERMINAL_PROMPT=0 git fetch https://github.com/basithalam/PathLens-AI.git main && git reset --hard FETCH_HEAD)
+            git config --global credential.helper "" || true
+            # Use -c to disable helper for this invocation only (covers global+system+local)
+            GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=echo git -c credential.helper= -c core.askPass=echo pull --ff-only origin main || (echo "git pull failed — fetching via https without credentials" && GIT_TERMINAL_PROMPT=0 GIT_ASKPASS=echo git -c credential.helper= -c core.askPass=echo fetch --depth=1 https://github.com/basithalam/PathLens-AI.git main && git reset --hard FETCH_HEAD)
             # Write .env for compose (never committed) — Hetzner multi-tenant ports must stay
             cat > .env <<EOF
             POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
