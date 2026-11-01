@@ -1,0 +1,11 @@
+id,image,expectedObstacle,latitude,longitude,captureTimeUtc,pairId,expectedOutcome
+sf-real-eval-01,sf-real-eval/sf-eval-01.jpg,BlockedSidewalk,37.7749,-122.4194,2026-11-02T10:00:00Z,,
+sf-real-eval-02,sf-real-eval/sf-eval-02.jpg,BlockedSidewalk,37.7755,-122.418,2026-11-03T10:00:00Z,,
+sf-real-eval-03,sf-real-eval/sf-eval-03.jpg,Other,37.776,-122.417,2026-11-04T10:00:00Z,,
+sf-real-eval-04,sf-real-eval/sf-eval-04.jpg,BrokenSurface,37.7765,-122.4165,2026-11-05T10:00:00Z,,
+sf-real-eval-05,sf-real-eval/sf-eval-05.jpg,BlockedSidewalk,37.774,-122.42,2026-11-06T10:00:00Z,,
+sf-real-eval-06,sf-real-eval/sf-eval-06.jpg,Unknown,37.7735,-122.421,2026-11-07T10:00:00Z,,
+sf-real-eval-07,sf-real-eval/sf-eval-07.jpg,BlockedSidewalk,37.7729,-122.4205,2026-11-08T10:00:00Z,,
+sf-real-eval-08,sf-real-eval/sf-eval-08.jpg,Unknown,37.778,-122.415,2026-11-09T10:00:00Z,,
+sf-real-eval-09,sf-real-eval/sf-eval-09.jpg,Unknown,37.7785,-122.414,2026-11-10T10:00:00Z,,
+sf-real-eval-10,sf-real-eval/sf-eval-10.jpg,Unknown,37.779,-122.4135,2026-11-11T10:00:00Z,,
