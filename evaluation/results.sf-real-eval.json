@@ -1,0 +1,141 @@
+﻿{
+    "summary":  {
+                    "generatedAt":  "2026-11-01T12:34:13.0854401Z",
+                    "apiBaseUrl":  "https://pathlens.cognitivebd.com",
+                    "manifest":  "evaluation/manifest.sf-real-eval.csv",
+                    "images":  {
+                                   "total":  10,
+                                   "correct":  3,
+                                   "incorrect":  3,
+                                   "inconclusive":  2,
+                                   "errors":  2
+                               },
+                    "pairs":  {
+                                  "total":  0,
+                                  "correct":  0,
+                                  "incorrect":  0,
+                                  "inconclusive":  0,
+                                  "errors":  0
+                              },
+                    "note":  "A 20-30 image set is a demo evaluation, never proof of general accuracy. Inconclusive is reported separately from incorrect."
+                },
+    "images":  [
+                   {
+                       "id":  "sf-real-eval-01",
+                       "reportId":  "3f1a230d-0d03-4dd7-b048-405c8f97899c",
+                       "evidenceId":  "04fcd04d-9aa1-49c6-a0ff-9151b9bc996e",
+                       "expectedObstacle":  "BlockedSidewalk",
+                       "actualObstacle":  "StairsOrStep",
+                       "confidence":  0.7,
+                       "provider":  "Meta",
+                       "model":  "muse-spark-1.3",
+                       "pairId":  "",
+                       "captureTimeUtc":  "2026-11-02T10:00:00Z",
+                       "verdict":  "Incorrect"
+                   },
+                   {
+                       "id":  "sf-real-eval-02",
+                       "reportId":  "b58e3d28-aac5-4486-83fe-07b68f675250",
+                       "evidenceId":  "26e1f117-d3e1-4a69-a573-958959cae448",
+                       "expectedObstacle":  "BlockedSidewalk",
+                       "actualObstacle":  "Unknown",
+                       "confidence":  0.3,
+                       "provider":  "Meta",
+                       "model":  "muse-spark-1.3",
+                       "pairId":  "",
+                       "captureTimeUtc":  "2026-11-03T10:00:00Z",
+                       "verdict":  "Inconclusive"
+                   },
+                   {
+                       "id":  "sf-real-eval-03",
+                       "reportId":  "1017dd6c-62c8-4ffa-8a9d-952f0a886ad6",
+                       "evidenceId":  "a62231d8-6780-4df1-b5ad-343da898b687",
+                       "expectedObstacle":  "Other",
+                       "actualObstacle":  "Unknown",
+                       "confidence":  0.15,
+                       "provider":  "Meta",
+                       "model":  "muse-spark-1.3",
+                       "pairId":  "",
+                       "captureTimeUtc":  "2026-11-04T10:00:00Z",
+                       "verdict":  "Inconclusive"
+                   },
+                   {
+                       "id":  "sf-real-eval-04",
+                       "reportId":  "3a8690c2-bd9f-4526-becb-a326e5be4478",
+                       "evidenceId":  "6e294e7c-0be5-489f-b2a7-92c6517b0336",
+                       "expectedObstacle":  "BrokenSurface",
+                       "actualObstacle":  "BrokenSurface",
+                       "confidence":  0.65,
+                       "provider":  "Meta",
+                       "model":  "muse-spark-1.3",
+                       "pairId":  "",
+                       "captureTimeUtc":  "2026-11-05T10:00:00Z",
+                       "verdict":  "Correct"
+                   },
+                   {
+                       "id":  "sf-real-eval-05",
+                       "reportId":  "af3fedab-60ea-41c2-8ad8-216501e9fbdf",
+                       "evidenceId":  "e91649aa-df79-4c4c-b3d2-e550df1d9c17",
+                       "expectedObstacle":  "BlockedSidewalk",
+                       "actualObstacle":  "BlockedSidewalk",
+                       "confidence":  0.9,
+                       "provider":  "Meta",
+                       "model":  "muse-spark-1.3",
+                       "pairId":  "",
+                       "captureTimeUtc":  "2026-11-06T10:00:00Z",
+                       "verdict":  "Correct"
+                   },
+                   {
+                       "id":  "sf-real-eval-06",
+                       "reportId":  "ce833cb9-c967-4142-8902-79d46caba3a2",
+                       "evidenceId":  "3d9aba57-8d4f-4249-ad2b-5fc5c1e59ddb",
+                       "expectedObstacle":  "Unknown",
+                       "actualObstacle":  "Other",
+                       "confidence":  0.3,
+                       "provider":  "Meta",
+                       "model":  "muse-spark-1.3",
+                       "pairId":  "",
+                       "captureTimeUtc":  "2026-11-07T10:00:00Z",
+                       "verdict":  "Incorrect"
+                   },
+                   {
+                       "id":  "sf-real-eval-07",
+                       "reportId":  "f5912105-9556-487f-9572-4e81d08ee255",
+                       "evidenceId":  "a30b11ec-5887-425c-97bc-32d5af6ebe4e",
+                       "expectedObstacle":  "BlockedSidewalk",
+                       "actualObstacle":  "BlockedSidewalk",
+                       "confidence":  0.6,
+                       "provider":  "Meta",
+                       "model":  "muse-spark-1.3",
+                       "pairId":  "",
+                       "captureTimeUtc":  "2026-11-08T10:00:00Z",
+                       "verdict":  "Correct"
+                   },
+                   {
+                       "id":  "sf-real-eval-08",
+                       "reportId":  "20297de0-950f-44ff-a4ed-d8a550bb1950",
+                       "evidenceId":  "a13690d3-2c8d-49c0-ac2a-457965a9770b",
+                       "expectedObstacle":  "Unknown",
+                       "actualObstacle":  "BlockedSidewalk",
+                       "confidence":  0.6,
+                       "provider":  "Meta",
+                       "model":  "muse-spark-1.3",
+                       "pairId":  "",
+                       "captureTimeUtc":  "2026-11-09T10:00:00Z",
+                       "verdict":  "Incorrect"
+                   },
+                   {
+                       "id":  "sf-real-eval-09",
+                       "verdict":  "Error",
+                       "error":  "Upload did not return an evidence id."
+                   },
+                   {
+                       "id":  "sf-real-eval-10",
+                       "verdict":  "Error",
+                       "error":  "Upload did not return an evidence id."
+                   }
+               ],
+    "pairs":  [
+
+              ]
+}
