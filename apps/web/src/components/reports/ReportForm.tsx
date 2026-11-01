@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createReport } from "@/lib/api-client";
 import { MiniMapPicker } from "@/components/map/MiniMapPicker";
@@ -46,6 +46,22 @@ export function ReportForm() {
   const [submitting, setSubmitting] = useState(false);
   const [locationNote, setLocationNote] = useState<string | null>(null);
   const [showMiniMap, setShowMiniMap] = useState(false);
+
+  // Auto-fill from user's current location on first load — Sylhet/SF fallback only if denied
+  useEffect(() => {
+    if (typeof navigator !== "undefined" && navigator.geolocation && !latitude && !longitude) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setLatitude(String(pos.coords.latitude));
+          setLongitude(String(pos.coords.longitude));
+          const acc = Math.round(pos.coords.accuracy);
+          setLocationNote(`Auto-filled from your current location (accuracy ~${acc}m) — verify on map.`);
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }
+      );
+    }
+  }, []);
 
   function useMyLocation() {
     if (!navigator.geolocation) {
