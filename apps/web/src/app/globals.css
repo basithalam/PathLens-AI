@@ -106,3 +106,26 @@
 .pill--off{color:var(--muted);background:var(--surface-2);border-color:var(--line)}
 .btn--sm{padding:.4rem .75rem;font-size:.85rem}
 .empty-state{color:var(--muted);background:var(--surface-2);border:1px dashed var(--line);border-radius:12px;padding:1rem;text-align:center}
+/* G3 Evidence UX — confidence bar + callouts */
+.confidence-row{display:flex;align-items:center;gap:.75rem;margin:.4rem 0 .5rem}
+.confidence-label{font-weight:700;font-size:.88rem;min-width:9rem}
+.confidence-track{flex:1;height:10px;background:#e2e8e6;border-radius:999px;overflow:hidden;position:relative}
+.confidence-fill{height:100%;border-radius:999px;transition:width .3s,background .3s}
+.confidence-fill--low{background:#ba2e1e}
+.confidence-fill--mid{background:#d97706}
+.confidence-fill--high{background:#0b6b4f}
+.confidence-pct{font-weight:700;font-size:.82rem;min-width:3rem;text-align:right}
+.confidence-pct--low{color:#ba2e1e}
+.confidence-pct--mid{color:#a16207}
+.confidence-pct--high{color:#0b6b4f}
+.callout{border-radius:10px;padding:.65rem .8rem;font-size:.88rem;line-height:1.5;margin:.5rem 0}
+.callout--warn{background:#fffbeb;border:1px solid #f59e0b;color:#92400e}
+.callout--info{background:#eff6ff;border:1px solid #93c5fd;color:#1e40af}
+.mock-label{background:#fdecea;border:1px solid #f0b4ad;color:#7a1f14;border-radius:10px;padding:.6rem .8rem;font-size:.88rem}
+.status-source{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:.6rem .8rem}
+.findings{display:grid;gap:.6rem;background:var(--surface);border:1px solid rgba(226,232,230,.95);border-radius:12px;padding:.9rem;box-shadow:var(--shadow)}
+.evidence-section{display:grid;gap:1rem}
+.drop-zone{border:2px dashed var(--line);border-radius:16px;padding:1rem;background:var(--surface);transition:border-color .15s,background .15s}
+.drop-zone.dragging{border-color:var(--brand);background:var(--brand-ghost)}
+.evidence-list{display:grid;gap:1rem}
+.evidence-photo{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--line);box-shadow:var(--shadow)}

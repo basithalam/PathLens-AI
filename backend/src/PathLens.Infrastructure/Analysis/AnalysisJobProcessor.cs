@@ -179,7 +179,15 @@ public sealed class AnalysisJobProcessor(
         }
         catch (Exception ex) when (ex is HttpRequestException or TimeoutException or TaskCanceledException)
         {
-            if (currentJob.Attempts < MaxAttempts && !stoppingToken.IsCancellationRequested)
+            var isRateLimited = IsRateLimited(ex);
+            if (isRateLimited && currentJob.Attempts < MaxAttempts && !stoppingToken.IsCancellationRequested)
+            {
+                logger.LogWarning(ex, "Rate-limited (429) for job {JobId}; delaying 5s before requeue (free tier 10/min).", currentJob.Id);
+                try { await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken); } catch (OperationCanceledException) { }
+                currentJob.Requeue($"Rate-limited (429), retrying after 5s delay: {ex.Message}");
+                currentEvidence.ResetForAnalysis();
+            }
+            else if (currentJob.Attempts < MaxAttempts && !stoppingToken.IsCancellationRequested)
             {
                 logger.LogWarning(ex, "Transient analysis failure for job {JobId}; requeueing.", currentJob.Id);
                 currentJob.Requeue($"Transient failure, retrying: {ex.Message}");
@@ -200,5 +208,20 @@ public sealed class AnalysisJobProcessor(
         }
 
         await dbContext.SaveChangesAsync(stoppingToken);
+    }
+
+    private static bool IsRateLimited(Exception ex)
+    {
+        // Groq/Meta OpenAI-compatible returns 429 Too Many Requests with body; HttpRequestException message includes status.
+        if (ex is HttpRequestException httpEx)
+        {
+            var msg = httpEx.Message ?? string.Empty;
+            if (msg.Contains("429") || msg.Contains("Too Many Requests", StringComparison.OrdinalIgnoreCase) || msg.Contains("rate", StringComparison.OrdinalIgnoreCase) && msg.Contains("limit", StringComparison.OrdinalIgnoreCase))
+                return true;
+            if (httpEx.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+                return true;
+        }
+        var text = ex.Message ?? string.Empty;
+        return text.Contains("429") || text.Contains("Too Many Requests", StringComparison.OrdinalIgnoreCase);
     }
 }

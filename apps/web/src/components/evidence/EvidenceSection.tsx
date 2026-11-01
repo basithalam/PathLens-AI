@@ -55,10 +55,24 @@ function AnalysisFindings({ item }: { item: EvidenceItem }) {
       )}
       <p>
         <strong>Possible obstacle:</strong> {result.obstacleType} ·{" "}
-        <strong>Confidence:</strong> {Math.round(result.confidence * 100)}% ·{" "}
         <strong>Provider:</strong> {result.provider}
         {result.model ? ` (${result.model})` : ""}
       </p>
+      {(() => {
+        const pct = Math.round(result.confidence * 100);
+        const level = pct < 40 ? "low" : pct < 70 ? "mid" : "high";
+        const label = level === "low" ? "Low — treat as weak evidence" : level === "mid" ? "Medium — uncertain, verify" : "High — still needs human check";
+        return (
+          <div className="confidence-row" role="note" aria-label={`Confidence ${pct}% ${level}`}>
+            <span className="confidence-label">Confidence: {pct}%</span>
+            <div className="confidence-track" title={`${pct}% — ${label}`}>
+              <div className={`confidence-fill confidence-fill--${level}`} style={{ width: `${Math.max(4, pct)}%` }} />
+            </div>
+            <span className={`confidence-pct confidence-pct--${level}`}>{pct}%</span>
+            <span className="status-source" style={{ fontSize: "0.78rem", padding: ".2rem .45rem" }}>{label}</span>
+          </div>
+        );
+      })()}
       {result.visibleEvidence.length > 0 && (
         <>
           <p>
@@ -84,7 +98,14 @@ function AnalysisFindings({ item }: { item: EvidenceItem }) {
         </>
       )}
       {result.humanReviewRequired && (
-        <p>A human reviewer still needs to verify this before it is treated as fact.</p>
+        <div className="callout callout--warn" role="note">
+          <strong>Human review required</strong> — a reviewer still needs to verify this before it is treated as fact. AI can be wrong, especially on <span className="confidence-pct--low">low confidence</span>.
+        </div>
+      )}
+      {!result.humanReviewRequired && (
+        <div className="callout callout--info" role="note">
+          Human review completed — but still treat as evidence, not absolute truth. Check original photo + comparison.
+        </div>
       )}
     </div>
   );

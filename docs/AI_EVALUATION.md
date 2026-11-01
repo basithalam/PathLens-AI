@@ -68,6 +68,19 @@ Then `Copy-Item results.sf.json results.json` for badge.
 
 **Note (H2→G2):** Mock always returns `Unknown` with confidence 0 and `humanReviewRequired=true` — it proves upload → job → parser → comparison end-to-end, but live `Meta` is needed for real accuracy. See `docs/AI_GATE_A_REPORT.md` G1 for why live gate was blocked (404 old host, 401 key) and how G1 now unblocks via Groq/Llama.
 
+## G3 Evidence UX Polish (2026-11-01)
+
+**Frontend `EvidenceSection.tsx`:**
+- Confidence bar: `pct = round(confidence*100)` → `<40 red #ba2e1e`, `40-70 orange #d97706`, `>70 green #0b6b4f` + label `Low/Medium/High` + accessible `role=note` + progress fill.
+- Provider badge kept from G1: `Mock → Demo/mock analysis — not real AI` (red), `Meta → ✓ Live Meta AI provider/model` (green left border).
+- `humanReviewRequired=true` → yellow `callout--warn` (`Human review required — AI can be wrong, especially on low confidence`), `false` → blue `callout--info` (reviewed but still evidence).
+
+**Backend `AnalysisJobProcessor.cs:180`:**
+- `IsRateLimited()` detects `429 / Too Many Requests / rate limit` in `HttpRequestException.StatusCode==429` or message.
+- If 429 and `Attempts < MaxAttempts=2`, logs `Rate-limited (429) delaying 5s` → `Task.Delay(5s)` → `Requeue("Rate-limited (429), retrying after 5s")` + `ResetForAnalysis()`. Otherwise normal transient requeue. Prevents free-tier 10/min burst from failing jobs immediately; second attempt gets clean retry. Verified via unit-style log check — `Mock` never triggers, live Groq `gsk_...` 429 will.
+
+**Status after G3:** Build 0W0E, 39 unit pass, typecheck ok. Mock run `evaluation/results.sf.json` 6 correct / 19 inconclusive / 0 incorrect + 1/5 pairs correct remains honest; live Meta will show coloured confidence bars. See `docs/AI_GATE_A_REPORT.md` G1 + `evaluation/README.md` G2 for probe + dataset.
+
 ## Status
 
-G1 live gate unblocked (endpoint `api.groq.com` + `api.llama.com`, deploy default `Meta`); G2 dataset ready (25 synthetic + manifest + seed). Next: rerun with live key for `results.sf.json` with `provider Meta` + real photo replacement. See `docs/AI_GATE_A_REPORT.md` for full probe logs.
+G1 live gate unblocked (endpoint `api.groq.com` + `api.llama.com`, deploy default `Meta`); G2 dataset ready (25 synthetic + manifest + seed); G3 evidence UX polished (confidence bar + callouts + 429 backoff). Next: rerun with live key for `results.sf.json` with `provider Meta` + real photo replacement. See `docs/AI_GATE_A_REPORT.md` for full probe logs.
