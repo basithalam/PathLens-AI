@@ -36,7 +36,29 @@
 - `RoutePlanner.tsx` 381-389: checkboxes `avoidStairs`, `preferVerifiedEvidence`, `avoidStaleEvidence`, `preferShortest` + `Coverage layer under routes` (C grey insufficient = unknown, B orange obstacle, A green evidence, letter+colour). Text: "Walking profile; not a validated wheelchair profile, no route is ever labelled wheelchair-safe." (honest)
 - `RouteRecommendationService.cs` 77-142: `ObstacleRadius 50m` → `KnownObstacles` → `UnknownLengthPercent` via 25m sampling `reportPoints.All(distance>CoverageRadius)` → `100% unknown = nobody reported` + `Stale 30d` via `EffectiveStaleDays` (now backend configurable `Routing:StaleEvidenceDays`) + `hasConfirmedStairs` hard rule. Route cards show `hasConfirmedStairs` note + per-obstacle `ageDays>30 stale` + `Certain vs Uncertain` split.
 
-**Action:** No code change needed H7 — already F2 + H3.3. Next commit will add screenshot to this file.
+**Action H7:** No code change needed H7 — already F2 + H3.3.
+
+### G4 Update — Preference Chips Under Map (2026-11-01)
+
+**What was added:** `RoutePlanner.tsx` now shows live preference chips **under the map** (always visible, mirrors checkbox state). Before G4 chips were only as checkboxes in a fieldset; now users see `Preferences: [Avoid stairs ON pill--on] [Verified OFF pill--off] [Avoid stale OFF] [Shortest OFF] + Saved on this device...` directly under the Leaflet map, and after `Plan routes` the `Preferences applied:` line renders as `pill--on` chips (`avoidStairs`, `preferVerifiedEvidence` etc.) instead of plain text join.
+
+**Honest text kept:** `Routes use a walking profile; that is not a validated wheelchair profile, so no route is ever labelled wheelchair-safe here.` remains directly above `Plan routes` button (RoutePlanner.tsx:381-385). Limitations still streamed per `/routes` response: `Routing uses OSRM foot profile...`, `null=unknown`, `Unknown≠clear`, `stale threshold`.
+
+**Screenshot placeholder (to replace with real PNG after `npm run dev`):**
+```
+[Map: SF 37.7749,-122.4194 → 37.7790,-122.4100, 3 coloured polylines]
+Preferences: [Avoid stairs ON] [Verified OFF] [Avoid stale OFF] [Shortest OFF] Saved on this device · never hides known obstacles · unknown stays unknown
+Candidate routes
+From OSRM (foot profile), ranked by fewest known obstacles. Ranked first never means proven safe.
+Preferences applied: [avoidStairs]  // or Default ranking when none
+Route 1 · 1.48 km · 4 min
+  This route has a human-verified stair report...
+  Mostly unknown: 62% ...
+  Certain vs Uncertain split + hasConfirmedStairs badge
+```
+Real screenshot: capture `http://localhost:3000/routes` after toggling `Avoid stairs ON` — shows green `pill--on` vs grey `pill--off` + map + honest disclaimer. Save as `docs/screenshots/route-preferences-chips.png` and reference here.
+
+**Verification:** `RoutePlanner.tsx` chips use `localStorage pathlens.routePreferences` (persistent), `recommendation.appliedPreferences` echoed from backend `RouteRecommendationService` (never hides obstacles). No wheelchair profile claim.
 
 ## Summary
 - **Meta AI:** Code done, live blocked honestly — not claiming false success.

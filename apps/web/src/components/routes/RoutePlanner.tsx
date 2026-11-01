@@ -402,6 +402,30 @@ export function RoutePlanner() {
         aria-label="Route map. Route cards below describe every route in text."
       />
 
+      {/* G4: Preference chips under map — always visible, mirrors checkbox state, no hidden ranking */}
+      <div
+        className="preference-chips"
+        aria-label="Active route preferences"
+        style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", margin: "0.75rem 0", alignItems: "center" }}
+      >
+        <span style={{ fontWeight: 600, fontSize: "0.9rem", marginRight: "0.2rem" }}>Preferences:</span>
+        <span className={`pill ${preferences.avoidStairs ? "pill--on" : "pill--off"}`} title="A route with a human-verified stair report cannot outrank one without">
+          Avoid stairs {preferences.avoidStairs ? "ON" : "OFF"}
+        </span>
+        <span className={`pill ${preferences.preferVerifiedEvidence ? "pill--on" : "pill--off"}`} title="Fewer uncertain obstacles ranks higher">
+          Verified {preferences.preferVerifiedEvidence ? "ON" : "OFF"}
+        </span>
+        <span className={`pill ${preferences.avoidStaleEvidence ? "pill--on" : "pill--off"}`} title="Fewer obstacles based on old evidence ranks higher">
+          Avoid stale {preferences.avoidStaleEvidence ? "ON" : "OFF"}
+        </span>
+        <span className={`pill ${preferences.preferShortest ? "pill--on" : "pill--off"}`} title="Distance counts earlier in ranking">
+          Shortest {preferences.preferShortest ? "ON" : "OFF"}
+        </span>
+        <span className="status-source" style={{ fontSize: "0.82rem" }}>
+          Saved on this device · never hides known obstacles · unknown stays unknown
+        </span>
+      </div>
+
       {recommendation && (
         <section aria-labelledby="route-results-heading" className="route-results">
           <h2 id="route-results-heading">Candidate routes</h2>
@@ -416,10 +440,18 @@ export function RoutePlanner() {
             </p>
           ))}
 
-          <p>
-            <strong>Preferences applied:</strong>{" "}
-            {recommendation.appliedPreferences.join(" ")}
-          </p>
+          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center", margin: "0.5rem 0" }}>
+            <strong style={{ fontSize: "0.9rem" }}>Preferences applied:</strong>
+            {recommendation.appliedPreferences.length === 0 ? (
+              <span className="status-source">Default ranking — fewest known obstacles then shortest</span>
+            ) : (
+              recommendation.appliedPreferences.map((pref) => (
+                <span key={pref} className="pill pill--on" title={`Applied: ${pref}`}>
+                  {pref}
+                </span>
+              ))
+            )}
+          </div>
 
           <div className="route-cards">
             {recommendation.routes.map((route) => (

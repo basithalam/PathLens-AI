@@ -44,5 +44,13 @@
 ```
 `StaleEvidenceDays` is read by `RouteRecommendationService.EffectiveStaleDays`; change per city if multi-city pilot (e.g., humid climate may need 14).
 
+## G4 Update — Preference Chips Under Map (2026-11-01) — Valhalla Still Future
+
+**What G4 changed:** Frontend only — `RoutePlanner.tsx` now renders `Preferences:` pills (`Avoid stairs ON/OFF`, `Verified`, `Avoid stale`, `Shortest`) **under the map** (always visible, `localStorage` backed) + `Preferences applied:` as `pill--on` chips in results. No backend ranking change; `RouteRecommendationService` already had `avoidStairs` hard rule, `preferVerified/avoidStale/preferShortest` toggles, `hasConfirmedStairs` flag, `Unknown%` and `stale` — G4 just made them visible as chips.
+
+**What G4 did NOT change (honest):** OSRM `foot` remains **not wheelchair-safe**. Valhalla `pedestrian`/`wheelchair` costing **still not deployed** — requires self-hosted Valhalla + OSM `wheelchair/incline/surface/width/kerb` tags + field measurement (slope/width/curb with clinometer/tape) per “Unblock to truly wheelchair-aware” steps 1-4. Idea.txt F1 personal preference profile (wheelchair type, slope tolerance) remains at `RoutePreferences` level (4 booleans), not per-user segment costing. No profile string changed; `RoutingOptions.Profile` still `foot`.
+
+**Valhalla roadmap kept:** See table above — `Not deployed`, `Needs Valhalla instance + OSM build, deferred`. Will update `RoutingOptions.Profile` to `wheelchair` only after field validation, keep `avoidStairs` hard rule. See also `docs/H7_LIVE_PROOF.md` G4 screenshot placeholder.
+
 ## Reference
-`idea.txt:7-21` (wheelchair-specific scoring), Blueprint §Routing Requirements, `docs/ARCHITECTURE.md` Known limitations.
+`idea.txt:7-21` (wheelchair-specific scoring), Blueprint §Routing Requirements, `docs/ARCHITECTURE.md` Known limitations, `docs/H7_LIVE_PROOF.md` G4.
