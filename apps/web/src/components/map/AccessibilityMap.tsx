@@ -28,8 +28,8 @@ const OBSTACLE_TYPES = [
 
 const VERIFICATION_STATUSES = ["Unverified", "HumanVerified", "Disputed", "Rejected"];
 
-// Default view: San Francisco, CA (demo city). The map asks for reports wherever the user pans.
-const DEFAULT_CENTER: [number, number] = [37.7749, -122.4194];
+// Default view: Sylhet, Bangladesh (pilot city — user requested, SF deferred). The map asks for reports wherever the user pans.
+const DEFAULT_CENTER: [number, number] = [24.9116, 91.8498];
 
 function escapeHtml(value: string): string {
   return value

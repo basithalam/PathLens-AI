@@ -52,10 +52,10 @@ export function RoutePlanner() {
   const coverageLayerRef = useRef<import("leaflet").LayerGroup | null>(null);
   const leafletRef = useRef<typeof import("leaflet") | null>(null);
 
-  const [originLat, setOriginLat] = useState("37.7749");
-  const [originLon, setOriginLon] = useState("-122.4194");
-  const [destLat, setDestLat] = useState("37.7790");
-  const [destLon, setDestLon] = useState("-122.4100");
+  const [originLat, setOriginLat] = useState("24.9116");
+  const [originLon, setOriginLon] = useState("91.8498");
+  const [destLat, setDestLat] = useState("24.9248");
+  const [destLon, setDestLon] = useState("91.8698");
   const [pickMode, setPickModeState] = useState<PickMode>("origin");
   const pickModeRef = useRef<PickMode>("origin");
 
@@ -428,10 +428,13 @@ export function RoutePlanner() {
 
       {recommendation && (
         <section aria-labelledby="route-results-heading" className="route-results">
-          <h2 id="route-results-heading">Candidate routes</h2>
+          <h2 id="route-results-heading">Candidate routes — with alternatives</h2>
           <p>
             From {recommendation.provider} ({recommendation.profile} profile),
-            ranked by fewest known obstacles. Ranked first never means proven safe.
+            ranked by fewest known obstacles. <strong>When the top route is blocked, the next is your alternative — check its obstacles and unknown% before you go.</strong> Ranked first never means proven safe. Unknown stays unknown.
+          </p>
+          <p className="callout callout--info" style={{ fontSize: "0.88rem" }}>
+            PathLens never hides uncertainty: AI confidence is not a guarantee, and a route with no reports is shown as <em>unknown, not clear</em>. Alternatives are ranked by evidence, not just distance.
           </p>
 
           {recommendation.limitations.map((limitation) => (
@@ -478,12 +481,27 @@ function RouteCard({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const isBlocked = route.knownObstacles.length > 0;
+  const isHighUnknown = route.unknownLengthPercent > 50;
+  const badge = route.index === 0 && !isBlocked && !isHighUnknown ? "✓ Recommended" : isBlocked ? "⚠ Blocked — alternative below" : isHighUnknown ? "❓ Mostly Unknown" : `Alternative ${route.index + 1}`;
+  const badgeClass = route.index === 0 && !isBlocked && !isHighUnknown ? "pill pill--on" : isBlocked ? "mock-label" : "status-source";
   return (
-    <article className={selected ? "route-card selected" : "route-card"}>
+    <article className={selected ? "route-card selected" : "route-card"} style={isBlocked ? { borderLeft: "4px solid #ba2e1e" } : route.index === 0 ? { borderLeft: "4px solid #0b6b4f" } : undefined}>
       <h3>
         Route {route.index + 1} · {formatDistance(route.distanceMeters)} · about{" "}
-        {Math.round(route.durationSeconds / 60)} min
+        {Math.round(route.durationSeconds / 60)} min{" "}
+        <span className={badgeClass} style={{ fontSize: "0.78rem", marginLeft: 6 }}>{badge}</span>
       </h3>
+      {isBlocked && route.index === 0 && (
+        <p role="alert" className="callout callout--warn">
+          This top-ranked route is still blocked by known obstacles. Check Alternative {route.index + 2} below — it may have fewer obstacles or less unknown. Ranked first never means proven safe.
+        </p>
+      )}
+      {isBlocked && route.index > 0 && (
+        <p role="note" className="status-source">
+          Alternative: {route.knownObstacles.length === 0 ? "No known obstacles here, but " : `${route.knownObstacles.length} known obstacle(s) — `}{route.unknownLengthPercent.toFixed(0)}% unknown. Unknown is not clear.
+        </p>
+      )}
 
       {route.hasConfirmedStairs && (
         <p role="note" className="mock-label">
