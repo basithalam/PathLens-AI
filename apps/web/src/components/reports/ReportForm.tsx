@@ -32,6 +32,7 @@ function FieldError({ errors, field }: { errors: Record<string, string[]>; field
 
 export function ReportForm() {
   const router = useRouter();
+  const [step, setStep] = useState(1);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [obstacleType, setObstacleType] = useState("Unknown");
@@ -45,7 +46,7 @@ export function ReportForm() {
   const [message, setMessage] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [locationNote, setLocationNote] = useState<string | null>(null);
-  const [showMiniMap, setShowMiniMap] = useState(false);
+  const [showMiniMap, setShowMiniMap] = useState(true);
 
   function useMyLocation() {
     if (!navigator.geolocation) {
