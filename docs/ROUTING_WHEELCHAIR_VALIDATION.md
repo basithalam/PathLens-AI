@@ -9,11 +9,11 @@
   - `RouteRecommendationService` ranks by: (1) `avoidStairs` hard rule — human-verified stairs cannot outrank stairs-free (2) fewest known obstacles (3) optional `preferVerified/avoidStale/preferShortest` (4) verified count (5) shortest distance tie-break. Unknown = unknown, never clear. See `RouteRecommendationService.cs` `RouteRankingComparer` and `RankingReason`.
   - Stale threshold is now **configurable** via `Routing:StaleEvidenceDays` (default 30) — `appsettings.json` + `RouteEvaluationOptions.StaleEvidenceDays` (H3.3). Was hard-coded 30 in F1; now `EffectiveStaleDays` drives explanations, `StaleObstacleCount`, and ranking when `avoidStaleEvidence` is on. API `limitations` still state `foot` profile limits.
 
-## What was benchmarked 2026-10-30 (SF demo city)
+## What was benchmarked 2026-11-01 (Sylhet 24.91,91.84 — SF deferred)
 
 | Provider | Profile/Costing | Endpoint tested | Geometry | Result | Verdict |
 |---|---|---|---|---|---|
-| **OSRM (current)** | `foot` | `https://router.project-osrm.org/route/v1/foot/{lon},{lat};{lon},{lat}?overview=full&geometries=geojson&alternatives=2` | 37.7749,-122.4194 → 37.7790,-122.4100 | 3 candidates, distance/duration true (502 → no fake route) | **Walking, not wheelchair** — stairs/slope/sidewalk width not applied. Kept as default with honest limitation. |
+| **OSRM (current)** | `foot` | `https://router.project-osrm.org/route/v1/foot/{lon},{lat};{lon},{lat}?overview=full&geometries=geojson&alternatives=2` | 24.9116,91.8498 → 24.9248,91.8698 (Sylhet) — SF 37.7749 → 37.7790 deferred to `a871b26` | 3 candidates, distance/duration true (502 → no fake route) | **Walking, not wheelchair** — stairs/slope/sidewalk width not applied. Kept as default with honest limitation. Real wheelchair validation pending user (per chat 2026-11-01) — see `USER_TESTING.md`. |
 | **Valhalla (candidate)** | `pedestrian` / `costing:wheelchair` | Not deployed — requires self-hosted Valhalla with OSM wheelchair tags (`wheelchair=yes/no/limited`, `incline`, `surface`, `width`, `kerb`) | — | Not tested live | Needs Valhalla instance + OSM data build; deferred. Tag coverage in SF unknown (Dhaka deferred — no camera). |
 | **OSRM wheelchair lua** | `wheelchair.lua` custom | Not tested | — | — | Community profile exists but not validated against local OSM; would still need city-specific tuning. |
 
