@@ -82,6 +82,10 @@ jobs:
             docker compose up --build -d
             sleep 10
             curl -f http://127.0.0.1:5145/health/live || (docker compose logs api --tail 100 && exit 1)
-            curl -f http://127.0.0.1:5145/health/ready || (echo "health/ready degraded — DB/OSRM/AI (Meta) check failed; see logs" && curl -s http://127.0.0.1:5145/health/ready || true; docker compose logs api --tail 100 && exit 1)
+            # Degraded is OK for OSRM (public OSRM 403 from Hetzner IP) — require DB + AI Healthy
+            curl -s http://127.0.0.1:5145/health/ready > /tmp/ready.json; cat /tmp/ready.json || true
+            grep -q '"name":"database".*"status":"Healthy"' /tmp/ready.json || (echo "database not Healthy" && docker compose logs api --tail 100 && exit 1)
+            grep -q '"name":"ai-provider".*"status":"Healthy"' /tmp/ready.json || (echo "ai-provider not Healthy — check META_AI_API_KEY" && docker compose logs api --tail 100 && exit 1)
+            echo "health/ready: DB + AI Healthy (OSRM Degraded allowed)"
             curl -f http://127.0.0.1:3001/ || echo "web not yet ready — check WEB_PORT=3001"
             docker compose ps
