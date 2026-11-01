@@ -70,6 +70,6 @@ jobs:
             docker compose up --build -d
             sleep 10
             curl -f http://127.0.0.1:5145/health/live || (docker compose logs api --tail 100 && exit 1)
-            curl -f http://127.0.0.1:5145/health/ready || echo "ready degraded (DB/OSRM/AI check) — see health response"
+            curl -f http://127.0.0.1:5145/health/ready || (echo "health/ready degraded — DB/OSRM/AI (Meta) check failed; see logs" && curl -s http://127.0.0.1:5145/health/ready || true; docker compose logs api --tail 100 && exit 1)
             curl -f http://127.0.0.1:3001/ || echo "web not yet ready — check WEB_PORT=3001"
             docker compose ps

@@ -3,12 +3,30 @@ on: [push, pull_request]
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:17-3.5
+        env:
+          POSTGRES_DB: pathlens_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: pathlens_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d pathlens_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      ConnectionStrings__DefaultConnection: Host=localhost;Port=5432;Database=pathlens_test;Username=postgres;Password=pathlens_test
+      Ai__Provider: Mock
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with: { dotnet-version: '10.0.x' }
       - run: dotnet build backend/PathLens.slnx -c Release
-      - run: dotnet test backend/PathLens.slnx --filter "FullyQualifiedName~UnitTests"
+      - run: dotnet test backend/PathLens.slnx --filter "FullyQualifiedName~UnitTests" -c Release
+      - run: dotnet test backend/PathLens.slnx --filter "FullyQualifiedName~IntegrationTests" -c Release
   frontend:
     runs-on: ubuntu-latest
     steps:
