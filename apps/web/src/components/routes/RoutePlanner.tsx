@@ -290,39 +290,36 @@ export function RoutePlanner() {
   return (
     <>
       <div className="route-form">
-        <fieldset>
-          <legend>Start</legend>
-          <label>
-            Latitude
-            <input value={originLat} onChange={(event) => setOriginLat(event.target.value)} inputMode="decimal" />
-          </label>
-          <label>
-            Longitude
-            <input value={originLon} onChange={(event) => setOriginLon(event.target.value)} inputMode="decimal" />
-          </label>
-          <button type="button" onClick={() => setPickMode("origin")} aria-pressed={pickMode === "origin"}>
-            Pick start on map
-          </button>
-        </fieldset>
-
-        <fieldset>
-          <legend>Destination</legend>
-          <label>
-            Latitude
-            <input value={destLat} onChange={(event) => setDestLat(event.target.value)} inputMode="decimal" />
-          </label>
-          <label>
-            Longitude
-            <input value={destLon} onChange={(event) => setDestLon(event.target.value)} inputMode="decimal" />
-          </label>
-          <button
-            type="button"
-            onClick={() => setPickMode("destination")}
-            aria-pressed={pickMode === "destination"}
-          >
-            Pick destination on map
-          </button>
-        </fieldset>
+        <div style={{ display: "grid", gap: 12, background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 16 }}>
+          <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--muted)", fontWeight: 600 }}>Uber-like — tap map or search address</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, alignItems: "end" }}>
+            <label style={{ display: "grid", gap: 4 }}>
+              <span style={{ fontWeight: 700, fontSize: "0.9rem" }}>📍 From — Pick start</span>
+              <div style={{ display: "flex", gap: 6 }}>
+                <input value={originLat} onChange={(e) => setOriginLat(e.target.value)} inputMode="decimal" placeholder="Lat e.g. 24.9116" style={{ flex: 1 }} />
+                <input value={originLon} onChange={(e) => setOriginLon(e.target.value)} inputMode="decimal" placeholder="Lon e.g. 91.8498" style={{ flex: 1 }} />
+              </div>
+              <input placeholder="Search address — e.g. Zindabazar, Sylhet" onKeyDown={async (e) => { if (e.key === "Enter") { e.preventDefault(); const q=(e.target as HTMLInputElement).value; if(!q) return; const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`); const j=await r.json(); if(j[0]){ setOriginLat(j[0].lat); setOriginLon(j[0].lon); }}}} style={{ marginTop: 4 }} />
+            </label>
+            <button type="button" onClick={() => setPickMode("origin")} aria-pressed={pickMode === "origin"} className={pickMode === "origin" ? "primary-button" : ""} style={{ whiteSpace: "nowrap", height: 36 }}>
+              {pickMode === "origin" ? "✓ Picking..." : "Pick on map"}
+            </button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, alignItems: "end" }}>
+            <label style={{ display: "grid", gap: 4 }}>
+              <span style={{ fontWeight: 700, fontSize: "0.9rem" }}>🏁 To — Destination</span>
+              <div style={{ display: "flex", gap: 6 }}>
+                <input value={destLat} onChange={(e) => setDestLat(e.target.value)} inputMode="decimal" placeholder="Lat e.g. 24.9248" style={{ flex: 1 }} />
+                <input value={destLon} onChange={(e) => setDestLon(e.target.value)} inputMode="decimal" placeholder="Lon e.g. 91.8698" style={{ flex: 1 }} />
+              </div>
+              <input placeholder="Search address — e.g. Amberkhana, Sylhet" onKeyDown={async (e) => { if (e.key === "Enter") { e.preventDefault(); const q=(e.target as HTMLInputElement).value; if(!q) return; const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`); const j=await r.json(); if(j[0]){ setDestLat(j[0].lat); setDestLon(j[0].lon); }}}} style={{ marginTop: 4 }} />
+            </label>
+            <button type="button" onClick={() => setPickMode("destination")} aria-pressed={pickMode === "destination"} className={pickMode === "destination" ? "primary-button" : ""} style={{ whiteSpace: "nowrap", height: 36 }}>
+              {pickMode === "destination" ? "✓ Picking..." : "Pick on map"}
+            </button>
+          </div>
+          <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--muted)" }}>Tap map: <strong style={{ color: pickMode === "origin" ? "#0b6b4f" : "inherit" }}>From</strong> or <strong style={{ color: pickMode === "destination" ? "#ba2e1e" : "inherit" }}>To</strong> — active is highlighted. Green = start, Red = destination.</p>
+        </div>
 
         <fieldset>
           <legend>Your route preferences (saved on this device only)</legend>
