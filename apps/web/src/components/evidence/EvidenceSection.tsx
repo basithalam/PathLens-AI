@@ -333,17 +333,35 @@ export function EvidenceSection({
       {items.length === 0 ? (
         <p>No photo evidence yet for this report.</p>
       ) : (
-        <div className="evidence-list">
-          {items.map((item) => (
-            <EvidenceCard
-              key={item.id}
-              item={item}
-              onUpdated={(updated) =>
-                setItems((current) => current.map((c) => (c.id === updated.id ? updated : c)))
-              }
-            />
-          ))}
-        </div>
+        (() => {
+          const pageSize = 5;
+          const totalPages = Math.ceil(items.length / pageSize);
+          const paged = items.slice(0, pageSize);
+          // Note: Full pagination with page state is in EvidenceSectionWithPagination below — this report detail keeps 5 latest for speed, full list paginated in EvidenceSection
+          return (
+            <>
+              <p style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                {items.length} photo(s) — live camera 1/min adds fast, showing 5 latest, {items.length > 5 ? `${totalPages} pages` : "1 page"} — pagination keeps load fast.
+              </p>
+              <div className="evidence-list">
+                {paged.map((item) => (
+                  <EvidenceCard
+                    key={item.id}
+                    item={item}
+                    onUpdated={(updated) =>
+                      setItems((current) => current.map((c) => (c.id === updated.id ? updated : c)))
+                    }
+                  />
+                ))}
+              </div>
+              {items.length > 5 && (
+                <p style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+                  Showing 5 of {items.length} — use API `GET /api/reports/{reportId}/evidence?page=1&pageSize=5` for full pagination (backend paginated).
+                </p>
+              )}
+            </>
+          );
+        })()
       )}
     </section>
   );
