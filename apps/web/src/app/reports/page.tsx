@@ -79,7 +79,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       ) : (
         <>
           <p aria-live="polite">
-            {result.totalCount} report{result.totalCount === 1 ? "" : "s"} found. Page {result.page}.
+            {result.totalCount} report{result.totalCount === 1 ? "" : "s"} found. Page {result.page} of {Math.ceil(result.totalCount / 10)} — live camera 1/min adds fast, pagination keeps load fast.
           </p>
           <ul className="report-list">
             {result.items.map((report) => (
@@ -94,9 +94,17 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
               </li>
             ))}
           </ul>
-          <nav aria-label="Pagination" className="pagination">
-            {page > 1 && <Link href={buildPageHref(params, page - 1)}>Previous</Link>}
-            {result.items.length === 10 && <Link href={buildPageHref(params, page + 1)}>Next</Link>}
+          <nav aria-label="Pagination" className="pagination" style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            {page > 1 && <Link href={buildPageHref(params, page - 1)} className="btn btn--ghost">← Previous</Link>}
+            {Array.from({ length: Math.ceil(result.totalCount / 10) }, (_, i) => i + 1)
+              .slice(Math.max(0, page - 3), Math.min(Math.ceil(result.totalCount / 10), page + 2))
+              .map((p) => (
+                <Link key={p} href={buildPageHref(params, p)} className={p === page ? "btn btn--primary" : "btn btn--ghost"} style={{ minWidth: 36, justifyContent: "center" }}>
+                  {p}
+                </Link>
+              ))}
+            {page < Math.ceil(result.totalCount / 10) && <Link href={buildPageHref(params, page + 1)} className="btn btn--ghost">Next →</Link>}
+            <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>{result.totalCount} total · 10/page</span>
           </nav>
         </>
       )}
