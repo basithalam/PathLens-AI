@@ -203,6 +203,15 @@ export function EvidenceSection({
   const [message, setMessage] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [captureTime, setCaptureTime] = useState("");
+  const [page, setPage] = useState(1);
+  const pageSize = 5;
+  const totalPages = Math.ceil(items.length / pageSize);
+  const paged = items.slice((page - 1) * pageSize, page * pageSize);
+
+  useEffect(() => {
+    if (page > totalPages && totalPages > 0) setPage(totalPages);
+    if (page === 0 && totalPages > 0) setPage(1);
+  }, [items.length, totalPages, page]);
 
   function chooseFile(file: File | null) {
     setMessage(null);
@@ -333,35 +342,34 @@ export function EvidenceSection({
       {items.length === 0 ? (
         <p>No photo evidence yet for this report.</p>
       ) : (
-        (() => {
-          const pageSize = 5;
-          const totalPages = Math.ceil(items.length / pageSize);
-          const paged = items.slice(0, pageSize);
-          // Note: Full pagination with page state is in EvidenceSectionWithPagination below — this report detail keeps 5 latest for speed, full list paginated in EvidenceSection
-          return (
-            <>
-              <p style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-                {items.length} photo(s) — live camera 1/min adds fast, showing 5 latest, {items.length > 5 ? `${totalPages} pages` : "1 page"} — pagination keeps load fast.
-              </p>
-              <div className="evidence-list">
-                {paged.map((item) => (
-                  <EvidenceCard
-                    key={item.id}
-                    item={item}
-                    onUpdated={(updated) =>
-                      setItems((current) => current.map((c) => (c.id === updated.id ? updated : c)))
-                    }
-                  />
+        <>
+          <p style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
+            {items.length} photo(s) — live camera 1/min adds fast, 5/page pagination keeps load fast. Page {page} of {totalPages} — {items.length} total
+          </p>
+          <div className="evidence-list">
+            {paged.map((item) => (
+              <EvidenceCard
+                key={item.id}
+                item={item}
+                onUpdated={(updated) => setItems((current) => current.map((c) => (c.id === updated.id ? updated : c)))}
+              />
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <nav aria-label="Evidence pagination" style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 12 }}>
+              <button type="button" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="btn btn--ghost">← Previous</button>
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .slice(Math.max(0, page - 3), Math.min(totalPages, page + 2))
+                .map((p) => (
+                  <button key={p} type="button" onClick={() => setPage(p)} className={p === page ? "btn btn--primary" : "btn btn--ghost"} style={{ minWidth: 36 }}>
+                    {p}
+                  </button>
                 ))}
-              </div>
-              {items.length > 5 && (
-                <p style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-                  Showing 5 of {items.length} — use API `GET /api/reports/{reportId}/evidence?page=1&pageSize=5` for full pagination (backend paginated).
-                </p>
-              )}
-            </>
-          );
-        })()
+              <button type="button" disabled={page === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} className="btn btn--ghost">Next →</button>
+              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>{items.length} total · 5/page</span>
+            </nav>
+          )}
+        </>
       )}
     </section>
   );
