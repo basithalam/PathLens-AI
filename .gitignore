@@ -3,6 +3,7 @@ Blueprint.md
 Blueprint*.md
 *blueprint*
 idea.txt
+.qwen
 
 # Environment & secrets
 .env
