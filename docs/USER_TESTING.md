@@ -55,3 +55,5 @@ After every 3 runs, triage backlog, fix top 2 UI items, re-test 2 participants. 
 
 ## Reference
 idea.txt §6, Blueprint §UX + A11y, `docs/DEMO_SCRIPT.md` H2 backup note.
+**Click-by-click manual for participants (what to tap, in what order, and what the UI cannot do yet):**
+`docs/WHEELCHAIR_USER_GUIDE.md`.

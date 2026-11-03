@@ -262,8 +262,9 @@ export function ReportForm() {
         <input type="checkbox" required aria-label="Consent to store report and photo per retention policy" />
         <span>
           I confirm this photo is my own, contains no identifiable faces or plates, and I consent to storage
-          under the retention policy (camera frames 30 days, evidence 1 year, report until deleted). I can
-          request deletion through the report itself.
+          under the retention policy (camera frames 30 days, evidence 1 year, report until removed). Removal
+          runs through <code>DELETE /api/reports/&#123;id&#125;</code> and is handled by the maintainer on
+          request — this build has no delete button yet.
         </span>
       </label>
 

@@ -1,6 +1,7 @@
 # PathLens AI — Judge Guide (3-Minute Demo)
 
-**Start here. This one page is enough to judge. The other 29 files in `docs/` are audit trail and backup.**
+**Start here. This one page is enough to judge. The other 30 files in `docs/` are audit trail and backup —
+including `WHEELCHAIR_USER_GUIDE.md`, the click-by-click manual for how a wheelchair user gives feedback.**
 
 **Live Demo:** https://pathlens.cognitivebd.com · **Health:** https://pathlens.cognitivebd.com/health/ready
 **Screens:** `/map` · `/report/new` · `/routes` · `/reports` · `/reviewer` · `/admin`

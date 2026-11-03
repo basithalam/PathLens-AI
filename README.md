@@ -1,6 +1,8 @@
 # PathLens AI
 
 **Evidence-Aware Accessibility Intelligence — Judge: Start at `docs/JUDGE_GUIDE.md` (3-min demo, 1 page)**
+**Testing with real users? `docs/WHEELCHAIR_USER_GUIDE.md` is the click-by-click manual for how a wheelchair
+user gives feedback through the UI — and what this build cannot take as feedback yet.**
 
 **Live:** https://pathlens.cognitivebd.com | **Health:** https://pathlens.cognitivebd.com/health/ready
 
