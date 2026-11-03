@@ -44,8 +44,9 @@ complete `dependencies` block, and all styling is hand-written in `apps/web/src/
 | `Npgsql.EntityFrameworkCore.PostgreSQL` (+ `.NetTopologySuite`) | 10.0.3 | PostgreSQL License | Npgsql provider |
 | `NetTopologySuite` (transitive via the provider above) | resolved by the provider | BSD-3-Clause | Geometry for the lat/lon fallback path |
 | `SixLabors.ImageSharp` | 3.1.8 | **Six Labors Split License v1.0** — used under its **Apache-2.0 branch** | EXIF stripping + downscale |
-| `System.IdentityModel.Tokens.Jwt`, `Microsoft.AspNetCore.Authentication.JwtBearer` | 8.23.0 / 10.0.x | MIT | Reviewer/Admin auth |
-| `xunit`, `xunit.runner.visualstudio`, `coverlet.collector`, `Microsoft.NET.Test.Sdk`, `Microsoft.AspNetCore.Mvc.Testing` | test only | Apache-2.0 / MIT | 105 tests |
+| `System.IdentityModel.Tokens.Jwt`, `Microsoft.AspNetCore.Authentication.JwtBearer` | 8.23.0 / 10.0.14 | MIT | Reviewer/Admin auth |
+| `xunit`, `xunit.runner.visualstudio` | 2.9.3 / 3.1.4 | Apache-2.0 | Test framework |
+| `coverlet.collector`, `Microsoft.NET.Test.Sdk`, `Microsoft.AspNetCore.Mvc.Testing` | 6.0.4 / 17.14.1 / 10.0.14 | MIT | Coverage and test host |
 
 **ImageSharp licence, stated precisely.** The package ships `Six Labors Split License v1.0`, which grants
 Apache-2.0 when the consumer "is consuming the Work in for use in software licensed under an Open Source or

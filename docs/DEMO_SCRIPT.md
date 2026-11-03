@@ -6,6 +6,14 @@
 
 **Step 2 — 0:30-1:00 Evidence Collection + AI Analysis (Live):** Upload Sylhet `1663695741.jpg` (248KB, 24.91,91.84) → `POST /api/reports` → `POST /api/evidence` (EXIF stripped) → `POST /analyze` → `muse-spark-1.3 @ https://api.meta.ai/v1/chat/completions` → **Live `BlockedSidewalk 90% High` + 4 visibleEvidence + 3 limitations** (not Mock). Show `EvidenceSection` confidence bar `90% High — still needs human check` + `✓ Live Meta AI (muse-spark-1.3)` + yellow `Human review required`. *If AI not sure → Unknown + low confidence + limitations.*
 
+> **The obstruction share (added 2026-11-03, `SAM31_ENABLED` on for this demo):** the same card also states
+> **"N% of the visible walkway in this frame is occupied"** — measured by `sam-3.1` boxes over the walkway
+> box, unioned so overlapping boxes count once. Say the number out loud *and* its two limits, which the card
+> prints: it is a share of the walkway **in the photo**, never metres, and SAM returns **no confidence
+> score**. If the card instead reads *"not measured for this photo"*, do not skip past it — that is the
+> point: an unmeasured path is unknown, not clear. Measurement happens only during analysis, so a photo
+> analysed before the feature was switched on keeps that wording until it is re-analysed.
+
 **Step 3 — 1:00-1:30 AI Admits Unknown:** Show 2nd image `Market Street Unknown` → AI `Unknown 0% Low — Mock analysis received... No real image understanding` (labelled `Demo/mock — not real AI`) → VO: When AI cannot be sure, it says Unknown — never fabricates — confidence red Low, limitations honest.
 
 **Step 4 — 1:30-2:10 Evidence Comparison (Change Over Time):** Same report → 2 photos (earlier + later) → `POST /api/comparisons` → `LikelyStillPresent` (scooters still there) / `NotObservedInNewImage` (not seen, **not proves removed**) / `ConflictingEvidence` / `Inconclusive` (4 states, location ≤25m strong, timestamp trust, 8 unit tests). Show Timeline → Comparison card → Explanation: *What changed, what did not, what cannot be known.*
