@@ -20,7 +20,11 @@
 
 
 
-**110–120s Honest + Impact (F6+G5+G6):** F6 QuickFeedback 4 buttons (StillVisible/NotInNewPhoto/WrongOrStale/NotSure — never auto-verifies) + camera `isStale` on `/map`. **G5:** CI `postgres:17-3.5` service + 92 tests (39 unit + 53 integration via `Ai__Provider=Mock`) + strict `/health/ready` must Healthy (or deploy fails). **G6:** `git log -p | grep API_KEY` → only `gsk_...` placeholders, no real key (see `docs/TEST_PLAN.md` G6 log), `evaluation/results.sf.json` 25 images (6 correct / 19 inconclusive) + 5 pairs (1 correct) honest.
+**110–120s Honest + Impact (F6+G5+G6):** F6 QuickFeedback 4 buttons (StillVisible/NotInNewPhoto/WrongOrStale/NotSure — never auto-verifies) + camera `isStale` on `/map`. **G5:** CI `postgres:17-3.5` service + 92 tests (39 unit + 53 integration via `Ai__Provider=Mock`) + strict `/health/ready` must Healthy (or deploy fails). **G6:** `git grep` for key shapes now returns only masked forms and `${{ secrets.* }}` references — **but a
+full Llama key was printed inside `docs/SECURITY.md` and is reachable in tracked commits `771a485`/`2386b7f`**;
+it is masked in the working tree and must be treated as revoked (`docs/SECURITY.md` G1). History was not
+rewritten. `evaluation/results.sf.json`: 25 synthetic images, 6 correct / 19 inconclusive under **Mock**,
+5 pairs of which 1 correct — pipeline proof, not accuracy.
 
 **Backup & Polish (H1→G6):**
 - H1: `marker-*.png` 404 fixed, pagination preserves `search+type`, `docker compose up --build` one-click (api+web+db+worker profile + `scripts/seed-sf.ps1` 7 markers), Release `0W0E`, `.env.example` documented.

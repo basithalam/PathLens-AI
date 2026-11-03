@@ -1,4 +1,9 @@
-# SF Research — H6.1 (SF sole pilot, Dhaka deferred)
+# SF Research — H6.1 (camera feeds + routing feasibility)
+
+> **Status correction 2026-11-03:** this research was written when San Francisco was the planned pilot.
+> **Sylhet is the pilot city** (see `docs/JUDGE_GUIDE.md`). What survives from this file is the part that was
+> always about San Francisco: the public traffic-camera feeds and the OSRM `foot` measurements. "Sole pilot"
+> and "Dhaka deferred" wording below is the 2026-10-30 framing, kept as a record.
 
 **Date:** 2026-10-30 | **Status:** DONE (OSRM verified, CCTV terms documented) | **City:** San Francisco, CA (37.7749,-122.4194) — sole pilot. Dhaka deferred — no camera source available.
 

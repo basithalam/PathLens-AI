@@ -16,7 +16,11 @@ Wheelchair users need to know before travel: is a ramp blocked, is an old obstac
 - **Feedback (F6):** `POST /api/reports/{id}/feedback` 4 kinds (StillVisible/NotInNewPhoto/WrongOrStale/NotSure), audit, anonymous→admin fallback, never auto-verifies; frontend quick capture map picker + QuickFeedback buttons.
 
 ## Demo city
-San Francisco, CA (37.7749,-122.4194) — sole pilot (map default + camera candidates 511SF Bay / SFMTA / Caltrans / GenericPublicFeed). NYC leg blocked honestly (camera-live-gate.md); Dhaka deferred — no camera source available, SF is the focus.
+**Pilot city: Sylhet, Bangladesh (24.9116, 91.8498)** — the map default, the route demo endpoints and the
+judge flow all open there. San Francisco is **not** the pilot; it remains in the build only where it is
+factually true: the public traffic-camera feeds (511SF Bay / SFMTA / Caltrans / GenericPublicFeed) and the
+synthetic 25-image evaluation set. The NYC camera leg was blocked honestly (`camera-live-gate.md`), and
+Dhaka is not a pilot at all — no camera source, no dataset.
 
 ## Non-goals (F7+)
 Live city-wide coverage, guaranteed wheelchair-safe routing, native app, real-time moderation at scale, custom model training, Mapillary live — per Blueprint §1.3.

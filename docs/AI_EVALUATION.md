@@ -1,5 +1,21 @@
 # AI Evaluation — PathLens AI (Blueprint §19 — G2 Updated 2026-11-01)
 
+> **Status 2026-11-03 — read this before the sections below.** Everything from "Latest run — H2" down to
+> "G2 SF Dataset" is the **Mock pipeline record**, kept as history. Two things have happened since:
+>
+> 1. **The live gate is open.** `Ai__Provider=Meta` runs against `https://api.meta.ai/v1/chat/completions`
+>    with `muse-spark-1.3`; `/health/ready` reports `ai-provider: Healthy`. The Groq/Llama endpoints in the
+>    commands below are the **fallback**, not the current default.
+> 2. **A real-photo run exists and has been measured.** 10 borrowed SF footpath photos through the live
+>    model: **3 correct, 3 incorrect, 2 model abstentions, 2 upload errors, 0 comparison pairs**
+>    (`evaluation/results.sf-real-eval.json`). Three of that set's own pre-written ground-truth labels did not
+>    survive re-reading the photos. Full detail, including the reviewer decisions recorded against them:
+>    `docs/AI_EVALUATION_SF_REAL.md`.
+>
+> So: 25-image synthetic + Mock = **pipeline proof**. 10-image real + Meta = **the only accuracy evidence there
+> is, and it is small and mixed.** Neither is a general-accuracy claim. The runner also reads HTTP status now,
+> so a 429 from the upload rate limit is reported as a rate limit instead of a missing evidence id.
+
 Reproducible runner: `evaluation/run-evaluation.ps1` (manifest `id,image,expectedObstacle,latitude,longitude,captureTimeUtc,pairId,expectedOutcome`).
 
 Rules: 20–30 own photos, no faces/plates, labels written **before** AI run, free-tier content may be used for product improvement.
