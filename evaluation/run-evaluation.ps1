@@ -22,12 +22,23 @@ param(
     [Parameter(Mandatory = $true)]
     [string]$ManifestPath,
     [string]$OutputPath = "evaluation/results.json",
-    [int]$PollTimeoutSeconds = 90
+    [int]$PollTimeoutSeconds = 90,
+    # The API rate limits evidence uploads (H5: 10 per hour per client). A run longer than
+    # the limit used to fail with "Upload did not return an evidence id", because curl -s hid
+    # the 429 and the body was not JSON. These two knobs make the limit visible and survivable.
+    [int]$UploadSpacingSeconds = 0,
+    [int]$Upload429Retries = 5
 )
 
 $ErrorActionPreference = "Stop"
 $manifestDir = Split-Path -Parent (Resolve-Path $ManifestPath)
 $rows = Import-Csv $ManifestPath
+
+function Cut([string]$text, [int]$length) {
+    if ([string]::IsNullOrEmpty($text)) { return "" }
+    if ($text.Length -le $length) { return $text }
+    return $text.Substring(0, $length) + "…"
+}
 
 function Invoke-ApiJson {
     param([string]$Method, [string]$Path, $Body)
@@ -74,17 +85,40 @@ foreach ($row in $rows) {
             ".webp" { "image/webp" }
             default { "image/png" }
         }
-        $curlArgs = @("-s", "-F", "file=@$imagePath;type=$mime",
-            "$ApiBaseUrl/api/reports/$($report.id)/evidence")
-        if ($row.captureTimeUtc) {
-            $curlArgs = @("-s", "-F", "file=@$imagePath;type=$mime",
-                "-F", "captureTimeUtc=$($row.captureTimeUtc)",
-                "$ApiBaseUrl/api/reports/$($report.id)/evidence")
+        $formFields = @("-F", "file=@$imagePath;type=$mime")
+        if ($row.captureTimeUtc) { $formFields += @("-F", "captureTimeUtc=$($row.captureTimeUtc)") }
+
+        $evidence = $null
+        $attempt = 0
+        while ($null -eq $evidence) {
+            $attempt++
+            $bodyFile = [IO.Path]::GetTempFileName()
+            try {
+                $httpCode = [int](& curl.exe -s -o $bodyFile -w "%{http_code}" @formFields `
+                    "$ApiBaseUrl/api/reports/$($report.id)/evidence")
+                $responseBody = (Get-Content $bodyFile -Raw) + ""
+
+                if ($httpCode -eq 429 -and $attempt -le $Upload429Retries) {
+                    $wait = 60 * $attempt
+                    Write-Warning ("Upload rate limited (429) for $($row.id) - waiting $wait s, retry $attempt of $Upload429Retries.")
+                    Start-Sleep -Seconds $wait
+                    continue
+                }
+                if ($httpCode -lt 200 -or $httpCode -ge 300) {
+                    throw "Upload returned HTTP $httpCode : $(Cut ($responseBody -replace '\s+', ' ') 200)"
+                }
+
+                $parsed = $responseBody | ConvertFrom-Json
+                if (-not $parsed -or -not $parsed.id) {
+                    throw "Upload returned HTTP $httpCode but no evidence id: $(Cut $responseBody 200)"
+                }
+                $evidence = $parsed
+            } finally {
+                Remove-Item $bodyFile -Force -ErrorAction SilentlyContinue
+            }
         }
-        $evidence = (& curl.exe @curlArgs) | ConvertFrom-Json
-        if (-not $evidence.id) {
-            throw "Upload did not return an evidence id."
-        }
+
+        if ($UploadSpacingSeconds -gt 0) { Start-Sleep -Seconds $UploadSpacingSeconds }
 
         $job = Invoke-ApiJson -Method Post -Path "/api/evidence/$($evidence.id)/analyze" -Body $null
 

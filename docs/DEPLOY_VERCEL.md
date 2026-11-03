@@ -36,4 +36,12 @@
 
 **Local alternative (no deploy):** `docker compose up --build` → `http://localhost:3000` + `http://localhost:5145/health/live` — valid per Rules (public repo + 3-min video).
 
-**CD flow:** `push main` → `ci.yml` (build/test) → `deploy.yml` (verify → Vercel + Render) → live URL for demo video.
+**CD flow that actually exists:** `push main` → `ci.yml` (backend build + 39 unit + 53 integration tests against
+a `postgis/postgis:17-3.5` service, then frontend lint + typecheck + build) → `deploy-hetzner.yml` (verify →
+SSH to Hetzner → `docker compose up --build -d` → strict `/health/ready` gate requiring `database` and
+`ai-provider` Healthy) → live URL for the demo video.
+
+**This file is an unused alternative.** There is **no** `deploy.yml`, no Vercel workflow and no Render workflow
+in `.github/workflows/` — only `ci.yml` and `deploy-hetzner.yml`, verified 2026-11-03. Everything below
+describes how it *would* work if that path were taken; it is kept for reference, not as a claim about this
+repository.

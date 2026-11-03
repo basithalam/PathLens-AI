@@ -73,6 +73,14 @@ AI_PROVIDER=Meta  # default is Mock if not set — G1 requires Meta
 - `AiProviderHealthCheck` reports `Degraded` with missing fields if not set, `Healthy` with `key present` if set.
 - Image EXIF (GPS) stripped via `ImageDownscaler` before sending to AI.
 
+## Known advisories left open on purpose
+
+`PathLens.Infrastructure.csproj` pins **SixLabors.ImageSharp 3.1.8** and sets
+`<NoWarn>NU1902;NU1903</NoWarn>`, so `dotnet build` reports **0 warnings** while two package advisories
+against that version are actually suppressed. It is pinned because 4.x moved behind a commercial licence gate
+(see `docs/H1_FIX_REPORT.md`); the upgrade path is 4.x under a community licence or a switch to SkiaSharp.
+Anyone reading a clean build should know the cleanliness is partly configured, not incidental.
+
 ## Reporting
 
 If a secret was committed: `git rm --cached <file>` + rotate key + `git push --force-with-lease` after team coordination. See `docs/PRIVACY_RETENTION.md` for data retention (30d camera, 1y evidence, soft-delete).
