@@ -60,7 +60,19 @@ Get-Content .env.example | Select-String "META_AI_API_KEY"
 # → META_AI_API_KEY=  # paste real key here locally; production via GitHub Secrets META_AI_API_KEY
 ```
 
-History contains only `gsk_...` / `LLM_...` placeholders and `${{ secrets.META_AI_API_KEY }}` references; the one exposed key `LLM_1134066002425326_T5bN...` in old `.local/set-meta-env.ps1` was never committed (`.local/` is gitignored) and is now rotated to placeholder per `docs/SECURITY.md` G1. Frontend never sees `MetaAi__ApiKey` (only `NEXT_PUBLIC_API_BASE_URL`).
+**Corrected 2026-11-03 — this line previously said the history held only placeholders. It did not.** Measured
+with `git log -S "LLM_1134" --all`, the full key value is reachable in tracked commits `771a485`
+and `2386b7f` (plus cline checkpoint commits), because the rotation note in `docs/SECURITY.md` quoted it.
+Current state of the tracked tree:
+
+- `docs/SECURITY.md` and `README.md` now carry masked forms (`LLM_1134…<redacted>`, `LLM_<id>_…`), never a usable value.
+- `.env.example` is the only tracked env file and holds empty placeholders.
+- `${{ secrets.META_AI_API_KEY }}` references in the workflows are the only live-key path.
+- The exposed key is treated as **revoked**, and history was deliberately **not** rewritten — see
+  `docs/SECURITY.md` G1 for why.
+
+Frontend never sees `MetaAi__ApiKey` (only `NEXT_PUBLIC_API_BASE_URL`). Re-run the grep above before
+submission; if it lists any file other than the masked docs, the mask regressed.
 
 ## Current status
 

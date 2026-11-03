@@ -13,7 +13,27 @@
 
 ## G1 Fix: Exposed key rotation
 
-The previous key `LLM_1134066002425326_T5bN6JCIJssu4xtcVObFC_vFJW8` was stored in plaintext in `.local/set-meta-env.ps1` (now replaced with placeholder) and disclosed in probe logs as `LLM_1134...`. **Action required:** Revoke it in your Meta/Groq developer console and create a new one. Use new endpoint `https://api.groq.com/openai/v1/chat/completions` or `https://api.llama.com/v1/chat/completions` (old `api.meta.ai/compat/v1` returned 404 G1).
+A Llama API key was written in plaintext into `.local/set-meta-env.ps1` and then **quoted in full into this
+document** while writing the rotation note. That made the credential public in two ways:
+
+| Where | State now |
+|---|---|
+| `.local/set-meta-env.ps1` | gitignored, holds a placeholder |
+| `docs/SECURITY.md` (this file) | masked to `LLM_1134…<redacted>` on 2026-11-03 |
+| `README.md` | key id masked to `LLM_<id>_…` on 2026-11-03 |
+| **git history** | **still contains the full value** in `771a485` and `2386b7f` (plus cline checkpoint commits) — search history for the `LLM_1134…` prefix to list them |
+
+The old key value is therefore treated as **compromised and revoked**, not as something this file still
+protects. **Action required:** revoke it in the Meta/Groq developer console and issue a replacement; a repo
+that was public at any point cannot be un-leaked by editing the current files.
+
+History was **not** rewritten (`filter-repo` + force-push). Rewriting shared history days before a
+submission deadline risks breaking the deployed clone at `/opt/pathlens`, which pulls `main` — the
+revocation is the control that actually removes the risk.
+
+Use endpoint `https://api.meta.ai/v1/chat/completions`, or the Groq fallback
+`https://api.groq.com/openai/v1/chat/completions` / `https://api.llama.com/v1/chat/completions` (old
+`api.meta.ai/compat/v1` returned 404, G1).
 
 ## Local setup (G1)
 
