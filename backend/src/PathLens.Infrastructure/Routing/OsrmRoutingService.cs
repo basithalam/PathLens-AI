@@ -15,6 +15,14 @@ public sealed class OsrmRoutingService(
 {
     private readonly RoutingOptions _options = options.Value;
 
+    /// <summary>
+    /// The public OSRM demo instance answers anonymous requests with 403 and asks clients to identify
+    /// themselves. Anything that calls it - routing or the readiness probe - must send the same identity,
+    /// otherwise /health/ready reports the provider as degraded while real routing works fine.
+    /// </summary>
+    public const string ClientUserAgent = "PathLensAI/0.1 (Meta Global AI Developer Hackathon 2026 prototype)";
+    public const string ClientReferer = "https://github.com/basithalam/PathLens-AI";
+
     public async Task<RouteProviderResult> GetRoutesAsync(
         GeoPoint origin,
         GeoPoint destination,
@@ -34,8 +42,8 @@ public sealed class OsrmRoutingService(
             var client = httpClientFactory.CreateClient(nameof(OsrmRoutingService));
             using var httpRequest = new HttpRequestMessage(HttpMethod.Get, url);
             // OSRM's public service asks clients to identify themselves.
-            httpRequest.Headers.UserAgent.ParseAdd("PathLensAI/0.1 (Meta Global AI Developer Hackathon 2026 prototype)");
-            httpRequest.Headers.Referrer = new Uri("https://github.com/basithalam/PathLens-AI");
+            httpRequest.Headers.UserAgent.ParseAdd(ClientUserAgent);
+            httpRequest.Headers.Referrer = new Uri(ClientReferer);
             using var response = await client.SendAsync(httpRequest, linked.Token);
             var body = await response.Content.ReadAsStringAsync(linked.Token);
 
