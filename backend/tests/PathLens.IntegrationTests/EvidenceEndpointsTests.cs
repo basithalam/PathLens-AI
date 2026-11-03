@@ -12,8 +12,7 @@ public class EvidenceEndpointsTests : IClassFixture<WebApplicationFactory<Progra
     // A dedicated database: the background job processor in every test host
     // polls for pending jobs, so evidence tests must not share a database
     // (and storage root) with other test classes.
-    private const string TestConnectionString =
-        "Host=localhost;Port=5433;Database=pathlens_evidence_test;Username=postgres;Timeout=5;Command Timeout=15";
+    private static readonly string TestConnectionString = TestDatabase.Connection("pathlens_evidence_test");
 
     private static readonly byte[] TinyPng =
         Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAwMCAO+ip1sAAAAASUVORK5CYII=");

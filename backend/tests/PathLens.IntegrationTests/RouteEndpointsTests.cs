@@ -9,8 +9,7 @@ namespace PathLens.IntegrationTests;
 
 public class RouteEndpointsTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    private const string TestConnectionString =
-        "Host=localhost;Port=5433;Database=pathlens_test;Username=postgres;Timeout=5;Command Timeout=15";
+    private static readonly string TestConnectionString = TestDatabase.Connection("pathlens_test");
 
     private readonly HttpClient _client;
 

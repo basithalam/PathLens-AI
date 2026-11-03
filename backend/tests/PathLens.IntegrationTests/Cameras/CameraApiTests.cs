@@ -24,7 +24,7 @@ public sealed class CameraApiTests : IClassFixture<WebApplicationFactory<Program
         _factory = factory.WithWebHostBuilder(builder =>
         {
             builder.UseSetting("ConnectionStrings:DefaultConnection",
-                "Host=localhost;Port=5433;Database=pathlens_camera_test;Username=postgres;Timeout=5;Command Timeout=15");
+                TestDatabase.Connection("pathlens_camera_test"));
             builder.UseSetting("Ai:Provider", "Mock");
             builder.UseSetting("Cameras:DailyAnalysisBudgetPerCamera", "2");
             builder.UseSetting("Storage:RootPath", Path.Combine(Path.GetTempPath(), "pathlens-camera-tests"));

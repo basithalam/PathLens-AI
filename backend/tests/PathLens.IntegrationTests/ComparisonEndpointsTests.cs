@@ -14,8 +14,7 @@ public class ComparisonEndpointsTests : IClassFixture<WebApplicationFactory<Prog
 {
     // Dedicated database: background processors in other test hosts poll the
     // same database a class uses, so each class keeps its own.
-    private const string TestConnectionString =
-        "Host=localhost;Port=5433;Database=pathlens_comparison_test;Username=postgres;Timeout=5;Command Timeout=15";
+    private static readonly string TestConnectionString = TestDatabase.Connection("pathlens_comparison_test");
 
     private static readonly byte[] TinyPng =
         Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8Xw8AAwMCAO+ip1sAAAAASUVORK5CYII=");
