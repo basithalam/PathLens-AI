@@ -20,6 +20,7 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "10.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "postgis");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("PathLens.Domain.Cameras.CameraSource", b =>
@@ -329,6 +330,9 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                     b.Property<Guid?>("CreatedByUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("Description")
                         .HasMaxLength(2000)
                         .HasColumnType("character varying(2000)");
@@ -340,6 +344,9 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<bool?>("HasStairs")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LastEvidenceAt")
@@ -393,6 +400,8 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                     b.HasIndex("CreatedAt");
 
                     b.HasIndex("DuplicateOfReportId");
+
+                    b.HasIndex("IsDeleted");
 
                     b.HasIndex("ObstacleType");
 
