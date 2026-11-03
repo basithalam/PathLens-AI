@@ -27,5 +27,7 @@ Live city-wide coverage, guaranteed wheelchair-safe routing, native app, real-ti
 
 ## Acceptance (Definition of Done)
 - Coordinated API + frontend contracts, validation `400`, auth `401/403`, `404` where needed.
-- Tests: 92 passing (39 unit + 53 integration) + frontend lint/typecheck/build green.
+- Tests: 105 passing (52 unit + 53 integration) + frontend lint/typecheck/build green. The unit set includes
+  13 tests over the SAM 3.1 box parsing and walkway-occupancy geometry, including the rule that a missing
+  measurement stays unknown instead of becoming 0%.
 - Limitations documented honestly (PostGIS deferred, ImageSharp license, mock vs real AI, unknown ≠ clear).

@@ -195,7 +195,7 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 
 ## Status
 
-🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–6 + F1–F6 are complete: reports/evidence persist, analysis/comparison end-to-end, map with coverage grid (C/B/A, cache, click-to-zoom), routes with explainable ranking + wheelchair v1, human review + duplicate + feedback, cameras A–E (SF demo city 37.7749,-122.4194; NYC leg blocked honestly, now 511SF/SFMTA/Caltrans candidates). 92 tests (39 unit + 53 integration) + frontend lint/typecheck/build green.
+🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–6 + F1–F6 are complete: reports/evidence persist, analysis/comparison end-to-end, map with coverage grid (C/B/A, cache, click-to-zoom), routes with explainable ranking + wheelchair v1, human review + duplicate + feedback, cameras A–E (SF demo city 37.7749,-122.4194; NYC leg blocked honestly, now 511SF/SFMTA/Caltrans candidates). 105 tests (52 unit + 53 integration) + frontend lint/typecheck/build green.
 
 **H1 (2026-10-30):** leaflet 404 fixed (fixLeafletIcons + public images), pagination preserves search/type, full `docker-compose.yml` (api+web+db+worker profile), `output: standalone`, ImageSharp 3.1.8 Release green, `.env.example` — `docker compose up --build` one-click. See `docs/H1_FIX_REPORT.md`.
 

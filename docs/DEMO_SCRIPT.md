@@ -14,7 +14,7 @@
 
 **Step 6 — 2:40-3:00 Human Reviewer Verifies (Audit):** `/reviewer` → Login `reviewer@pathlens.local` → Queue `Unverified + Conflicting + Stale camera` → `HumanVerified/Disputed/Rejected` + Note → Audit trail (`/reviewer/audit` actor/prev/new/note/time) → Map marker `V` — VO: Human decides, audit remembers — AI never auto-verifies.
 
-**Backup & Live Proof (G1,G3,G5):** `GET /health/ready` → `database Healthy, ai-provider Healthy Meta muse-spark-1.3` + `GET /api/reports` → `analysisProvider: Meta, confidence 90%` — not Mock. `G3 confidence bar + callout + 429 5s backoff` + CI 92 tests + `JUDGE_GUIDE.md` 1 page.
+**Backup & Live Proof (G1,G3,G5):** `GET /health/ready` → `database Healthy, ai-provider Healthy Meta muse-spark-1.3` + `GET /api/reports` → `analysisProvider: Meta, confidence 90%` — not Mock. `G3 confidence bar + callout + 429 5s backoff` + CI 105 tests (52 unit + 53 integration) + `JUDGE_GUIDE.md` 1 page.
 
 **Old 2-min script archived — new 6-step 3-min is Judge-facing.**
 
