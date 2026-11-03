@@ -128,12 +128,21 @@ catch (Exception ex) when (ex is not OperationCanceledException)
     app.Logger.LogWarning(ex, "Database migration at startup failed; health/ready will report database status.");
 }
 
-// Seed the development reviewer/admin/user accounts once (hashed passwords).
+// Seed the reviewer/admin/user accounts once (hashed passwords). Credentials come from
+// Auth:Seed* configuration when the deployment supplies them, and an already-seeded database has
+// its password rotated to match - so a secret set in the deploy is enough to retire the
+// documented local-development values.
 try
 {
     using var seedScope = app.Services.CreateScope();
     var userRepository = seedScope.ServiceProvider.GetRequiredService<IUserRepository>();
-    await SeedUsers.SeedAsync(userRepository, CancellationToken.None);
+    var rotated = await SeedUsers.SeedAsync(userRepository, app.Configuration, CancellationToken.None);
+    if (rotated.Count > 0)
+    {
+        app.Logger.LogInformation(
+            "Rotated the seeded password for {Count} account(s) from Auth:Seed* configuration: {Accounts}.",
+            rotated.Count, string.Join(", ", rotated));
+    }
 }
 catch (Exception ex) when (ex is not OperationCanceledException)
 {

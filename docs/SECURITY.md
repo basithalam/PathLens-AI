@@ -81,6 +81,34 @@ against that version are actually suppressed. It is pinned because 4.x moved beh
 (see `docs/H1_FIX_REPORT.md`); the upgrade path is 4.x under a community licence or a switch to SkiaSharp.
 Anyone reading a clean build should know the cleanliness is partly configured, not incidental.
 
+## Seeded staff accounts — how to retire the published passwords
+
+`SeedUsers` creates three accounts (Reviewer / Admin / User) with the passwords printed in `README.md`,
+which are **local-development defaults**. They are not secrets and must never be the credential an
+internet-facing deployment accepts, because that password is published in this repository.
+
+The control is `Auth:SeedReviewerPassword`, `Auth:SeedAdminPassword` and `Auth:SeedUserPassword`:
+
+| Situation | Behaviour |
+|---|---|
+| Empty database, key unset | account created with the documented default |
+| Empty database, key set | account created with the configured password |
+| Existing database, key unset | **nothing changes** — so a deploy without secrets keeps working |
+| Existing database, key set | the stored hash is verified against the configured password and re-hashed if it does not match |
+
+The last row is the point. The seeder used to return as soon as any user existed, so editing the constants
+in `SeedUsers.cs` would have left an already-deployed database accepting `Admin@123` forever — the code
+would say "rotated" while the running system kept the published credential.
+
+`deploy-hetzner.yml` passes them from GitHub Secrets `DEMO_REVIEWER_PASSWORD`, `DEMO_ADMIN_PASSWORD` and
+`DEMO_USER_PASSWORD`. **Until those secrets exist, the live demo still accepts the documented passwords** —
+creating them and redeploying is what actually closes it. Startup logs which accounts were re-hashed, so the
+change is verifiable rather than assumed.
+
+Verified 2026-11-03 against the local database: with `Auth__SeedAdminPassword` set, `Admin@123` returned
+401 and the configured password 200, while the Reviewer account was untouched; setting the value back to
+`Admin@123` restored it. Rotation is therefore reversible and scoped to the accounts you configure.
+
 ## Reporting
 
 If a secret was committed: `git rm --cached <file>` + rotate key + `git push --force-with-lease` after team coordination. See `docs/PRIVACY_RETENTION.md` for data retention (30d camera, 1y evidence, soft-delete).

@@ -248,6 +248,11 @@ Judges and users should not have to dig for these.
   show traffic, not footpaths — and the product says so on screen.
 - **Routing uses OSRM's `foot` profile, which is not a validated wheelchair profile.** No route is ever labelled
   wheelchair-safe here.
+- **Live demo staff accounts still use the published defaults.** `reviewer@pathlens.local / Reviewer@123` and
+  `admin@pathlens.local / Admin@123` work on `pathlens.cognitivebd.com` right now (I used them today to record
+  the reviewer decisions this demo shows). The rotation control exists and is tested, but it only engages when
+  the GitHub Secrets below are created — until then this is a knowingly-open demo, not a secured deployment.
+  Secrets: `DEMO_REVIEWER_PASSWORD`, `DEMO_ADMIN_PASSWORD`, `DEMO_USER_PASSWORD`. See `docs/SECURITY.md`.
 - **License is undecided** (below).
 
 ## License

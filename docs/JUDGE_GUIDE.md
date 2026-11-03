@@ -120,6 +120,11 @@ attached to have since been deleted, so they no longer open from a report page.
   `docs/SECURITY.md` G1. History was not rewritten.
 - **ImageSharp is pinned to 3.1.8** with `NU1902/NU1903` advisories suppressed for the hackathon
   (`PathLens.Infrastructure.csproj`); the upgrade path is noted in `docs/H1_FIX_REPORT.md`.
+- **The staff logins on this demo are the published defaults.** `reviewer@pathlens.local / Reviewer@123` and
+  `admin@pathlens.local / Admin@123` work here today — deliberately, so you can open the review console
+  without requesting access. The rotation control exists and is tested (`docs/SECURITY.md`), but it engages
+  only once the deployment secrets are set. Treat this as an open hackathon demo, not a secured production
+  system.
 
 ## Tech (short)
 

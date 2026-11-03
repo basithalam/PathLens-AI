@@ -72,6 +72,12 @@ jobs:
             META_AI_MODEL=${{ secrets.META_AI_MODEL || '' }}
             META_AI_API_KEY=${{ secrets.META_AI_API_KEY || '' }}
             CAMERAS_POLLING_ENABLED=${{ secrets.CAMERAS_POLLING_ENABLED || 'false' }}
+            # Seeded account credentials. Left unset, the API keeps the documented local-development
+            # defaults; set them and the next startup re-hashes those accounts, which is how the
+            # publicly documented passwords stop working on this host.
+            Auth__SeedReviewerPassword=${{ secrets.DEMO_REVIEWER_PASSWORD }}
+            Auth__SeedAdminPassword=${{ secrets.DEMO_ADMIN_PASSWORD }}
+            Auth__SeedUserPassword=${{ secrets.DEMO_USER_PASSWORD }}
             WEB_PORT=3001
             API_PORT=5145
             DB_PORT=5433

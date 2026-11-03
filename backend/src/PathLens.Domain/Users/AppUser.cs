@@ -36,4 +36,10 @@ public sealed class AppUser
             IsActive = true,
             CreatedAt = now,
         };
+
+    /// <summary>
+    /// Replaces the stored hash so a deployment can rotate a seeded account without
+    /// re-creating it — the audit trail references the user id, not the credential.
+    /// </summary>
+    public void SetPasswordHash(string passwordHash) => PasswordHash = passwordHash;
 }

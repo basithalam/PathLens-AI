@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Configuration;
 using PathLens.Application.Users;
 using PathLens.Domain.Users;
 
 namespace PathLens.Infrastructure.Auth;
 
 /// <summary>
-/// Development seed accounts. Passwords are documented local-only values and
-/// must be changed outside local development; hashes are what get stored.
+/// Seeded accounts. The defaults below are local-development values and are documented as such;
+/// a deployment overrides them with the Auth:Seed* configuration keys so the real credentials never
+/// appear in this repository.
 /// </summary>
 public static class SeedUsers
 {
@@ -17,29 +19,89 @@ public static class SeedUsers
     public const string DemoUserEmail = "user@pathlens.local";
     public const string DemoUserPassword = "User@123";
 
-    public static async Task SeedAsync(IUserRepository repository, CancellationToken cancellationToken)
-    {
-        if (await repository.AnyUsersAsync(cancellationToken))
-        {
-            return;
-        }
+    private static readonly (string Email, string DisplayName, string Default, string ConfigKey, UserRole Role)[] Accounts =
+    [
+        (ReviewerEmail, "Demo Reviewer", ReviewerPassword, "Auth:SeedReviewerPassword", UserRole.Reviewer),
+        (AdminEmail, "Demo Admin", AdminPassword, "Auth:SeedAdminPassword", UserRole.Admin),
+        (DemoUserEmail, "Demo User", DemoUserPassword, "Auth:SeedUserPassword", UserRole.User),
+    ];
 
+    public static Task SeedAsync(IUserRepository repository, CancellationToken cancellationToken) =>
+        SeedAsync(repository, configuration: null, cancellationToken);
+
+    /// <summary>
+    /// Creates the seeded accounts on an empty database, and on an existing one rotates the password
+    /// of any account whose credential is supplied through configuration.
+    ///
+    /// The rotation branch is what makes this a real control: the accounts are created once, so
+    /// changing the constants above would leave an already-deployed database accepting the old,
+    /// publicly documented password forever.
+    /// </summary>
+    /// <returns>The emails whose password was rotated, for the caller to log.</returns>
+    public static async Task<IReadOnlyList<string>> SeedAsync(
+        IUserRepository repository, IConfiguration? configuration, CancellationToken cancellationToken)
+    {
         var hasher = new PasswordHasher<AppUser>();
         var now = DateTimeOffset.UtcNow;
+        var rotated = new List<string>();
 
-        foreach (var (email, name, password, role) in new[]
+        if (!await repository.AnyUsersAsync(cancellationToken))
         {
-            (ReviewerEmail, "Demo Reviewer", ReviewerPassword, UserRole.Reviewer),
-            (AdminEmail, "Demo Admin", AdminPassword, UserRole.Admin),
-            (DemoUserEmail, "Demo User", DemoUserPassword, UserRole.User),
-        })
-        {
-            var user = AppUser.Create(email, name, string.Empty, role, now);
-            var hash = hasher.HashPassword(user, password);
-            var seeded = AppUser.Create(email, name, hash, role, now);
-            await repository.AddAsync(seeded, cancellationToken);
+            foreach (var account in Accounts)
+            {
+                var password = Resolve(account, configuration);
+                var placeholder = AppUser.Create(account.Email, account.DisplayName, string.Empty, account.Role, now);
+                var user = AppUser.Create(
+                    account.Email, account.DisplayName, hasher.HashPassword(placeholder, password), account.Role, now);
+                await repository.AddAsync(user, cancellationToken);
+            }
+
+            await repository.SaveChangesAsync(cancellationToken);
+            return rotated;
         }
 
-        await repository.SaveChangesAsync(cancellationToken);
+        if (configuration is null)
+        {
+            return rotated;
+        }
+
+        foreach (var account in Accounts)
+        {
+            var configured = configuration[account.ConfigKey];
+            if (string.IsNullOrWhiteSpace(configured))
+            {
+                // Nothing configured for this account: leave the stored credential alone.
+                continue;
+            }
+
+            var user = await repository.GetByEmailAsync(account.Email, cancellationToken);
+            if (user is null)
+            {
+                continue;
+            }
+
+            if (hasher.VerifyHashedPassword(user, user.PasswordHash, configured) != PasswordVerificationResult.Failed)
+            {
+                continue;
+            }
+
+            user.SetPasswordHash(hasher.HashPassword(user, configured));
+            rotated.Add(account.Email);
+        }
+
+        if (rotated.Count > 0)
+        {
+            await repository.SaveChangesAsync(cancellationToken);
+        }
+
+        return rotated;
+    }
+
+    private static string Resolve(
+        (string Email, string DisplayName, string Default, string ConfigKey, UserRole Role) account,
+        IConfiguration? configuration)
+    {
+        var configured = configuration?[account.ConfigKey];
+        return string.IsNullOrWhiteSpace(configured) ? account.Default : configured;
     }
 }
