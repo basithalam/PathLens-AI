@@ -92,7 +92,8 @@ at all for them.
 `evaluation/manifest.sf-real-eval.csv` carries `latitude`, `longitude` and `captureTimeUtc` per image. They
 are placeholders, and the pattern gives it away:
 
-- All ten positions sit within roughly 600 m of `37.7749,-122.4194`, regardless of what the photo shows.
+- All ten positions sit within about **700 m** of `37.7749,-122.4194` (the farthest is `37.779,-122.4135`,
+  ≈ 692 m away by a flat-earth calculation at that latitude), regardless of what the photo shows.
 - Every timestamp is exactly `10:00:00Z`, one day apart: `2026-11-02` through `2026-11-11`.
 - The run happened on **2026-11-01**, so every "capture time" in the file is dated in the future.
 
