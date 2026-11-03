@@ -12,7 +12,7 @@ export default async function HomePage() {
     <>
       <section className="hero">
         <div className="hero__badge">
-          <span className="hero__dot" aria-hidden="true" /> Meta Global AI Hackathon 2026 · San Francisco pilot
+          <span className="hero__dot" aria-hidden="true" /> Meta Global AI Hackathon 2026 · Sylhet pilot
         </div>
         <h1 className="hero__title">
           Can this path be used <span>right now</span> — and how sure are we?

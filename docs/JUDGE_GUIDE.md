@@ -1,43 +1,126 @@
 # PathLens AI — Judge Guide (3-Minute Demo)
 
-**Start here. 25 other docs are audit/backup — this one page is enough to judge.**
+**Start here. This one page is enough to judge. The other 29 files in `docs/` are audit trail and backup.**
 
-**Live Demo:** https://pathlens.cognitivebd.com | **API Health:** https://pathlens.cognitivebd.com/health/ready | **Map:** /map | **Report:** /report/new | **Route:** /routes
+**Live Demo:** https://pathlens.cognitivebd.com · **Health:** https://pathlens.cognitivebd.com/health/ready
+**Screens:** `/map` · `/report/new` · `/routes` · `/reports` · `/reviewer` · `/admin`
 
-## What PathLens Does (One Line)
-Helps wheelchair users know if a footpath is *likely* usable **before travel** — with photo-evidence age, source, verification, and **honest unknown** (no fake “safe”).
+## What PathLens does (one line)
 
-## Real Data Today (2026-11-01)
-- **AI Live:** Meta `muse-spark-1.3` @ `https://api.meta.ai/v1/chat/completions` — `health/ready` → `ai-provider: Healthy`
-- **Camera Live:** Datumfeed SF `TV301 US-101 At Octavia St` (Caltrans, 37 SF cameras, trust 89) — `POST /api/keys` → `DATUMFEED_API_KEY` → 60s polling → Candidate Report (Unverified) → Map Square C
-- **Manual Live:** Sylhet `24.91,91.84` — `Test` report → `BlockedSidewalk 90%` (Meta) — manual close-up footpath is **primary** for accessibility; traffic cameras show highway, not footpath detail
+Helps a wheelchair user or pedestrian judge whether a footpath is *likely* usable **before they travel** — from
+photo evidence compared over time, with the age, source and verification of every claim shown, and with
+**unknown stated as unknown** instead of a fake "safe".
 
-**When real footpath camera exists → auto correct photo → report. Otherwise manual photo upload → correct info. Both work — judge can test either.**
+## Pilot city, and where the evidence comes from
 
-## 3-Minute Demo Flow
+| | |
+|---|---|
+| **Pilot city** | **Sylhet, Bangladesh** (24.9116, 91.8498) — the map opens here |
+| **Manual photo evidence** | Works in any city; the judge can test it in 30 seconds |
+| **Automatic camera feeds** | Only **San Francisco** public feeds exist today (Datumfeed / Caltrans / 511SF / SFMTA). **Sylhet has no public footpath camera** — the map says so instead of pretending otherwise |
+| **AI** | Meta `muse-spark-1.3` at `https://api.meta.ai/v1/chat/completions`, server-side only |
 
-**0:00-0:30 Problem (Story):** Wheelchair user reaches crossing, footpath blocked by scooters, must turn back — normal map showed road, not blockage.
+## Measured state — 2026-11-03
 
-**0:30-1:30 Map (`/map`):** Pan Sylhet (24.91,91.84) — markers `! V ? X` + Square C cameras — click marker → Report detail — `No reports ≠ clear` — Coverage grid `C/B/A` (C grey = insufficient)
+```
+GET /health/ready → Healthy
+  database    Healthy   PostgreSQL is reachable.
+  osrm        Healthy   OSRM reachable (status 400 on the probe pair; real routes return 201)
+  ai-provider Healthy   Meta muse-spark-1.3 @ https://api.meta.ai/v1/chat/completions (key present)
+```
 
-**1:30-2:30 Report (`/report/new` → `/reports/{id}`):** Upload footpath photo (consent required) → `Run analysis` → **Live Meta** `BlockedSidewalk 90%` + 4 visibleEvidence + 3 limitations + `Human review required` → Upload 2nd photo → `Compare photos` → `LikelyStillPresent / NotObserved / Conflicting / Inconclusive` (NotObserved ≠ removed)
+| What | Live now |
+|---|---|
+| Reports | 13 total — **3 HumanVerified, 1 Disputed, 2 Rejected, 7 Unverified** |
+| Audit events | 16 (`VerificationChanged ×8`, `ComparisonReviewed ×2`, `Feedback ×5`, `DuplicateConfirmed ×1`) |
+| Cameras | 4 registered, 2 enabled, **1 flagged stale** |
+| Unknown share of the map | **67.5%** — stated as unknown, never as clear |
+| Analysis provider on evidence | `Meta` / `muse-spark-1.3`, not `mock` |
 
-**2:30-3:00 Route (`/routes`):** Origin 24.9116,91.8498 → Dest 24.9248,91.8698 → `Plan routes` → 2-3 OSRM foot routes → Ranked by fewest known obstacles → `Route 1 ⚠ Blocked — alternative below` (red) vs `Route 2 ✓ Recommended` (green) → `Unknown 62%` + `Stale 30d` + `hasConfirmedStairs` warning → **Alternative suggestion when blocked** — Unknown stays unknown, AI confidence ≠ guarantee
+**About the reviewer decisions:** they were recorded through the seeded `reviewer@pathlens.local` account for
+this hackathon, by reading the uploaded photo of each report. Every note says so, and the audit trail shows who
+decided what. They are **not** a municipal field inspection, and PathLens never treats an AI answer as one
+either.
 
-## Live Camera vs Manual — Judge Note
-- **Traffic cameras (Datumfeed/511 Caltrans):** Highway-facing, low-res — footpath not clear — **Expected** — they prove *change detection* (Changed/Unchanged) and auto Candidate, not footpath detail
-- **Footpath cameras (if city provides) or Manual upload:** Close-up → Meta detects `BlockedSidewalk, BrokenSurface, Ramp` correctly → **Use manual for accessibility accuracy** — both paths give correct report, judge can test manual in 30s
+## 3-minute demo flow
 
-## Verify in 30s
-1. `curl https://pathlens.cognitivebd.com/health/ready` → `database Healthy, ai-provider Healthy: Meta muse-spark-1.3`
-2. `curl https://pathlens.cognitivebd.com/api/reports?page=1&pageSize=1` → 1+ reports with `analysisProvider: Meta`
-3. `/reports/{id}` → Evidence `✓ Live Meta AI` (not `Demo/mock`)
+**0:00–0:30 — the problem.** A wheelchair user reaches a crossing, the footpath is blocked by parked
+motorbikes, they must turn back. A normal map showed the road, not the blockage.
 
-## Tech (Short)
-Next.js 15 + ASP.NET Core 10 + PostGIS + EF Core + Leaflet OSM + OSRM + Meta AI (provider abstraction) + S3 object storage — modular monolith, `docker compose up --build` + `./scripts/seed-sf.ps1`
+**0:30–1:30 — `/map`.** Opens on Sylhet. Marker letters carry meaning without colour:
+`!` unverified · `V` human-verified · `?` disputed · `X` rejected. Square `C` markers are cameras, kept
+visually separate from human reports. Click a marker → the list and the map stay in sync → open a report.
+Turn on **Coverage layer**: cells marked `C` (hatched) mean *nobody has reported here* — explicitly not
+"clear". Click a cell to zoom it.
 
-## Archive
-Other 25 docs (`AI_GATE_A_REPORT.md`, `camera-live-gate.md`, `H1_FIX_REPORT.md` …) are audit trail — judge confusion avoided — start here. Full list in `docs/` but not needed for 3-min demo.
+**1:30–2:30 — `/report/new` → `/reports/{id}`.** Upload a footpath photo (consent required, EXIF GPS stripped)
+→ **Run analysis** → `✓ Live Meta AI`, obstacle type, confidence bar with the 40%/70% thresholds, the evidence
+the model says it saw, its **limitations**, and `Human review required`. Upload a second photo → **Compare
+photos** → one of `LikelyStillPresent` / `NotObservedInNewImage` / `ConflictingEvidence` / `Inconclusive`, each
+with an explanation. *Not observed* never becomes *removed*.
+
+**2:30–3:00 — `/routes`.** Two Sylhet points (24.9116, 91.8498 → 24.9248, 91.8698) → **Plan routes** → real
+OSRM geometry, ranked by fewest known obstacles, with the **unknown share of each route** drawn as a hatched
+bar. Preference chips reorder; they never hide an obstacle. The profile is `foot`, and the page says plainly
+that this is **not a validated wheelchair profile**.
+
+## The 20-second honesty moment (worth showing)
+
+Open `/reports/9ef305d4-48eb-4e77-af6e-db57b437b4ae` — the live **CameraDetected candidate** from the
+US-101 at Octavia St feed, which has 482 camera frames and 519 comparisons, all `Inconclusive`.
+
+A reviewer read two of those frames (02:59:08 and 03:04:08 PST, five minutes apart) and recorded a review:
+they are 320×260 night captures of a freeway sign and car tail-lights — **no footpath is in frame at all**, so
+neither image can establish or refute anything about a walking surface. The engine's `Inconclusive` was
+confirmed, not overwritten, and the note says what the camera can and cannot prove.
+
+That is the whole thesis on one screen: automatic evidence that cannot decide stays labelled as unable to
+decide, and a human saying so does not erase the machine's record.
+
+A second finding, reported rather than hidden: two comparisons on the demo came back `ConflictingEvidence`
+and were reviewed to `Inconclusive` because the "earlier" and "newer" photos were **the same file** (identical
+SHA-256, only the claimed capture times differed) — model variance on identical input, not a changed place.
+Those two reviews are in the audit trail at `/reviewer` (`ComparisonReviewed ×2`), but the reports they were
+attached to have since been deleted, so they no longer open from a report page.
+
+
+## Verify in 30 seconds
+
+1. `curl https://pathlens.cognitivebd.com/health/ready` → all three checks `Healthy`
+2. `curl "https://pathlens.cognitivebd.com/api/reports?page=1&pageSize=5"` → reports with `HumanVerified` present
+3. Open any report with a photo → evidence shows `✓ Live Meta AI` with provider `Meta`, not `Demo/mock`
+4. `/reviewer` → sign in with the **Reviewer** demo card → queue, decisions, audit trail
+5. `/admin` → sign in with the **Admin** card → camera registry, pilot analytics, reputation
+
+## What is NOT proven (our own limits, stated)
+
+- **Real-image accuracy is small and mixed.** 10 real SF footpath photos through `muse-spark-1.3`:
+  **3 correct, 3 incorrect, 2 inconclusive, 2 upload errors, 0 usable pairs.** 10 images is a demo, not
+  accuracy. See `evaluation/results.sf-real-eval.json`.
+- **The 25-image SF dataset is synthetic** (own-generated placeholders, no faces or plates) and its
+  comparison pairs were run under the **Mock** provider — pipeline proof, not accuracy proof.
+- **The ground truth of that 10-image set is debatable.** On re-reading the photos, `sf-eval-01` is labelled
+  `BlockedSidewalk (planters)` but the frame shows a clear, steep walkway — so it is marked **Disputed**, and
+  `sf-eval-08` is labelled "clear" while café furniture sits on the path. We are reporting the label problem
+  rather than hiding it.
+- **No real footpath camera exists for Sylhet yet**, so the automatic-update story runs on SF highway cameras,
+  which show traffic, not footpaths.
+- **Reporter reputation is empty** on the live demo because the seeded reports were created anonymously; the
+  panel shows an honest empty state instead of fake badges.
+- **One API key was committed in plaintext** in `docs/SECURITY.md` and remains reachable in git history
+  (`771a485`, `2386b7f`). It is masked in the working tree and must be treated as revoked — see
+  `docs/SECURITY.md` G1. History was not rewritten.
+- **ImageSharp is pinned to 3.1.8** with `NU1902/NU1903` advisories suppressed for the hackathon
+  (`PathLens.Infrastructure.csproj`); the upgrade path is noted in `docs/H1_FIX_REPORT.md`.
+
+## Tech (short)
+
+Next.js 15 App Router + TypeScript · ASP.NET Core 10 modular monolith (Domain/Application/Infrastructure/
+API/Worker) · PostgreSQL + EF Core, dual-mode PostGIS with a lat/lon fallback · OpenStreetMap + Leaflet ·
+OSRM foot routing · Meta AI behind a provider abstraction (Mock is labelled as such, never presented as AI) ·
+private image storage served only through the API · JWT reviewer auth with an append-only audit trail.
+
+`docker compose up --build` then `./scripts/seed-sf.ps1` for a populated map. Migrations apply at API startup
+(`Program.cs:124`).
 
 **Footer:** Unknown is unknown. PathLens never labels a route safe just because no obstacle was reported.
-

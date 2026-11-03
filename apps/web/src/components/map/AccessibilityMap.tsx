@@ -28,7 +28,9 @@ const OBSTACLE_TYPES = [
 
 const VERIFICATION_STATUSES = ["Unverified", "HumanVerified", "Disputed", "Rejected"];
 
-// Default view: Sylhet, Bangladesh (pilot city — user requested, SF deferred). The map asks for reports wherever the user pans.
+// Default view: Sylhet, Bangladesh — the pilot city. Traffic-camera feeds exist only for San
+// Francisco so far, so a Sylhet view legitimately shows no square C markers. The map asks for
+// reports wherever the user pans.
 const DEFAULT_CENTER: [number, number] = [24.9116, 91.8498];
 
 function escapeHtml(value: string): string {
@@ -490,7 +492,7 @@ export function AccessibilityMap() {
             <p className="coverage-empty">
               {coverageLoading
                 ? "Loading coverage…"
-                : "Pan to San Francisco — coverage will appear here. No cell is proven safe."}{" "}
+                : "No coverage cells for this view yet — pan to Sylhet or San Francisco and they will appear. No cell is proven safe."}{" "}
               <em>
                 C grey hatched = insufficient, B amber = obstacle evidence, A green = evidence present.
               </em>

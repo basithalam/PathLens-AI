@@ -60,7 +60,7 @@ export function AdminStatsPanel() {
   return (
     <section className="panel" aria-labelledby="stats-heading">
       <div className="panel__head">
-        <h2 id="stats-heading">Pilot analytics — San Francisco</h2>
+        <h2 id="stats-heading">Pilot analytics — Sylhet</h2>
         <span className="panel__count">live from <code>GET /api/admin/stats</code></span>
       </div>
       <div className="panel__body">
@@ -99,7 +99,10 @@ export function AdminStatsPanel() {
           {stats.reportsPerDayLast7.length === 0 ? (
             <p className="empty-state">
               <strong>No reports in the last 7 days.</strong>
-              <span>Seed the demo city with ./scripts/seed-sf.ps1 to populate this chart.</span>
+              <span>
+                Run <code>./scripts/seed-sf.ps1</code> to populate this chart — it seeds the San Francisco demo
+                feeds, which is where the camera evidence comes from.
+              </span>
             </p>
           ) : (
             <div className="chart" role="img" aria-label="Reports per day for the last 7 days">

@@ -210,7 +210,11 @@ export function AdminCamerasPanel() {
           {cameras.length === 0 ? (
             <p className="empty-state">
               <strong>No cameras registered yet.</strong>
-              <span>Register the first SF / Datumfeed feed above, or import a batch in bulk actions.</span>
+              <span>
+                The pilot city is Sylhet, and Sylhet has no public footpath camera today — that gap is shown on the
+                map, not hidden. Register a feed to see the camera path work; the available public feeds are San
+                Francisco (Datumfeed / Caltrans / 511SF / SFMTA).
+              </span>
             </p>
           ) : (
             <div className="table-wrap">
