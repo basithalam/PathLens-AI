@@ -81,13 +81,16 @@ against that version are actually suppressed. It is pinned because 4.x moved beh
 (see `docs/H1_FIX_REPORT.md`); the upgrade path is 4.x under a community licence or a switch to SkiaSharp.
 Anyone reading a clean build should know the cleanliness is partly configured, not incidental.
 
-## Seeded staff accounts — how to retire the published passwords
+## Seeded staff accounts — published on purpose, rotatable when it matters
 
-`SeedUsers` creates three accounts (Reviewer / Admin / User) with the passwords printed in `README.md`,
-which are **local-development defaults**. They are not secrets and must never be the credential an
-internet-facing deployment accepts, because that password is published in this repository.
+`SeedUsers` creates three accounts (Reviewer / Admin / User). Their passwords are printed in `README.md` and
+shown on the sign-in panel with one-tap access, **deliberately**: this is a hackathon demo on a throwaway
+dataset, and a judge should be able to open the review console without asking the author for a credential.
+Hiding them would cost demo access and buy nothing, because there is no real user data to protect.
 
-The control is `Auth:SeedReviewerPassword`, `Auth:SeedAdminPassword` and `Auth:SeedUserPassword`:
+That is a deployment decision, not a security claim. Anyone running this for real should rotate them, and the
+control exists for exactly that — `Auth:SeedReviewerPassword`, `Auth:SeedAdminPassword`,
+`Auth:SeedUserPassword`:
 
 | Situation | Behaviour |
 |---|---|

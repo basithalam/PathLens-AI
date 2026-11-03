@@ -895,22 +895,23 @@ fieldset p { font-size: .85rem; color: var(--muted) }
 .auth__panel > p { font-size: .9rem; color: var(--muted) }
 .auth__roles { display: grid; gap: .45rem }
 .auth__role {
-  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .7rem;
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: .7rem;
   text-align: left; width: 100%;
   background: var(--surface-2); border: 1px solid var(--line); border-radius: var(--radius-sm);
-  padding: .55rem .7rem; cursor: pointer; color: var(--ink);
-  transition: border-color .14s, background .14s, transform .14s;
+  padding: .6rem .7rem; color: var(--ink);
+  transition: border-color .14s, background .14s;
 }
-.auth__role:hover { border-color: var(--brand-line); background: var(--brand-ghost); transform: translateY(-1px) }
-.auth__role[aria-pressed="true"] { border-color: var(--brand); background: var(--brand-ghost) }
+.auth__role:hover { border-color: var(--brand-line) }
+.auth__role--active { border-color: var(--brand); background: var(--brand-ghost) }
 .auth__role-mark {
   width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center;
   font-size: .78rem; font-weight: 800; background: var(--surface); border: 1px solid var(--line-strong);
   color: var(--brand-ink);
 }
 .auth__role-body { display: grid; gap: .05rem; min-width: 0 }
-.auth__role-body strong { font-size: .92rem }
-.auth__role-body span { font-size: .78rem; color: var(--muted); font-family: var(--font-mono) }
+.auth__role-body strong { font-size: .94rem }
+.auth__role-body span { font-size: .78rem; color: var(--muted) }
+.auth__role-body span.mono { color: var(--ink-2); letter-spacing: .01em }
 .auth__role-tag { font-size: .68rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted-2) }
 .auth__actions { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap }
 .auth__note { font-size: .79rem; color: var(--muted-2); background: var(--surface-2); border: 1px dashed var(--line-strong); border-radius: var(--radius-sm); padding: .5rem .7rem }

@@ -16,20 +16,24 @@ const ROLES = [
     mark: "A",
     email: "admin@pathlens.local",
     password: "Admin@123",
-    can: "Register cameras, read analytics and reputation",
+    can: "Register cameras, read pilot analytics and reputation",
   },
   {
     role: "User",
     mark: "U",
     email: "user@pathlens.local",
     password: "User@123",
-    can: "Ordinary signed-in reporter — no review rights",
+    can: "Ordinary signed-in reporter — the API answers 403 on review",
   },
 ] as const;
 
 /**
  * One sign-in surface for both staff consoles. It only calls the existing
  * POST /api/auth/login path in lib/auth — no new auth behaviour.
+ *
+ * The demo is deliberately open: every seeded credential is shown on the card and one tap signs in,
+ * so a judge never has to ask for a password. A real deployment rotates these through the
+ * Auth:Seed* configuration keys (see docs/SECURITY.md); with no secret set nothing changes.
  */
 export function SignInPanel({
   title = "Sign in to the review console",
@@ -46,14 +50,14 @@ export function SignInPanel({
   const [email, setEmail] = useState<string>(preset.email);
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     setError(null);
-    setBusy(true);
+    setBusy("form");
     const result = await login(email, password);
-    setBusy(false);
+    setBusy(null);
     if (result.ok) {
       setPassword("");
       onSignedIn(result.user);
@@ -66,6 +70,21 @@ export function SignInPanel({
     setEmail(role.email);
     setPassword(role.password);
     setError(null);
+  }
+
+  async function quickSignIn(role: (typeof ROLES)[number]) {
+    setError(null);
+    setBusy(role.role);
+    setEmail(role.email);
+    const result = await login(role.email, role.password);
+    setBusy(null);
+    if (result.ok) {
+      setPassword("");
+      onSignedIn(result.user);
+    } else {
+      setPassword(role.password);
+      setError(result.message);
+    }
   }
 
   return (
@@ -90,35 +109,41 @@ export function SignInPanel({
       <div className="auth__panel">
         <h3>{title}</h3>
         <p>
-          Accounts are seeded for local development only — change them before any other deployment.
+          This demo is intentionally open. Pick an account and sign in with one tap — no password to ask for.
+          They are seeded hackathon accounts on a demo dataset, not real users.
         </p>
 
-        <div className="auth__roles" role="group" aria-label="Demo accounts — fills the form">
+        <div className="auth__roles" role="group" aria-label="Demo accounts — one tap signs in">
           {ROLES.map((role) => {
             const active = role.email === email;
             return (
-              <button
-                key={role.role}
-                type="button"
-                className="auth__role"
-                aria-pressed={active}
-                onClick={() => fillRole(role)}
-              >
+              <div key={role.role} className={`auth__role${active ? " auth__role--active" : ""}`}>
                 <span className="auth__role-mark" aria-hidden="true">
                   {role.mark}
                 </span>
                 <span className="auth__role-body">
                   <strong>{role.role}</strong>
-                  <span>{role.email}</span>
+                  <span className="mono">{role.email}</span>
+                  <span className="mono">{role.password}</span>
                   <span>{role.can}</span>
                 </span>
-                <span className="auth__role-tag">use</span>
-              </button>
+                <button
+                  type="button"
+                  className="btn btn--brand btn--sm"
+                  onClick={() => quickSignIn(role)}
+                  disabled={busy !== null}
+                >
+                  {busy === role.role ? "Signing in…" : "Sign in"}
+                </button>
+              </div>
             );
           })}
         </div>
 
         <form onSubmit={onSubmit} className="stack-sm" noValidate>
+          <p className="auth__hint">
+            Or type them — the same three accounts, nothing hidden from the panel above.
+          </p>
           <div className="field">
             <label htmlFor="signin-email">Email</label>
             <input
@@ -140,7 +165,7 @@ export function SignInPanel({
               autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Demo password from the account above"
+              placeholder="Reviewer@123 · Admin@123 · User@123"
               required
             />
           </div>
@@ -150,8 +175,8 @@ export function SignInPanel({
             </p>
           )}
           <div className="auth__actions">
-            <button type="submit" className="btn btn--primary" disabled={busy}>
-              {busy ? "Signing in…" : "Sign in"}
+            <button type="submit" className="btn btn--primary" disabled={busy !== null}>
+              {busy === "form" ? "Signing in…" : "Sign in"}
             </button>
             <button type="button" className="btn btn--ghost" onClick={() => fillRole(preset)}>
               Fill {preset.role.toLowerCase()} demo
@@ -160,8 +185,8 @@ export function SignInPanel({
         </form>
 
         <p className="auth__note">
-          Sign-in issues are rate limited to 5 per minute by the API. A wrong password never reveals
-          whether the email exists.
+          Sign-in is rate limited to 5 attempts per minute, and a wrong password never reveals whether the
+          email exists. Reviewer and Admin see the same queue; only Admin can register cameras.
         </p>
       </div>
     </section>

@@ -248,11 +248,12 @@ Judges and users should not have to dig for these.
   show traffic, not footpaths — and the product says so on screen.
 - **Routing uses OSRM's `foot` profile, which is not a validated wheelchair profile.** No route is ever labelled
   wheelchair-safe here.
-- **Live demo staff accounts still use the published defaults.** `reviewer@pathlens.local / Reviewer@123` and
-  `admin@pathlens.local / Admin@123` work on `pathlens.cognitivebd.com` right now (I used them today to record
-  the reviewer decisions this demo shows). The rotation control exists and is tested, but it only engages when
-  the GitHub Secrets below are created — until then this is a knowingly-open demo, not a secured deployment.
-  Secrets: `DEMO_REVIEWER_PASSWORD`, `DEMO_ADMIN_PASSWORD`, `DEMO_USER_PASSWORD`. See `docs/SECURITY.md`.
+- **The staff logins are published on purpose.** `reviewer@pathlens.local / Reviewer@123`,
+  `admin@pathlens.local / Admin@123` and `user@pathlens.local / User@123` work on the live demo and the sign-in
+  panel shows all three with one-tap access, because a judge should be able to try the review console without
+  asking the author for a password. This is a demo dataset on a throwaway hackathon deployment, not a
+  production system. The rotation control exists (`Auth:Seed*` + `DEMO_*_PASSWORD` secrets, see
+  `docs/SECURITY.md`) for anyone who runs this for real; it is **not** enabled here, deliberately.
 - **License is undecided** (below).
 
 ## License

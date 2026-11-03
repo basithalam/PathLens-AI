@@ -20,6 +20,21 @@ photo evidence compared over time, with the age, source and verification of ever
 | **Automatic camera feeds** | Only **San Francisco** public feeds exist today (Datumfeed / Caltrans / 511SF / SFMTA). **Sylhet has no public footpath camera** — the map says so instead of pretending otherwise |
 | **AI** | Meta `muse-spark-1.3` at `https://api.meta.ai/v1/chat/completions`, server-side only |
 
+## Staff logins — one tap, nothing to ask for
+
+The demo is **deliberately open**. Both consoles show all three seeded accounts with the password printed on
+the card and a **Sign in** button on each — one tap, no typing, no need to message the author.
+
+| Account | Email | Password | What it unlocks |
+|---|---|---|---|
+| **Reviewer** | `reviewer@pathlens.local` | `Reviewer@123` | the queue, verify / dispute / reject, audit trail |
+| **Admin** | `admin@pathlens.local` | `Admin@123` | reviewer rights **plus** camera registry, pilot analytics, reputation |
+| **User** | `user@pathlens.local` | `User@123` | signed-in reporter — review endpoints answer **403** (try it, it is the point) |
+
+Sign in at `/reviewer` or `/admin`. These are seeded hackathon accounts on a demo dataset, not real users; a
+real deployment rotates them through `Auth:Seed*` (`docs/SECURITY.md`), which is intentionally **not** enabled
+here so the review console stays reachable.
+
 ## Measured state — 2026-11-03
 
 ```
