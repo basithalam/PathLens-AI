@@ -1,11 +1,15 @@
-# H2 — Honest Demo Complete (দিন ৪–১০) — Completion Report
+# H2 — Honest Demo Complete (days 4–10) — Completion Report
 Date: 2026-10-30 | Status: DONE (blocked gates documented honestly) | Depends: H1
 
 ## Summary
-H2-এ "Mock নয়, Real" প্রমাণের জন্য Live Meta AI + Live Camera + Evaluation তিনটি gate probe করা হয়েছে। নেটওয়ার্ক/ক্রেডেনশিয়াল সীমাবদ্ধতায় দুটি gate blocked — কিন্তু Blueprint নিয়ম মেনে কোন fake data তৈরি করা হয়নি। তার বদলে Mock pipeline দিয়ে end-to-end evaluation সফলভাবে চালানো হয়েছে এবং সব honest ডকুমেন্ট আপডেট করা হয়েছে। H1-এর সাথে মিলিয়ে demo এখন one-click ও 404-mুক্ত।
+To prove "real, not mock" for H2, three gates were probed: Live Meta AI, Live Camera, and Evaluation. Two of
+them were blocked by network and credential limits — but no fake data was produced, because the Blueprint
+forbids it. Instead the end-to-end evaluation was run successfully through the Mock pipeline, and every
+honest document was updated to say so. Combined with H1, the demo is now one-click and free of 404s.
 
 ## H2.1 Live Meta AI Gate A
-**Goal:** Blueprint §AI Integration Requirements অনুযায়ী image input capability, endpoint, auth, schema verify করে "Live AI" দাবি করা।
+**Goal:** following Blueprint §AI Integration Requirements, verify image input capability, endpoint, auth and
+response schema before claiming "Live AI".
 
 **Probes 2026-10-30:**
 - Meta `https://api.meta.ai/compat/v1/chat/completions` (key `LLM_1134...` from `.local/set-meta-env.ps1`) → **404** `Path '/compat/v1/chat/completions' was not found`
@@ -21,7 +25,7 @@ H2-এ "Mock নয়, Real" প্রমাণের জন্য Live Meta AI
 - With `Ai__Provider=Mock`, pipeline green (see H2.3).
 
 ## H2.2 SF Camera Gate
-**Goal:** 511SF Bay / SFMTA / Caltrans থেকে 1 camera live verify (permission note + 3 polls).
+**Goal:** verify one live camera from 511SF Bay / SFMTA / Caltrans (permission note plus 3 polls).
 
 **Probes 2026-10-30:**
 - `webcams.nyctmc.org/api/cameras` (NYC) → timeout (US-only, 2026-10-28 + 2026-10-30)

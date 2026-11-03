@@ -2,7 +2,9 @@
 Date: 2026-10-30 | Status: DONE (dual-mode honest) | Depends: H1+H2
 
 ## Summary
-PostGIS প্রতিশ্রুতি dual-mode দিয়ে পূরণ: Docker PostGIS থাকলে ST_DWithin/ST_Within+GiST, local 5433 না থাকলে fallback. Job SKIP LOCKED, stale configurable, camera thresholds documented.
+The PostGIS promise is met with a dual mode: when Docker PostGIS is present, ST_DWithin/ST_Within with a GiST
+index; when it is absent (the local cluster on 5433), a lat/lon fallback. Jobs claim rows with SKIP LOCKED,
+the stale threshold is configurable, and the camera quality thresholds are documented.
 
 ## H3.1 PostGIS
 - `PostGis/PostGisHelper.cs` NEW — pg_extension probe + TryEnable best-effort.

@@ -256,8 +256,23 @@ Judges and users should not have to dig for these.
   asking the author for a password. This is a demo dataset on a throwaway hackathon deployment, not a
   production system. The rotation control exists (`Auth:Seed*` + `DEMO_*_PASSWORD` secrets, see
   `docs/SECURITY.md`) for anyone who runs this for real; it is **not** enabled here, deliberately.
-- **License is undecided** (below).
+- **License is MIT** (`LICENSE`), covering code and docs only — the ten borrowed Wikimedia Commons street
+  photos stay CC BY-SA and their per-file attribution is still owed. See the License section below.
 
 ## License
 
-To be decided.
+Released under the **MIT License** — see [LICENSE](LICENSE).
+
+The licence covers the code and the documentation in this repository. It deliberately does **not** relicense
+third-party assets, which keep their own terms:
+
+| Asset | Licence | Status |
+|---|---|---|
+| `evaluation/sf-real-eval/*.jpg` (10 street photos) | Wikimedia Commons, **CC BY-SA 4.0** | **attribution still owed** — source page and author per file are not yet recorded. Tracked in `docs/AI_EVALUATION_SF_REAL.md`. CC BY-SA is copyleft for those images, independent of MIT on the code |
+| `evaluation/sf-dataset/*.png` (25 images) | own work, synthetic placeholders | no third-party licence |
+| Map tiles | © OpenStreetMap contributors (ODbL for the data) | rendered at runtime by Leaflet, not redistributed here |
+| Routing | OSRM demo service responses | runtime only |
+| `SixLabors.ImageSharp` 3.1.8 | Apache 2.0 | pinned, with two advisories suppressed — see `docs/SECURITY.md` |
+
+No warranty. This is a hackathon prototype: the figures in `evaluation/` are a 10-image demo, not a validated
+accessibility measurement, and routing uses the `foot` profile, which is not a certified wheelchair profile.

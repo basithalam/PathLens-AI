@@ -1,6 +1,10 @@
 # H8 Wheelchair & User — Hallway Test (2026-10-31)
 
-**Goal:** H8 P0 Impact — Route `hasStairs/hasRamp/surface` + unknown coverage warning সহ 1 hallway test (SF Bay Market→Ferry 1478m, Route A vs B, unknown% paraphrase) — `USER_TESTING.md` protocol. Started 2026-10-31 (was planned পরশু, now on request). Honest: **1 simulated run by accessibility reviewer (proxy, NOT a wheelchair user) + real recruitment pending — not claiming real wheelchair user.**
+**Goal:** H8 P0 Impact — one hallway test covering route `hasStairs/hasRamp/surface` plus the unknown-coverage
+warning (SF Bay Market→Ferry 1478m, Route A vs B, unknown% paraphrase), following the `USER_TESTING.md`
+protocol. Started 2026-10-31 on request (it had been planned for two days earlier). Honest:
+**1 simulated run by an accessibility reviewer (proxy, NOT a wheelchair user) + real recruitment pending —
+this is not a claim of real wheelchair-user testing.**
 
 ## Recruitment Status
 - **Target:** 3–5 SF Bay wheelchair users (manual/electric) + caregiver — NGO/university/hospital rehab, consent, compensation.
@@ -13,7 +17,9 @@
 **Task logs:**
 1. **Destination select 1m42s:** Typed "Ferry Building" → map centered, noticed 7 markers immediately, **did not notice Coverage Off initially** — tapped legend C/B/A after prompt. **Observation:** Coverage toggle not discoverable without label animation.
 2. **Route A vs B 3m28s:** Shown 3 cards: Route1 short + 1 stale stair (30d+ `hasConfirmedStairs`), Route2 longer 0 obstacles, Route3 40% unknown (C cells). Proxy initially chose Route1 (shortest) — then read `hasConfirmedStairs` note + `Certain 1 vs Uncertain 0` split → switched to Route2. **Checked `avoidStairs` ON** → ranking flipped as expected (Route1 dropped). **Observation:** `hasConfirmedStairs` red pill + explanation line was decisive.
-3. **Unknown% 1m35s:** Asked "40% unknown মানে?" → proxy answered correctly: "কেউ report করেনি, তাই clear না" (not safe). **Observed:** Coverage C grey cells under polyline were visible — unknown warning text read.
+3. **Unknown% 1m35s:** Asked "what does 40% unknown mean?" → the proxy answered correctly: "nobody has
+   reported here, so it is not proven clear" (not "safe"). **Observed:** Coverage C grey cells under the
+   polyline were visible — the unknown warning text was read.
 4. **Feedback 1m10s:** On stale report `BrokenSurface 32d`, tapped `WrongOrStale` (correct) + note "checked today, still broken" → got "Thanks ... does not auto-change" → understood `Not in new photo ≠ removed`.
 
 **Metrics P0 (1 proxy, not real):**
@@ -28,7 +34,10 @@
 **SUS 72 breakdown (proxy):** Q1 4, Q2 2, Q3 4, Q4 2, Q5 4, Q6 2, Q7 4, Q8 2, Q9 4, Q10 2 → 72 (usable, but route decision time over target).
 
 ## User Quote (P0 proxy — NOT real wheelchair user)
-> **P0-proxy (accessibility reviewer, 2026-10-31):** "AvoidStairs toggle-টা বুঝতে পেরেছি — লাল `hasConfirmedStairs` badge-ta decisively ছিল। Unknown 40% mane keu report koreni — eta age bujhtam na, coverage C grey dekhে bujhlam. Feedback WrongOrStale tap korte warning-ta clear chilo."
+> **P0-proxy (accessibility reviewer, 2026-10-31):** "I understood the AvoidStairs toggle — the red
+> `hasConfirmedStairs` badge was the decisive thing. Unknown 40% means nobody reported here; I did not get
+> that before, I got it from the grey C coverage cells. For the feedback tap, the warning text was clear."
+> — spoken in Bengali during the run; this is the English record. **Proxy, not a wheelchair user.**
 
 **Real user quote pending (P1 real wheelchair):** “[pending — recruitment after H8, consent required — not fabricated]”
 

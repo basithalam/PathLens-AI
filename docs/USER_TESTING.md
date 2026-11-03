@@ -48,7 +48,10 @@
 ## Update 2026-10-31 H8 P0 proxy
 > P0-proxy (accessibility reviewer, 2026-10-31): "I understood the AvoidStairs toggle — the red hasConfirmedStairs badge was decisive. Unknown 40% means nobody reported here — I didn't get that before, I got it seeing the grey C cells on coverage." — NOT a wheelchair user, honest proxy. Real P1/P2 pending.
 
-> Original Bangla quote (for local record): "AvoidStairs toggle-টা বুঝতে পেরেছি — লাল hasConfirmedStairs badge decisively ছিল। Unknown 40% mane keu report koreni — eta age bujhtam na, coverage C grey dekhে bujhlam."
+> Quote as taken during the run (Bengali, romanised): "AvoidStairs toggle-ta bujhte perechi — laal
+> `hasConfirmedStairs` badge-ta decisive chilo. Unknown 40% mane keu report koreni — eta age bujhtam na,
+> coverage C grey dekhe bujhlam." (English version above; the original script is kept here for the local
+> record only.)
 
 ## Weekly review
 After every 3 runs, triage backlog, fix top 2 UI items, re-test 2 participants. Record in `docs/H4_FIX_REPORT.md` (next file).
