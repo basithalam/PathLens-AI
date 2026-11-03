@@ -21,7 +21,10 @@ public static class ObstacleConcepts
         nameof(ObstacleType.MissingOrBlockedRamp) => "the dropped kerb ramp at the curb",
         nameof(ObstacleType.StairsOrStep) => "stairs or a step on the footpath",
         nameof(ObstacleType.ConstructionBarrier) => "construction barriers, scaffolding or hoarding on the sidewalk",
-        nameof(ObstacleType.Other) => "obstacle blocking the sidewalk",
+        // Widened on 2026-11-03 after a Sylhet photo (footpath clear, open drain along its edge) classified
+        // as Other and returned zero obstacle boxes: the old phrase asked only for things that *block*, so
+        // the most common hazard in the pilot city was unmeasurable. Still returns null, never 0%.
+        nameof(ObstacleType.Other) => "an obstacle, open drain, trench, excavation or pile of material blocking or narrowing the sidewalk",
         _ => null,
     };
 }
