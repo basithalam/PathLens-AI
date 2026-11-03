@@ -1,218 +1,258 @@
-# PathLens AI — চাকা-চলাচলকারী ব্যবহারকারীর ফিডব্যাক ম্যানুয়াল
+# PathLens AI — Wheelchair User Feedback Manual
 
-**কীসের গাইড:** একজন wheelchair user বা চলাচলে অসুবিধা থাকা মানুষ **UI দিয়ে কীভাবে ফিডব্যাক দেবেন** — প্রতিটা ক্লিক, প্রতিটা লেবেল, আর যেখানে UI সাহায্য করে না সেখানে কী করতে হবে।
-**যে ভাষায় অ্যাপ চলছে:** English (বাংলা UI এই বিল্ডে নেই — `lib/i18n.tsx` stub-টা ২০২৬-১১-০৩ মুছে ফেলা হয়েছে)। তাই নিচে UI-র ইংরেজি লেবেল হুবহু উদ্ধৃত, বাকিটা বাংলায়।
-**Live:** https://pathlens.cognitivebd.com · **Local:** http://localhost:3000
+**What this is:** a click-by-click guide for how a wheelchair user, or a person with mobility difficulties,
+gives feedback through the PathLens UI — every screen, every button label, every field, in order. Written for
+judges and facilitators, so it names the exact on-screen text rather than describing it loosely.
 
----
-
-## ০. এক নজরে — ফিডব্যাক দেওয়ার ৫টা রাস্তা, কোনো লগইন ছাড়াই
-
-| # | ব্যবহারকারী কী করবে | কোথায় (URL) | পিছনে কোন API |
-|---|---|---|---|
-| ১ | নতুন বাধার **report** তৈরি | `/report/new` | `POST /api/reports` |
-| ২ | report-এ **ছবি যোগ** + AI analysis | report page → *Photo evidence* | `POST /api/reports/{id}/evidence`, `POST /api/evidence/{id}/analyze` |
-| ৩ | পুরোনো/নতুন ছবি **তুলনা** | report page → *Evidence explorer* | `POST /api/comparisons` |
-| ৪ | **Quick feedback** — ৪টা বাটন + নোট | report page → *Quick feedback* panel | `POST /api/reports/{id}/feedback` |
-| ৫ | নিজের claim **সংশোধন** | `/reports/{id}/edit` | `PATCH /api/reports/{id}` |
-
-> **গুরুত্বপূর্ণ:** ১–৫ কোনোটিতেই account বা password লাগে না। এটা কোডে নিশ্চিত করা (`ReportEndpoints.cs`, `EvidenceEndpoints.cs`, `ComparisonEndpoints.cs` — এই endpoint গুলায় `RequireAuthorization` নেই)। মানে participant-কে "আগে login করো" বলা যাবে না, বললে ভুল বলা হবে।
+**Live demo:** https://pathlens.cognitivebd.com · **Local:** http://localhost:3000
+**UI language:** English only in this build (the Bengali i18n stub was removed on 2026-11-03 — see §7).
 
 ---
 
-## ১. প্রথম জিনিস: নতুন report দিয়ে ফিডব্যাক (সবচেয়ে কাজের পথ)
+## 0. The five feedback paths — none of them require an account
 
-**ঠিকানা:** `/report/new` — বা যেকোনো পেজের উপর-ডানে **+ Report** বাটন।
+| # | What the user does | Where | Endpoint behind it | Login? |
+|---|---|---|---|---|
+| 1 | Report a new obstacle | `/report/new` | `POST /api/reports` | **No** |
+| 2 | Add a photo, run AI analysis | report page → *Photo evidence* | `POST /api/reports/{id}/evidence`, `POST /api/evidence/{id}/analyze` | **No** |
+| 3 | Compare an old and a new photo | report page → *Evidence explorer* | `POST /api/comparisons` | **No** |
+| 4 | Tap one of four Quick feedback buttons | report page → *Quick feedback* | `POST /api/reports/{id}/feedback` | **No** |
+| 5 | Correct their own claim | `/reports/{id}/edit` | `PATCH /api/reports/{id}` | **No** |
 
-ফর্মে যা যা আছে (উপরে থেকে নিচে, হুবহু লেবেল):
+Verified in code, not assumed: those routes carry no `RequireAuthorization`. The review endpoints are the
+opposite — `POST /api/reports/{id}/review`, `/duplicate/confirm`, `/duplicate/reject` and
+`GET /api/reviewer/*` all require the Reviewer policy. **So a participant never has to sign in to give
+feedback; only a reviewer signs in to act on it.**
 
-1. **Title** — জায়গাটা চেনার মতো নাম লিখুন। যেমন `Zindabazar crossing — rickshaw stand on the ramp`
-2. **Description (optional)** — কী বাধা, কত চওড়া জায়গা বাকি, কখন দেখলেন
-3. **Obstacle type** — dropdown, ৭টা মান:
+---
+
+## 1. Report an obstacle — the most useful form of feedback
+
+**Open:** `/report/new`, or the **+ Report** button at the top right of every page.
+
+Fields, top to bottom, exactly as labelled:
+
+1. **Title** — name the place so a stranger can find it, e.g. `Zindabazar crossing — rickshaw stand on the ramp`
+2. **Description (optional)** — what blocks it, how much width is left, when you saw it
+3. **Obstacle type** — dropdown with seven values:
    `BlockedSidewalk` · `BrokenSurface` · `MissingOrBlockedRamp` · `StairsOrStep` · `ConstructionBarrier` · `Other` · `Unknown`
 4. **Severity** — `Unknown` · `Low` · `Medium` · `High`
-   > চাকা-চলাচলের জন্য practical ধরন: গাড়ি/রিকশা দখল = `BlockedSidewalk`; ফাটল/গর্ত = `BrokenSurface`; ramp নেই বা বন্ধ = `MissingOrBlockedRamp`; সিঁড়ি = `StairsOrStep`
-5. **Latitude / Longitude** — তিনটা উপায়:
-   - **Use my location** বাটন → browser GPS থেকে ভরে যায়; নিচে `accuracy ~Xm` লেখা আসে
-   - **Pick on map** বাটন → মানচিত্র খোলে; ট্যাপ করলে point বসে, marker টেনে ঠিক করা যায়
-   - সরাসরি টাইপ
-6. **What did you actually see? (optional — Unknown is honest)** fieldset — এটাই চাকা-ব্যবহারকারীর সবচেয়ে দামি অংশ:
+5. **Latitude / Longitude** — three ways to fill them:
+   - **Use my location** — browser GPS fills both, and a note appears with the accuracy, e.g.
+     `Location filled from your browser (accuracy about 12 m). Check it before submitting.`
+     If accuracy is over 50 m the note adds `⚠️ Accuracy is low (>50m) — drag the map pin to fine-tune.`
+   - **Pick on map** — opens an embedded map; tap to drop the pin, drag it to adjust
+   - type the numbers directly
+6. **What did you actually see? (optional — Unknown is honest)** — this is the field that matters most for
+   rolling users:
    - **Stairs or a step here?** → `Unknown` / `Yes` / `No`
    - **Ramp here?** → `Unknown` / `Yes` / `No`
    - **Surface** → `Unknown` / `Smooth` / `Uneven` / `Broken`
-   > না জেনে গেলে **Unknown রাখুন**। সিস্টেমে estimate করা হয় না, আর route card-এ `Stairs/ramp/surface not measured here (unknown, not estimated)` দেখায়। ভুল `No` দেওয়াই বেশি ক্ষতিকর।
-7. **Consent checkbox** (আনচেক করলে submit হয় না) — ছবি নিজের, মুখ/নম্বর প্লেট নেই, retention policy-তে সম্মতি
-8. **Create report** বাটন → তৈরি হলে সরাসরি report page-এ নিয়ে যায়
 
-**তারপর report page-এ:** ছবি যোগ করুন (ধাপ ২)। report তৈরির মুহূর্তে সেটা `Unverified` — এটা ঠিক আছে, human review না হওয়া পর্যন্ত তাকে claim ধরা হয়।
+   > Leave any of them on **Unknown** if you did not check. The system never estimates them, and the route
+   > card then reads `Stairs/ramp/surface not measured here (unknown, not estimated)`. A wrong `No` is worse
+   > for the next user than an honest `Unknown`.
+7. **Consent checkbox** — required; the form will not submit without it
+8. **Create report** — takes you straight to the new report page
 
----
-
-## ২. ছবি দিয়ে প্রমাণ যোগ করা
-
-**ঠিকানা:** `/reports/{id}` → **Photo evidence** section।
-
-1. **Choose a photo or drop it here** — JPEG / PNG / WebP, ১০ MB পর্যন্ত। টেনে এনে ফেলেও দিতে পারেন
-2. **When was this photo taken? (optional)** — তারিখ+সময়। দিলে comparison time-based দাবি করতে পারে; না দিলে upload time ধরা হয়, আর ফর্ম নিজেই বলে: *"Capture time is your claim, not a verified fact."*
-3. **Upload photo** → ছবি card-এ আসে
-4. card-এর **Run analysis** বাটন → Meta AI (`✓ Live Meta AI`) এগুলো দেয়:
-   - **Possible obstacle** type
-   - **AI confidence** bar (৪০% / ৭০% এ dash — Low / Medium / High)
-   - **Visible evidence** — মডেল কী কী দেখে বলেছে
-   - **Limitations** — কী জানা যায় না
-   - **Human review required** callout (হলুদ)
-5. **Retry analysis** — ব্যর্থ হলে (server exact কারণ রাখে, বানিয়ে বলে না)
-
-> **সীমাবদ্ধতা (participant-কে আগেই বলুন):** upload **ঘণ্টায় ১০টা** (H5 rate limit)। ১০টা ছবির বেশি পরীক্ষা করলে ৪২৯ আসে — সেটা মডেলের ভুল না, infrastructure-র throttle।
+A new report is marked **Unverified** on arrival. That is correct and is shown openly — it becomes a verified
+fact only after a reviewer acts on it (§6).
 
 ---
 
-## ৩. একই জায়গার দুই ছবি তুলনা (সময়ের সাথে কী বদলালো)
+## 2. Add photo evidence
 
-**ঠিকানা:** report page → **Evidence explorer — compare over time**।
+**Open:** any report page (`/reports/{id}`) → section **Photo evidence**.
 
-1. **Earlier photo** select → পুরোনো ছবি
-2. **Later photo** select → নতুন ছবি
-3. **Compare photos** বাটন
-4. ফলাফল ৪টার একটা, explanation সহ:
+1. **Choose a photo or drop it here** — JPEG, PNG or WebP, up to 10 MB. Drag and drop works too
+2. **When was this photo taken? (optional)** — date and time picker. The panel states the rule in plain words:
+   *"Capture time is your claim, not a verified fact. Without it, comparisons cannot make a time-based claim."*
+3. **Upload photo** — the image is stored privately and served back only through the API
+4. On the new photo's card, press **Run analysis** (or **Retry analysis** if an earlier attempt failed)
 
-| Outcome | মানে | যা **বোঝায় না** |
+What comes back, and what to read first:
+
+- **Possible obstacle** — the type the model proposes
+- **AI confidence** — a bar with tick marks at 40% and 70%, labelled
+  `Low — treat as weak evidence` / `Medium — uncertain, verify` / `High — still needs human check`
+- **Visible evidence** — what the model says it can see in the frame
+- **Limitations** — what it cannot tell from this photo
+- **`✓ Live Meta AI`** or **`Demo/mock analysis — not real AI`** — which provider actually ran
+- **Human review required** — an amber callout while no reviewer has acted
+
+> **Limits to warn participants about before they start:** uploads are capped at **10 per hour** per client
+> (H5 rate limit). If a session pushes more than ten photos, the eleventh returns HTTP 429 — that is
+> infrastructure throttling, not a model failure.
+
+---
+
+## 3. Compare two photos of the same place
+
+**Open:** report page → section **Evidence explorer — compare over time**.
+
+1. **Earlier photo** — pick from the dropdown (only analysed photos appear)
+2. **Later photo** — pick the newer one
+3. **Compare photos**
+
+The outcome is one of four, each with a written explanation:
+
+| Outcome | What it means | What it does **not** mean |
 |---|---|---|
-| `LikelyStillPresent` | বাধা সম্ভবত এখনো আছে | নিশ্চিত যে আছে |
-| `NotObservedInNewImage` | নতুন ছবিতে দেখা যায়নি | **সরানো হয়নি** — angle/coverage-ও হতে পারে |
-| `ConflictingEvidence` | দুই ছবি বিरोধিতা করে | কারো একটা ভুল — human দরকার |
-| `Inconclusive` | যথেষ্ট প্রমাণ নেই | পথ পরিষ্কার |
+| `LikelyStillPresent` | the obstacle is probably still there | proof it is there |
+| `NotObservedInNewImage` | the newer photo did not show it | **it was not removed** — angle or coverage may explain it |
+| `ConflictingEvidence` | the two photos disagree | either one is wrong — a human must look |
+| `Inconclusive` | not enough to decide | the path is clear |
 
-> দুটো ছবি একই report-এর হতে হবে, আর দুটোরই analysis `Completed` দরকার। না হলে panel বলে: *"Two analysed photos are needed before a comparison can run."*
+If fewer than two photos are analysed, the panel says so directly:
+*"Two analysed photos are needed before a comparison can run."* Both photos must belong to the same report.
 
 ---
 
-## ৪. Quick feedback — সবচেয়ে সহজ পথ (১ ট্যাপ)
+## 4. Quick feedback — the one-tap path
 
-**ঠিকানা:** যেকোনো report page → **Quick feedback — help keep this honest** panel।
+**Open:** any report page → panel **Quick feedback — help keep this honest**.
 
-৪টা বাটন, হুবহু এই লেখা:
+Four buttons, verbatim labels:
 
-| বাটনে লেখা | কখন ট্যাপবেন |
+| Button reads | Use it when |
 |---|---|
-| **Still visible — obstacle is still there** | গিয়ে দেখেছেন বাধাটা এখনো আছে |
-| **Not in new photo — I checked, it's not visible now** | গিয়ে দেখেছেন এখন নেই (তবুও "সরানো হয়েছে" দাবি করে না) |
-| **Information wrong or old** | তথ্য ভুল, নাগাল নাই, বা অনেক পুরোনো |
-| **Not sure** | নিশ্চিত নন — এটাও দামি তথ্য |
+| **Still visible — obstacle is still there** | you went and it is still blocking |
+| **Not in new photo — I checked, it's not visible now** | you went and it is gone from view |
+| **Information wrong or old** | the report is wrong, out of date, or not what you saw |
+| **Not sure** | you cannot tell — this is genuinely useful data |
 
-- চাইলে **Optional note (what you saw, when)** লিখুন — যেমন `Checked today 3pm, still blocked by scaffolding`
-- ট্যাপ করলে message আসে: *"Thanks — your "<kind>" feedback was recorded. It does not auto-change verification; it will be reviewed."*
+- Optional **note** box: **Optional note (what you saw, when)**, e.g. `Checked today 3pm, still blocked by scaffolding`
+- After a tap, the confirmation reads: *"Thanks — your "<kind>" feedback was recorded. It does not auto-change
+  verification; it will be reviewed."*
 
-### এটা যে কাজ করছে — কোথায় দেখা যায়
-| কোথায় | কী দেখা যায় |
+**Where that feedback then appears** — show this to a participant, it is what closes the loop:
+
+| Where | What they see |
 |---|---|
-| `/reviewer` → audit trail | `FeedbackStillVisible` / `FeedbackNotInNewPhoto` / `FeedbackWrongOrStale` entries, সময় + actor সহ |
-| `/admin` → Pilot analytics | **Feedback: wrong/stale** stat tile |
-| API | `GET /api/reports/feedback/summary` (reviewer) — সপ্তাহভিত্তিক কারণ অনুযায়ী grouped |
+| `/reviewer` → audit trail | `FeedbackStillVisible`, `FeedbackNotInNewPhoto`, `FeedbackWrongOrStale` entries with time and actor |
+| `/admin` → Pilot analytics | the **Feedback: wrong/stale** stat tile |
+| API | `GET /api/reports/feedback/summary` — weekly, grouped by cause |
 
-> **Design-সিদ্ধান্ত, bug না:** feedback ট্যাপ করলে report-এর verification status **বদলায় না**। একজন reviewer সিদ্ধান্ত নেন। এটা participant-কে বুঝিয়ে বলুন — না বুঝলে মনে করবেন "ট্যাপ কাজ করেনি"।
-> লগইন ছাড়া ট্যাপ করলে actor খালি থাকে; চাইলে আগে `/reviewer`-এ এক ট্যাপে reviewer/admin login করে দিতে পারেন (panel-এ password ছাপা আছে) — তাহলে audit-এ নামও ওঠে।
-
----
-
-## ৫. নিজের ভুল তথ্য সংশোধন
-
-**ঠিকানা:** report page → উপরে-ডানে **Edit report** (`/reports/{id}/edit`)।
-
-পারবেন: **Title**, **Description**, **Obstacle type**, **Severity**।
-পারবেন না: **Location** (coordinate original claim-এর অংশ) — form নিজেই বলে: *"Location cannot be edited here; coordinates are part of the original claim."* আর verification status এখান থেকে বদলায় না, শুধু reviewer console থেকে।
+> **Explain this before they tap:** feedback never changes a report's verification status by itself. A
+> reviewer decides. Without that sentence, a participant concludes "my tap did nothing".
+> Tapping while signed out leaves the actor empty; if you want their name in the trail, use the one-tap
+> **Reviewer** sign-in on `/reviewer` first (all three demo credentials are printed on the panel).
 
 ---
 
-## ৬. Map আর Route দিয়ে feedback-এর পরিপ্রেক্ষিত
+## 5. Correct an existing claim
 
-- **`/map`** — `Obstacle type` + `Verification` filter, **Use my location**, দুটো switch: **Show cameras** আর **Coverage layer — where we have / do not have evidence**
-  - Marker অক্ষর: `!` unverified · `V` human-verified · `?` disputed · `X` rejected · square `C` camera
-  - Coverage cell: `A` evidence · `B` obstacle evidence · `C` **hatched = কেউ report করেনি** — "clear" না
-  - ডান পাশের list আর map সবসময় একই report দেখায়; list-এর title-এ ক্লিক করলে selected report card খোলে
-- **`/routes`** — From/To (টাইপ, address search, বা **Pick on map**), তারপর **Plan routes**
-  - প্রতিটা route card-এ: দূরত্ব, সময়, **known obstacles**, **% unknown** bar, `Avoid stairs`/`Verified`/`Avoid stale`/`Shortest` preference chip
-  - **Preferences** toggle করলে ranking বদলায়, কিন্তু কোনো known obstacle লুকোয় না
+**Open:** report page → **Edit report** (top right) → `/reports/{id}/edit`.
 
----
+Editable: **Title**, **Description (optional)**, **Obstacle type**, **Severity**, then **Save changes**.
 
-## ৭. যা এই UI-তে এখনো করা যায় না — honest list
-
-Participant-কে ভুল দাবি করবেন না। এই বিল্ডে **নেই**:
-
-| না-থাকার জিনিস | বর্তমান অবস্থা | তাই কী করবেন |
-|---|---|---|
-| **Reporter account / registration** | `AppUser` শুধু seeded staff account; public registration নেই | "My reports" list নেই — report page-এর URL (`/reports/<id>`) সেভ করে রাখুন |
-| **Delete button** | `DELETE /api/reports/{id}` আছে কিন্তু শুধু signed-in, UI-তে কোনো বাটন নেই | মোছার অনুরোধ maintainer-কে জানান; consent text-এ এটাই লেখা আছে |
-| **Route usability feedback** ("এই route-টা সত্যিই চলা যায়") | Quick feedback শুধু **report** নিয়ে, route নিয়ে না | paper/interview-এ নোট করুন (নিচের ফর্ম) |
-| **In-UI contact channel** | নেই | session শেষে maintainer-এর email/ফোন paper-এ দিন |
-| **বাংলা UI** | নেই (English only) | প্রতিটা screen-এ বাংলায় মানে বুঝিয়ে দিন; এই ফাইলটাই সেই স্ক্রিপ্ট |
-| **Voice-first / screen-reader flow** | semantic HTML, `aria-live`, letter+colour dual encoding আছে; dedicated voice output নেই | screen reader দিয়ে test করে দেখুন, যা ভাঙে সেটা নোট করুন |
+Not editable here, and the form says why:
+*"Location cannot be edited here; coordinates are part of the original claim. Verification status and
+evidence history are also outside this form — only a reviewer changes those, in the review console."*
 
 ---
 
-## ৮. Session চালানোর নিয়ম (observer-এর জন্য)
-
-**Prep (৫ মিনিট)**
-1. https://pathlens.cognitivebd.com/health/ready → তিনটা check `Healthy` কিনা দেখুন
-2. participant-এর ফোনে/laptop-এ `/reports` খুলে একটা report সামনে রাখুন
-3. consent form ছাপুন (নিচে) — **সম্মতি ছাড়া শুরু করবেন না**
-4. সাহায্য করবেন না ২ মিনিট আটকে থাকলেও; ওরপর hint দিন, ক্লিক করে দেখিয়ে দিবেন না
-
-**Task (১০ মিনিট)** — participant নিজের ভাষায় করবে, আপনি শুধু দেখবেন
-1. "আপনার-route-এর একটা বাধা report করুন" → ধাপ ১
-2. "সেটার একটা ছবি দিন আর analysis চালান" → ধাপ ২
-3. "আজ গিয়ে দেখেছেন কী — নিচের ৪টা বাটনের একটা ট্যাপ করুন" → ধাপ ৪
-4. "একটা route plan করুন; কোনটা বেছে নেবেন আর কেন?" → ধাপ ৬
-5. "Route-এর 'unknown ৪০%' মানে কী?" → সঠিক উত্তর: *কেউ report করেনি, তাই পরিষ্কার প্রমাণিত না* — "নিরাপদ" হলে ভুল
-
-**Interview (১০ মিনিট, consent থাকলে audio)**
-- কোন তথ্যটা সিদ্ধান্ত নিতে সবচেয়ে কাজে লেগেছে?
-- কোনটা বিভ্রান্ত করেছে?
-- "unknown" দেখে আপনি কি route বদলাতেন?
-- এটা কি আপনাকে **বেশি নির্ভর** করাবে? কী ভাবলে সেটা কমবে?
-- সত্যিকারের যাত্রার আগে কী জানতে চান, যা এখানে পান না?
-
-**Record** — প্রতিটা observation `docs/H8_WHEELCHAIR_USER_TEST.md`-এ যোগ করুন, **proxy না real participant — সেটা স্পষ্ট label করে**। আগের entry-তে ১টা proxy run আছে, real user এখনো নেই; সেটা যেন মিথ্যা না হয়।
-
----
-
-## ৯. Route-usability-র জন্য paper ফর্ম (UI-তে জায়গা নেই, তাই কাগজে)
+## 6. How a report becomes trustworthy (so users know what their tap does *not* do)
 
 ```
-Participant (P1/P2 only, নাম প্রকাশ নয়): ____  Role: manual / electric / caregiver
-Route দেখা:  card 1 / 2 / 3      বেছে নিলাম: ____
-কেন নিলাম (নিজের কথায়): ______________________________________________
-"unknown __%" বুঝলাম:  হ্যাঁ / না      যা বুঝলাম: ______________________
-বাধা দেখা গেছে?  হ্যাঁ / না / জানি না    ধরন: BlockedSidewalk / BrokenSurface /
-                                          MissingOrBlockedRamp / StairsOrStep / Other
-ছবি আছে?  হ্যাঁ / না   (থাকলে app-এ upload করুন — ধাপ ২)
-App যা বলেছিল আর বাস্তবে যা ছিল: ______________________________________
-সবচেয়ে দরকারি তথ্য ছিল: __________   সবচেয়ে বিভ্রান্তিকর: __________
-স্ক্রিন রিডার/বড় ফন্ট দিয়ে চালাতে সমস্যা:  নেই / আছে — কী: __________
-আমি কি এটা সত্যিকারের যাত্রার আগে ব্যবহার করব?  হ্যাঁ / না — কেন: ________
+someone reports a place        →  claim, marked Unverified
+photo evidence added           →  person or camera, stored privately
+Meta AI reads the photo        →  type + visible evidence + confidence + limitations
+evidence compared over time    →  LikelyStillPresent / NotObserved / Conflicting / Inconclusive
+a human reviews it             →  Verify · Dispute · Reject, with a note, in an audit trail
+routes use what is known       →  ranking weighs obstacles, freshness, verification; the rest stays unknown
+```
+
+Reviewer decisions are stored **beside** the AI output, never instead of it. A reviewer signs in at
+`/reviewer` with the one-tap card; the queue lists unverified reports, camera candidates, possible duplicates
+and conflicting comparisons.
+
+---
+
+## 7. What this build cannot take as feedback yet
+
+Say these plainly. Do not let a participant believe a screen collects something it does not.
+
+| Not available | Current state | What to do instead |
+|---|---|---|
+| **Reporter accounts / registration** | only seeded staff accounts exist; there is no sign-up | bookmark or note the report URL `/reports/<id>` — there is no "my reports" list |
+| **Delete button** | `DELETE /api/reports/{id}` exists but needs a signed-in account, and no UI control calls it | ask the maintainer to remove it; the consent text says this |
+| **Route usability feedback** | the four Quick feedback kinds describe a **report**, never a route | use the paper form in §9 |
+| **Contact channel in the UI** | none | give participants the maintainer's email on paper |
+| **Bengali interface** | removed; English only | explain each screen in the participant's language — this file is the script |
+| **Voice-first output** | semantic HTML, `aria-live` regions and letter+colour marker encoding exist; there is no spoken output | run a screen reader over `/map` and `/report/new` and record what breaks |
+
+---
+
+## 8. Running a session (facilitator notes)
+
+**Setup — 5 minutes**
+1. Open `https://pathlens.cognitivebd.com/health/ready` and confirm all three checks are `Healthy`
+2. Have one report page already open at `/reports` so you are not hunting during the session
+3. Print the consent form (§10). **Do not start without it**
+4. Put the laptop on the desk and a phone on the tray, at the height they will really use
+
+**Task — 10 minutes.** The participant does the tapping; you watch and stay quiet.
+1. "Report one obstacle on a route you use." → §1
+2. "Add a photo of it and run the analysis." → §2
+3. "You went back today — tap whichever of the four buttons fits." → §4
+4. "Plan a route and tell me which one you would take, and why." → §6 of the app, `/routes`
+5. "What does '40% unknown' on that route mean?"
+   Correct answer: *nobody has reported there, so it is not proven clear.* "It means it is safe" is the failure.
+
+**Interview — 10 minutes** (record audio only with written consent)
+- Which piece of information actually changed your decision?
+- Which screen confused you?
+- Would you rely on this before a real trip? What would make you trust it, or stop trusting it?
+- Does this make you over-reliant on the app? What is missing that you would still want to check?
+
+**Recording results:** add each run to `docs/H8_WHEELCHAIR_USER_TEST.md` and **label it clearly as a real
+participant or a proxy**. That file currently holds one proxy run by an accessibility reviewer and zero real
+wheelchair users; keep it honest rather than filling the gap with guesses.
+
+---
+
+## 9. Route usability paper form (the UI does not collect this)
+
+```
+Participant (P1/P2 only, no published names): ____   Role: manual / electric / caregiver
+Route shown:  card 1 / 2 / 3        Chose: ____
+Why I chose it (own words): ______________________________________________
+"unknown __%" understood?  yes / no     What I took it to mean: ____________
+Obstacle actually present?  yes / no / unsure    Type: BlockedSidewalk / BrokenSurface /
+                                                   MissingOrBlockedRamp / StairsOrStep / Other
+Photo available?  yes / no   (if yes, upload it in the app — §2)
+What the app said vs what I found: ________________________________________
+Most useful information: ____________   Most confusing: ____________________
+Problems using a screen reader / large text / one hand:  none / yes — what: ________
+Would I use this before a real trip?  yes / no — why: ______________________
 ```
 
 ---
 
-## ১০. Consent template (কাগজে কপি করুন)
+## 10. Consent template
 
-> আমি স্বেচ্ছায় PathLens AI-এর hallway test-এ অংশ নিচ্ছি। আমার স্ক্রিন/ইন্টারঅ্যাকশন demo-র জন্য রেকর্ড হতে পারে, কিন্তু লিখিত অনুমতি ছাড়া আমার নাম বা ছবি প্রকাশ করা হবে না। আমি যেকোনো সময় থামতে পারি। Contact: [organiser email]
+> I take part in the PathLens AI hallway test voluntarily. My screen and interaction may be recorded for the
+> demo, but my name or photo will not be published without my written permission. I can stop at any time.
+> Contact: [organiser email]
 > Participant signature: ______  Date: ______  Organiser: ______
 
 ---
 
-## ১১. দ্রুত সমস্যা-নিরসরণ
+## 11. Troubleshooting
 
-| লক্ষণ | কারণ | কী করবেন |
+| Symptom | Cause | Fix |
 |---|---|---|
-| ছবি upload 429 দেয় | ঘণ্টায় ১০টা upload limit | ১ ঘণ্টা পর আবার, বা eval হলে `-UploadSpacingSeconds` |
-| login 429 | মিনিটে ৫টা attempt | ১ মিনিট অপেক্ষা |
-| analysis `Failed` | AI provider config নেই/timeout | `/health/ready`-তে `ai-provider` দেখুন; report page-এর **Retry analysis** |
-| Compare বাটনে দুটো ছবি ধরা দেয় না | দুটোরই analysis `Completed` দরকার | আগে দুটোরই Run analysis |
-| `Demo/mock analysis` লেখা | AI provider Mock mode | এটা real AI না — UI নিজেই স্পষ্ট label করে |
-| map খালি | ওই viewport-এ report নেই | এটাই product-এর বার্তা: *unknown ≠ clear* |
+| Photo upload returns 429 | 10 uploads per hour limit | wait an hour, or pace an eval run with `-UploadSpacingSeconds` |
+| Sign-in returns 429 | 5 login attempts per minute | wait one minute |
+| Analysis shows **Failed** | AI provider not configured, or the call errored | check `/health/ready` → `ai-provider`, then **Retry analysis** on the photo card |
+| **Compare photos** has no options | both photos need `Completed` analysis first | run analysis on both |
+| Badge reads **Demo/mock analysis** | provider is in Mock mode | labelled as not real AI by design; set the Meta provider for live results |
+| Map looks empty in an area | nobody has reported there | that is the product's message: unknown is not clear |
 
 ---
 
-**সংক্ষিপ্ত:** ব্যবহারকারীর ফিডব্যাকের আসল পথ = **report তৈরি → ছবি → Quick feedback-র ৪টা বাটন → প্রয়োজনে edit**। সব লগইন ছাড়া চলে, কোনোটাতেই verification সরাসরি বদলায় না (reviewer বদলায়), আর route-usability এখনো UI-তে যায় না — সেটা ধাপ ৯-এর কাগজে নোট করুন।
+**In one line:** a wheelchair user gives feedback by **reporting a place → adding a photo → tapping one of the
+four Quick feedback buttons → editing if needed**. All of it works with no account and no password, none of it
+silently changes a verification status, and route usability — the thing the UI cannot yet ask — goes on the
+paper in §9.
