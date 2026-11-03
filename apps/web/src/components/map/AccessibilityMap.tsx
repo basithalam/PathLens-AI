@@ -403,24 +403,24 @@ export function AccessibilityMap() {
             ))}
           </select>
         </label>
-        <button type="button" onClick={useMyLocation}>
+        <button type="button" onClick={useMyLocation} className="btn btn--brand">
           Use my location
         </button>
-        <label>
+        <label className="switch">
           <input
             type="checkbox"
             checked={showCameras}
             onChange={(event) => setShowCameras(event.target.checked)}
           />{" "}
-          Show cameras (square C markers)
+          Show cameras — square <span className="mono">C</span> markers
         </label>
-        <label>
+        <label className="switch">
           <input
             type="checkbox"
             checked={showCoverage}
             onChange={(event) => setShowCoverage(event.target.checked)}
           />{" "}
-          Coverage layer: where we have /don&apos;t have evidence
+          Coverage layer — where we have / do not have evidence
         </label>
       </div>
 
@@ -428,37 +428,88 @@ export function AccessibilityMap() {
         <section className="coverage-summary" aria-live="polite">
           {coverage ? (
             <>
-              <h3 style={{ marginTop: 0 }}>Evidence coverage in this view</h3>
-              <p style={{ margin: "0.4rem 0" }}>
-                <strong>{coverage.summary.totalCells} cells</strong> · {coverage.summary.coveredCells} with evidence, {coverage.summary.insufficientCells} without —{" "}
-                <em>Unknown is not proof of clear.</em> Cell size ~{Math.round(coverage.cellSizeMeters)} m.
-                {coverageLoading && " Updating…"}
+              <h3>Evidence coverage in this view</h3>
+              <p>
+                <strong>{coverage.summary.totalCells} cells</strong> ·{" "}
+                {coverage.summary.coveredCells} with evidence,{" "}
+                {coverage.summary.insufficientCells} without · cell size ~
+                {Math.round(coverage.cellSizeMeters)} m
+                {coverageLoading ? " · updating…" : ""}
               </p>
               <div className="coverage-legend">
-                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#c9d2cd", border: "1px solid #8a8a8a", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />C — Insufficient (no data)</span>
-                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#ffcc80", border: "1px solid #8a5a00", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />B — Obstacle evidence</span>
-                <span><span style={{ display: "inline-block", width: 14, height: 14, background: "#a8e6cf", border: "1px solid #0b6b4f", marginRight: 6, verticalAlign: "middle" }} aria-hidden="true" />A — Evidence present</span>
+                <span>
+                  <span className="swatch swatch--c" aria-hidden="true" />C — Insufficient (no data)
+                </span>
+                <span>
+                  <span className="swatch swatch--b" aria-hidden="true" />B — Obstacle evidence
+                </span>
+                <span>
+                  <span className="swatch swatch--a" aria-hidden="true" />A — Evidence present
+                </span>
               </div>
-              <p style={{ fontSize: "0.85rem", color: "var(--muted)", marginBottom: 0 }}>
-                Each cell is a summary. A “C” cell may still contain a usable path — it only means no one has reported there yet. Tap a cell to zoom and see its centre. Letter inside each cell (A/B/C) matches the colour — never colour alone.
+              <p className="hint">
+                Each cell is a summary, not a verdict. A “C” cell may still contain a usable path — it only
+                means nobody has reported there yet. The letter inside each cell matches its colour, so the
+                map is never readable by colour alone.
               </p>
               {selectedCell && (
                 <div className="coverage-selected" role="status">
-                  <strong>Selected cell {selectedCell.cellId}</strong> — {selectedCell.status === "InsufficientInfo" ? "C — Insufficient (no data — travel with caution)" : selectedCell.status === "ObstacleEvidence" ? `B — Obstacle (${selectedCell.reportCount} reports)` : `A — Evidence`} · centre {selectedCell.centerLatitude.toFixed(5)}, {selectedCell.centerLongitude.toFixed(5)} · verified {selectedCell.verifiedCount} · stale {selectedCell.staleCount}
-                  <br />
-                  <span style={{ fontSize: "0.9rem" }}>Reports in this cell: {reports.filter(r => r.latitude >= selectedCell.minLatitude && r.latitude <= selectedCell.maxLatitude && r.longitude >= selectedCell.minLongitude && r.longitude <= selectedCell.maxLongitude).length} — click a report below or pan to see them.</span>{" "}
-                  <button type="button" onClick={() => setSelectedCell(null)} style={{ marginLeft: 8, fontSize: "0.85rem" }}>Clear selection</button>
+                  <strong>
+                    Selected cell <span className="mono">{selectedCell.cellId}</span>
+                  </strong>
+                  <span>
+                    {selectedCell.status === "InsufficientInfo"
+                      ? "C — Insufficient: no data, travel with caution"
+                      : selectedCell.status === "ObstacleEvidence"
+                        ? `B — Obstacle evidence (${selectedCell.reportCount} reports)`
+                        : `A — Evidence present (${selectedCell.reportCount} reports)`}
+                  </span>
+                  <span className="mono">
+                    centre {selectedCell.centerLatitude.toFixed(5)}, {selectedCell.centerLongitude.toFixed(5)}{" "}
+                    · verified {selectedCell.verifiedCount} · stale {selectedCell.staleCount}
+                  </span>
+                  <span className="hint">
+                    {reports.filter(
+                      (r) =>
+                        r.latitude >= selectedCell.minLatitude &&
+                        r.latitude <= selectedCell.maxLatitude &&
+                        r.longitude >= selectedCell.minLongitude &&
+                        r.longitude <= selectedCell.maxLongitude,
+                    ).length}{" "}
+                    loaded reports fall inside this cell — pick one from the list, or pan to see them.
+                  </span>
+                  <span>
+                    <button type="button" className="btn btn--ghost btn--sm" onClick={() => setSelectedCell(null)}>
+                      Clear selection
+                    </button>
+                  </span>
                 </div>
               )}
             </>
           ) : (
-            <p style={{ margin: 0 }} className="coverage-empty">{coverageLoading ? "Loading coverage…" : "Pan to San Francisco — coverage will appear. No cell is proven safe."} <em>Legend: C grey = Insufficient, B orange = Obstacle, A green = Evidence — always letter+colour, never colour alone.</em></p>
+            <p className="coverage-empty">
+              {coverageLoading
+                ? "Loading coverage…"
+                : "Pan to San Francisco — coverage will appear here. No cell is proven safe."}{" "}
+              <em>
+                C grey hatched = insufficient, B amber = obstacle evidence, A green = evidence present.
+              </em>
+            </p>
           )}
         </section>
       )}
 
-      {locationNote && <p>{locationNote}</p>}
-      {loading && <p aria-live="polite">Loading reports for this area…</p>}
+      {locationNote && (
+        <p role="status" className="notice">
+          {locationNote}
+        </p>
+      )}
+      {loading ? (
+        <div className="skeleton" aria-live="polite">
+          <div className="sk-line sk-line--sm" />
+          <div className="sk-card" />
+        </div>
+      ) : null}
       {error && (
         <p role="alert" className="status-error">
           {error}
@@ -476,42 +527,51 @@ export function AccessibilityMap() {
         <section aria-labelledby="map-list-heading" className="map-list">
           <h2 id="map-list-heading">Reports in this area ({reports.length})</h2>
           <p>
-            The list and the map always show the same reports. Marker letters mean:
-            ! unverified, V human-verified, ? disputed, X rejected. Square C
-            markers are cameras, kept separate from obstacle reports.
+            The list and the map always show the same reports. Marker letters mean{" "}
+            <span className="tag">! unverified</span> <span className="tag">V verified</span>{" "}
+            <span className="tag">? disputed</span> <span className="tag">X rejected</span>. Square{" "}
+            <span className="tag">C</span> markers are cameras, kept separate from obstacle reports.
           </p>
 
           {selected && (
             <article className="selected-report" aria-live="polite">
               <h3>{selected.title}</h3>
               <p>
-                <StatusBadge status={selected.verificationStatus} /> {selected.obstacleType} ·
-                Severity {selected.severity}
+                <StatusBadge status={selected.verificationStatus} /> {selected.obstacleType} · Severity{" "}
+                {selected.severity}
               </p>
               <p>
-                Reported {new Date(selected.createdAt).toLocaleString()}. This is a
-                user claim until a reviewer verifies it.
+                Reported {new Date(selected.createdAt).toLocaleString()}. This is a user claim until a
+                reviewer verifies it.
               </p>
-              <Link href={`/reports/${selected.id}`}>Open full report</Link>
+              <Link href={`/reports/${selected.id}`} className="btn btn--primary btn--sm">
+                Open full report
+              </Link>
             </article>
           )}
 
           <h3>Cameras in this area ({camerasInView.length})</h3>
           {camerasInView.length === 0 ? (
-            <p>
-              No automatic camera source here. That area only updates when a
-              person reports or uploads evidence — no camera coverage is not
-              proof that paths are clear.
+            <p className="callout callout--unknown">
+              <strong>No automatic camera source here.</strong> That area only updates when a person reports
+              or uploads evidence — no camera coverage is not proof that paths are clear.
             </p>
           ) : (
             <ul className="report-list">
               {camerasInView.map((camera) => (
                 <li key={camera.id}>
-                  <strong>{camera.label}</strong> ({camera.provider}, {camera.city})
-                  <br />
-                  <span>
+                  <div className="list-row__head">
+                    <span className="list-row__title">{camera.label}</span>
+                    <span
+                      className={`pill ${camera.enabled && !camera.isStale ? "pill--on" : camera.enabled ? "pill--off" : "pill--unknown"}`}
+                    >
+                      {!camera.enabled ? "Disabled" : camera.isStale ? "Stale" : "Live"}
+                    </span>
+                  </div>
+                  <span className="list-row__meta">{camera.provider} · {camera.city}</span>
+                  <span className="hint">
                     {!camera.enabled
-                      ? "Disabled."
+                      ? "Disabled — it contributes no evidence at all."
                       : camera.isStale
                         ? `Stale — last successful check ${camera.lastSuccessAt ? new Date(camera.lastSuccessAt).toLocaleString() : "never"}. Its data may be old.`
                         : `Last checked ${camera.lastSuccessAt ? new Date(camera.lastSuccessAt).toLocaleString() : "never"}${camera.lastChangeAt ? `, last change ${new Date(camera.lastChangeAt).toLocaleString()}` : ""}.`}
@@ -522,21 +582,28 @@ export function AccessibilityMap() {
           )}
 
           {reports.length === 0 && !loading ? (
-            <p>
-              No reports in this area yet. No reports does not mean the paths here
-              are clear — it means nobody has reported yet.
+            <p className="empty-state">
+              <strong>No reports in this area yet.</strong>
+              <span>
+                No reports does not mean the paths here are clear — it means nobody has reported yet.
+              </span>
             </p>
           ) : (
             <ul className="report-list">
               {reports.map((report) => (
                 <li key={report.id}>
-                  <button type="button" onClick={() => setSelected(report)} className="list-select">
-                    {report.title}
-                  </button>{" "}
-                  <StatusBadge status={report.verificationStatus} />
-                  <br />
-                  <span>
-                    {report.obstacleType} · {new Date(report.createdAt).toLocaleString()}
+                  <div className="list-row__head">
+                    <button type="button" onClick={() => setSelected(report)} className="list-select">
+                      {report.title}
+                    </button>
+                    <StatusBadge status={report.verificationStatus} />
+                  </div>
+                  <span className="list-row__meta">
+                    <span className="meta-chip">{report.obstacleType}</span>
+                    <span className="meta-chip">
+                      Severity <strong>{report.severity}</strong>
+                    </span>
+                    <span className="meta-chip">{new Date(report.createdAt).toLocaleString()}</span>
                   </span>
                 </li>
               ))}

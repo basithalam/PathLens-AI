@@ -226,42 +226,48 @@ export function ReportForm() {
         <FieldError errors={errors} field="surface" />
       </fieldset>
 
-      <p>
-        <button type="button" onClick={useMyLocation}>
+      <div className="queue-actions">
+        <button type="button" onClick={useMyLocation} className="btn btn--brand btn--sm">
           Use my location
-        </button>{" "}
-        <button type="button" onClick={() => setShowMiniMap(v => !v)} style={{ marginLeft: 8 }}>
+        </button>
+        <button type="button" onClick={() => setShowMiniMap((v) => !v)} className="btn btn--ghost btn--sm">
           {showMiniMap ? "Hide map picker" : "Pick on map"}
-        </button>{" "}
-        {locationNote && <span>{locationNote}</span>}
-      </p>
+        </button>
+      </div>
+      {locationNote && (
+        <p role="status" className="notice">
+          {locationNote}
+        </p>
+      )}
       {showMiniMap && (
-        <div style={{ border: "1px solid var(--line)", borderRadius: 8, overflow: "hidden", height: 320, position: "relative" }}>
+        <div className="map-picker-wrap">
           <MiniMapPicker
             latitude={latitude ? Number(latitude) : null}
             longitude={longitude ? Number(longitude) : null}
             onPick={(lat, lon) => {
               setLatitude(String(lat.toFixed(6)));
               setLongitude(String(lon.toFixed(6)));
-              setLocationNote(`Picked on map — ${lat.toFixed(5)}, ${lon.toFixed(5)}. Drag marker or click again to adjust.`);
+              setLocationNote(`Picked on map — ${lat.toFixed(5)}, ${lon.toFixed(5)}. Drag the marker or click again to adjust.`);
             }}
           />
         </div>
       )}
       <p className="status-source">
-        Coordinates you enter are a claim about where the obstacle is, not a verified fact.
-        Photo upload and AI analysis arrive in Phase 2.
+        Coordinates you enter are a claim about where the obstacle is, not a verified fact. After creating
+        this report you can add photo evidence and run AI analysis on its page — and it stays unverified until
+        a reviewer checks it.
       </p>
 
-      <label style={{ display: "flex", gap: 8, alignItems: "flex-start", marginTop: 12 }}>
+      <label className="consent">
         <input type="checkbox" required aria-label="Consent to store report and photo per retention policy" />
-        <span style={{ fontSize: "0.88rem" }}>
-          I confirm this photo is my own, contains no identifiable faces/plates, and I consent to storage under the{" "}
-          <a href="/privacy" target="_blank">retention policy</a> (camera 30d, evidence 1y, report until deleted). I can request deletion via report delete.
+        <span>
+          I confirm this photo is my own, contains no identifiable faces or plates, and I consent to storage
+          under the retention policy (camera frames 30 days, evidence 1 year, report until deleted). I can
+          request deletion through the report itself.
         </span>
       </label>
 
-      <button type="submit" disabled={submitting} className="primary-button">
+      <button type="submit" disabled={submitting} className="btn btn--primary">
         {submitting ? "Saving…" : "Create report"}
       </button>
     </form>

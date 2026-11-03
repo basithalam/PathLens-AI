@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { authFetch, clearSession, getSessionUser, login, type SessionUser } from "@/lib/auth";
+import { authFetch, clearSession, getSessionUser, type SessionUser } from "@/lib/auth";
+import { SignInPanel, SessionBar } from "@/components/auth/SignInPanel";
+import { StatusBadge } from "@/components/StatusBadge";
 
 interface QueueReport {
   id: string;
@@ -49,12 +51,18 @@ interface AuditEvent {
 
 const REVIEW_ACTIONS = ["HumanVerified", "Disputed", "Rejected"] as const;
 
+const ACTION_CLASS: Record<string, string> = {
+  HumanVerified: "btn btn--brand btn--sm",
+  Disputed: "btn btn--ghost btn--sm",
+  Rejected: "btn btn--danger btn--sm",
+};
+
+function formatStamp(value: string): string {
+  return new Date(value).toLocaleString();
+}
+
 export function ReviewerDashboard() {
   const [user, setUser] = useState<SessionUser | null>(null);
-  const [mounted, setMounted] = useState(false);
-  const [email, setEmail] = useState("reviewer@pathlens.local");
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState<string | null>(null);
   const [queue, setQueue] = useState<Queue | null>(null);
   const [audit, setAudit] = useState<AuditEvent[]>([]);
   const [message, setMessage] = useState<string | null>(null);
@@ -80,7 +88,6 @@ export function ReviewerDashboard() {
   }, []);
 
   useEffect(() => {
-    setMounted(true);
     const existing = getSessionUser();
     if (existing) {
       setUser(existing);
@@ -88,24 +95,12 @@ export function ReviewerDashboard() {
     }
   }, [loadQueue]);
 
-  async function onLogin(event: React.FormEvent) {
-    event.preventDefault();
-    setLoginError(null);
-    const result = await login(email, password);
-    if (result.ok) {
-      setUser(result.user);
-      setPassword("");
-      await loadQueue();
-    } else {
-      setLoginError(result.message);
-    }
-  }
-
   function onLogout() {
     clearSession();
     setUser(null);
     setQueue(null);
     setAudit([]);
+    setMessage(null);
   }
 
   async function decideDuplicate(reportId: string, action: "confirm" | "reject") {
@@ -142,154 +137,241 @@ export function ReviewerDashboard() {
   }
 
   if (!user) {
-    return (
-      <form onSubmit={onLogin} className="report-form">
-        <p>
-          Reviewer and admin accounts are seeded for local development. Demo
-          reviewer: <code>reviewer@pathlens.local</code> / <code>Reviewer@123</code>.
-          Change these outside local development.
-        </p>
-        <label>
-          Email
-          <input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required />
-        </label>
-        <label>
-          Password
-          <input
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-            type="password"
-            required
-          />
-        </label>
-        {loginError && (
-          <p role="alert" className="field-error">
-            {loginError}
-          </p>
-        )}
-        <button type="submit" className="primary-button">
-          Log in
-        </button>
-      </form>
-    );
+    return <SignInPanel defaultRole="Reviewer" onSignedIn={async (next) => { setUser(next); await loadQueue(); }} />;
   }
+
+  const reports = queue?.reports ?? [];
+  const comparisons = queue?.comparisons ?? [];
+  const staleCameras = queue?.staleCameras ?? [];
 
   return (
     <>
-      <p>
-        Signed in as {user.displayName} ({user.role}).{" "}
-        <button type="button" onClick={onLogout}>
-          Log out
-        </button>
-      </p>
+      <SessionBar
+        user={user}
+        onLogout={onLogout}
+        hint="Queue and audit trail reload after every decision."
+      />
+
       {message && (
-        <p role="status" className="status-source">
+        <p role="status" className="notice">
           {message}
         </p>
       )}
 
-      <h2>Reports waiting for review ({queue?.reports.length ?? 0})</h2>
-      {queue === null ? (
-        <p aria-live="polite">Loading the review queue…</p>
-      ) : queue.reports.length === 0 ? (
-        <p>No unverified reports right now.</p>
-      ) : (
-        <ul className="report-list">
-          {queue.reports.map((report) => (
-            <li key={report.id}>
-              <Link href={`/reports/${report.id}`}>{report.title}</Link> — {report.obstacleType},{" "}
-              reported {new Date(report.createdAt).toLocaleString()}
-              {report.isCameraCandidate ? (
-                <>
-                  {" "}
-                  <strong>CameraDetected candidate — unverified.</strong> A camera
-                  suggested this; only your review can verify it.
-                </>
-              ) : null}
-              {report.possibleDuplicateOfReportId ? (
-                <>
-                  <br />
-                  <strong>Possible duplicate</strong> of{" "}
-                  <Link href={`/reports/${report.possibleDuplicateOfReportId}`}>this nearby report</Link>.{" "}
-                  <button type="button" onClick={() => decideDuplicate(report.id, "confirm")}>
-                    Confirm merge
-                  </button>{" "}
-                  <button type="button" onClick={() => decideDuplicate(report.id, "reject")}>
-                    Reject suggestion
-                  </button>{" "}
-                  Confirming deletes nothing: the report becomes a pointer and
-                  keeps its evidence and audit history.
-                </>
-              ) : null}
-              <br />
-              <label>
-                Reviewer note{" "}
-                <input
-                  value={notes[report.id] ?? ""}
-                  onChange={(event) =>
-                    setNotes((current) => ({ ...current, [report.id]: event.target.value }))
-                  }
-                  placeholder="What did you check?"
-                />
-              </label>{" "}
-              {REVIEW_ACTIONS.map((action) => (
-                <button key={action} type="button" onClick={() => reviewReport(report.id, action)}>
-                  {action}
-                </button>
+      <section className="panel" aria-labelledby="queue-reports-heading">
+        <div className="panel__head">
+          <h2 id="queue-reports-heading">Reports waiting for review</h2>
+          <span className="panel__count">{queue === null ? "…" : reports.length}</span>
+        </div>
+        <div className="panel__body">
+          {queue === null ? (
+            <div className="skeleton" aria-live="polite">
+              <div className="sk-card" />
+              <div className="sk-card" />
+            </div>
+          ) : reports.length === 0 ? (
+            <p className="empty-state">
+              <strong>No unverified reports in the queue.</strong>
+              <span>New community reports appear here before they influence any route.</span>
+            </p>
+          ) : (
+            <div className="stack">
+              {reports.map((report) => (
+                <article
+                  key={report.id}
+                  className={`queue-card${report.isCameraCandidate ? " queue-card--camera" : ""}${
+                    report.possibleDuplicateOfReportId ? " queue-card--duplicate" : ""
+                  }`}
+                >
+                  <div className="queue-card__head">
+                    <div className="queue-card__title">
+                      <Link href={`/reports/${report.id}`}>{report.title}</Link>
+                      <span className="queue-card__sub">
+                        <span className="mono">{report.id.slice(0, 8)}</span> · {report.obstacleType} ·
+                        reported {formatStamp(report.createdAt)}
+                      </span>
+                    </div>
+                    <StatusBadge status={report.verificationStatus} />
+                  </div>
+
+                  {report.isCameraCandidate && (
+                    <p className="callout callout--info">
+                      <strong>CameraDetected candidate — unverified.</strong> A camera suggested this;
+                      only your review can verify it.
+                    </p>
+                  )}
+
+                  {report.possibleDuplicateOfReportId && (
+                    <div className="notice notice--warn">
+                      <strong>Possible duplicate</strong> of{" "}
+                      <Link href={`/reports/${report.possibleDuplicateOfReportId}`}>
+                        this nearby report
+                      </Link>
+                      . Confirming deletes nothing: the report becomes a pointer and keeps its evidence
+                      and audit history.
+                      <span className="queue-actions" style={{ marginTop: ".5rem" }}>
+                        <button
+                          type="button"
+                          className="btn btn--brand btn--sm"
+                          onClick={() => decideDuplicate(report.id, "confirm")}
+                        >
+                          Confirm merge
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn--ghost btn--sm"
+                          onClick={() => decideDuplicate(report.id, "reject")}
+                        >
+                          Reject suggestion
+                        </button>
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="queue-card__body">
+                    <label className="queue-card__note">
+                      Reviewer note
+                      <input
+                        value={notes[report.id] ?? ""}
+                        onChange={(event) =>
+                          setNotes((current) => ({ ...current, [report.id]: event.target.value }))
+                        }
+                        placeholder="What did you check, and where?"
+                      />
+                    </label>
+                    <div className="queue-actions">
+                      <span className="queue-actions__label">Record decision</span>
+                      {REVIEW_ACTIONS.map((action) => (
+                        <button
+                          key={action}
+                          type="button"
+                          className={ACTION_CLASS[action]}
+                          onClick={() => reviewReport(report.id, action)}
+                        >
+                          {action === "HumanVerified" ? "Verify" : action === "Disputed" ? "Dispute" : "Reject"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </article>
               ))}
-            </li>
-          ))}
-        </ul>
-      )}
+            </div>
+          )}
+        </div>
+        <div className="panel__foot">
+          A decision writes an audit event and changes the effective status — the original report text and
+          every earlier decision stay readable.
+        </div>
+      </section>
 
-      <h2>Stale cameras ({queue?.staleCameras.length ?? 0})</h2>
-      {queue === null ? (
-        <p aria-live="polite">Loading camera health…</p>
-      ) : queue.staleCameras.length === 0 ? (
-        <p>No enabled camera is stale right now.</p>
-      ) : (
-        <ul className="report-list">
-          {queue.staleCameras.map((camera) => (
-            <li key={camera.id}>
-              <strong>{camera.label}</strong> ({camera.provider}, {camera.city}) — stale.
-              Last successful check:{" "}
-              {camera.lastSuccessAt ? new Date(camera.lastSuccessAt).toLocaleString() : "never"}
-              {camera.lastError ? <> · Last error: {camera.lastError}</> : null}. Do not
-              treat this feed as current.
-            </li>
-          ))}
-        </ul>
-      )}
+      <section className="panel" aria-labelledby="queue-comparisons-heading">
+        <div className="panel__head">
+          <h2 id="queue-comparisons-heading">Conflicting comparisons</h2>
+          <span className="panel__count">{queue === null ? "…" : comparisons.length}</span>
+        </div>
+        <div className="panel__body">
+          {queue === null ? (
+            <p className="sk-line sk-line--sm" aria-live="polite" />
+          ) : comparisons.length === 0 ? (
+            <p className="empty-state">
+              <strong>No conflicting comparisons waiting.</strong>
+              <span>Contradicting evidence is escalated here, never silently averaged.</span>
+            </p>
+          ) : (
+            <ul className="report-list">
+              {comparisons.map((comparison) => (
+                <li key={comparison.id}>
+                  <div className="list-row__head">
+                    <span className="list-row__title">
+                      <Link href={`/reports/${comparison.reportId}`}>Report {comparison.reportId.slice(0, 8)}</Link>
+                    </span>
+                    <StatusBadge status={comparison.effectiveOutcome} />
+                  </div>
+                  <span className="list-row__meta">Compared {formatStamp(comparison.createdAt)}</span>
+                  <span className="hint">
+                    Open the evidence explorer to see both photos side by side and record a decision.
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
 
-      <h2>Conflicting comparisons ({queue?.comparisons.length ?? 0})</h2>
-      {queue && queue.comparisons.length === 0 ? (
-        <p>No conflicting comparisons waiting.</p>
-      ) : (
-        <ul className="report-list">
-          {queue?.comparisons.map((comparison) => (
-            <li key={comparison.id}>
-              Comparison from {new Date(comparison.createdAt).toLocaleString()} — open the{" "}
-              <Link href={`/reports/${comparison.reportId}`}>report evidence explorer</Link> to
-              review both photos and record a decision.
-            </li>
-          ))}
-        </ul>
-      )}
+      <section className="panel" aria-labelledby="queue-cameras-heading">
+        <div className="panel__head">
+          <h2 id="queue-cameras-heading">Stale cameras</h2>
+          <span className="panel__count">{queue === null ? "…" : staleCameras.length}</span>
+        </div>
+        <div className="panel__body">
+          {queue === null ? (
+            <p className="sk-line sk-line--sm" aria-live="polite" />
+          ) : staleCameras.length === 0 ? (
+            <p className="empty-state">
+              <strong>No enabled camera is stale right now.</strong>
+              <span>A stale feed keeps its history but stops claiming to be current.</span>
+            </p>
+          ) : (
+            <div className="stack-sm">
+              {staleCameras.map((camera) => (
+                <article key={camera.id} className="queue-card queue-card--stale">
+                  <div className="queue-card__head">
+                    <div className="queue-card__title">
+                      <span className="list-row__title">{camera.label}</span>
+                      <span className="queue-card__sub">
+                        {camera.provider} · {camera.city} · last successful check{" "}
+                        {camera.lastSuccessAt ? formatStamp(camera.lastSuccessAt) : "never"}
+                      </span>
+                    </div>
+                    <span className="badge badge-warn">Stale</span>
+                  </div>
+                  {camera.lastError ? <p className="field-error">{camera.lastError}</p> : null}
+                  <p className="hint">Do not treat this feed as current evidence.</p>
+                </article>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
-      <h2>Recent audit trail</h2>
-      {audit.length === 0 ? (
-        <p>No review actions recorded yet.</p>
-      ) : (
-        <ul className="report-list">
-          {audit.map((event) => (
-            <li key={event.id}>
-              {new Date(event.createdAt).toLocaleString()} — {event.entityType}{" "}
-              {event.action}: {event.previousValue ?? "—"} → {event.newValue ?? "—"}
-              {event.note ? <> · {event.note}</> : null}
-            </li>
-          ))}
-        </ul>
-      )}
+      <section className="panel" aria-labelledby="queue-audit-heading">
+        <div className="panel__head">
+          <h2 id="queue-audit-heading">Recent audit trail</h2>
+          <span className="panel__count">{audit.length}</span>
+        </div>
+        <div className="panel__body">
+          {audit.length === 0 ? (
+            <p className="empty-state">
+              <strong>No review actions recorded yet.</strong>
+              <span>The trail starts with the first decision you make.</span>
+            </p>
+          ) : (
+            <ul className="audit-list">
+              {audit.map((event) => (
+                <li key={event.id}>
+                  <time className="audit-time" dateTime={event.createdAt}>
+                    {formatStamp(event.createdAt)}
+                  </time>
+                  <span className="stack-sm">
+                    <span className="audit-entity">
+                      {event.entityType} · {event.action}
+                    </span>
+                    <span className="audit-flow">
+                      <span className="from">{event.previousValue ?? "—"}</span>
+                      <span className="arrow" aria-hidden="true">
+                        →
+                      </span>
+                      <span className="to">{event.newValue ?? "—"}</span>
+                      <span className="mono muted">{event.entityId.slice(0, 8)}</span>
+                    </span>
+                  </span>
+                  {event.note ? <span className="audit-note">{event.note}</span> : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </section>
     </>
   );
 }

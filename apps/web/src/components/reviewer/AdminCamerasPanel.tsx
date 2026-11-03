@@ -15,6 +15,15 @@ type Cam = {
   lastError: string | null;
 };
 
+const PROVIDERS = [
+  "Datumfeed",
+  "FiveOneOneSfBay",
+  "SfMta",
+  "Caltrans",
+  "GenericPublicFeed",
+  "NycDot",
+];
+
 export function AdminCamerasPanel() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -38,10 +47,25 @@ export function AdminCamerasPanel() {
     if (r.ok) setCameras((await r.json()) as Cam[]);
   }, []);
   useEffect(() => { setMounted(true); setUser(getSessionUser()); void load(); }, [load]);
-  useEffect(() => { const id = setInterval(() => setUser(getSessionUser()), 1000); return () => clearInterval(id); }, []);
 
-  if (!mounted) return <p className="status-source">Loading admin panel…</p>;
-  if (!user || user.role !== "Admin") return <p>Admin sign-in required — log in above with <code>admin@pathlens.local / Admin@123</code> to register cameras.</p>;
+  if (!mounted) {
+    return (
+      <div className="skeleton" aria-live="polite">
+        <div className="sk-line sk-line--title" />
+        <div className="sk-card" />
+        <div className="sk-card" />
+      </div>
+    );
+  }
+
+  if (!user || user.role !== "Admin") {
+    return (
+      <p className="empty-state">
+        <strong>Admin session required.</strong>
+        <span>Sign in above with the Admin demo account to register and poll camera feeds.</span>
+      </p>
+    );
+  }
 
   async function onRegister(e: React.FormEvent) {
     e.preventDefault();
@@ -96,82 +120,172 @@ export function AdminCamerasPanel() {
     else setMsg(`Import failed (${r.status}): ${(await r.text()).slice(0, 500)}`);
   }
 
+  const activeCount = cameras.filter((c) => c.enabled).length;
+
   return (
-    <div className="admin-panel">
-      {msg && <p role="status" className="status-source">{msg}</p>}
-      <form onSubmit={onRegister} className="admin-form">
-        <label>Provider <select value={provider} onChange={(e) => setProvider(e.target.value)}><option>Datumfeed</option><option>FiveOneOneSfBay</option><option>SfMta</option><option>Caltrans</option><option>GenericPublicFeed</option><option>NycDot</option></select></label>
-        <label>ExternalId <input value={externalId} onChange={(e) => setExternalId(e.target.value)} required /></label>
-        <label>Label <input value={label} onChange={(e) => setLabel(e.target.value)} required /></label>
-        <label>City <input value={city} onChange={(e) => setCity(e.target.value)} required /></label>
-        <label>Latitude <input value={lat} onChange={(e) => setLat(e.target.value)} required /></label>
-        <label>Longitude <input value={lon} onChange={(e) => setLon(e.target.value)} required /></label>
-        <label>FeedImageUrl <input value={feedUrl} onChange={(e) => setFeedUrl(e.target.value)} required /></label>
-        <label>Cadence <input value={cadence} onChange={(e) => setCadence(e.target.value)} required /></label>
-        <label>PermissionNote <input value={perm} onChange={(e) => setPerm(e.target.value)} required /></label>
-        <button type="submit">Register camera</button>
-      </form>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", margin: "1rem 0" }}>
-        <button onClick={enableAll} className="btn btn--primary btn--sm">Enable all</button>
-        <button onClick={pollAll} className="btn btn--primary btn--sm">Poll all active</button>
-        <button onClick={() => importFromDatumfeed("austin", 10)} className="btn btn--ghost btn--sm">Import 10 from Datumfeed (Austin)</button>
-        <button onClick={() => importFromDatumfeed("sanfrancisco", 10)} className="btn btn--ghost btn--sm">Import 10 from Datumfeed (SF)</button>
-      </div>
-      <h3>Cameras ({cameras.length})</h3>
-      {cameras.length === 0 ? (
-        <p className="empty-state">No cameras registered yet. Use the form above to add your first SF / Datumfeed camera.</p>
-      ) : (
-        <div className="table-wrap">
-          <table className="modern-table">
-            <thead>
-              <tr>
-                <th>Camera</th>
-                <th>Feed</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {cameras.map((c) => (
-                <tr key={c.id}>
-                  <td>
-                    <strong>{c.label}</strong>
-                    <span className="table-meta">{c.provider} · {c.city}</span>
-                  </td>
-                  <td className="table-mono">
-                    {editingId === c.id ? (
-                      <input value={editFeedUrl} onChange={(e) => setEditFeedUrl(e.target.value)} style={{ width: "100%" }} placeholder="https://datumfeed.com/.../image.jpg" />
-                    ) : (
-                      c.feedImageUrl
-                    )}
-                    {editingId === c.id && (
-                      <input value={editPerm} onChange={(e) => setEditPerm(e.target.value)} style={{ width: "100%", marginTop: 6 }} placeholder="Update permissionNote (optional)" />
-                    )}
-                  </td>
-                  <td>
-                    <span className={`pill ${c.enabled ? "pill--on" : "pill--off"}`}>{c.enabled ? "Active" : "Inactive"}</span>
-                    {c.lastError && <span className="table-meta table-meta--error">Error: {c.lastError}</span>}
-                  </td>
-                  <td className="table-actions">
-                    {editingId === c.id ? (
-                      <>
-                        <button onClick={() => saveEdit(c)} className="btn btn--primary btn--sm">Save</button>
-                        <button onClick={() => setEditingId(null)} className="btn btn--ghost btn--sm">Cancel</button>
-                      </>
-                    ) : (
-                      <>
-                        <button onClick={() => startEdit(c)} className="btn btn--ghost btn--sm">Edit</button>
-                        <button onClick={() => toggle(c)} className="btn btn--ghost btn--sm">{c.enabled ? "Disable" : "Enable"}</button>
-                        <button onClick={() => poll(c.id)} className="btn btn--primary btn--sm">Poll now</button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+    <div className="admin-panel stack">
+      {msg && (
+        <p role="status" className="notice">
+          {msg}
+        </p>
       )}
+
+      <section className="panel" aria-labelledby="camera-register-heading">
+        <div className="panel__head">
+          <h2 id="camera-register-heading">Register a camera feed</h2>
+          <span className="panel__count">{cameras.length} registered</span>
+        </div>
+        <div className="panel__body">
+          <form onSubmit={onRegister} className="admin-form">
+            <label>
+              Provider
+              <select value={provider} onChange={(e) => setProvider(e.target.value)}>
+                {PROVIDERS.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              External ID
+              <input value={externalId} onChange={(e) => setExternalId(e.target.value)} required />
+            </label>
+            <label>
+              Label
+              <input value={label} onChange={(e) => setLabel(e.target.value)} required />
+            </label>
+            <label>
+              City
+              <input value={city} onChange={(e) => setCity(e.target.value)} required />
+            </label>
+            <label>
+              Latitude
+              <input value={lat} onChange={(e) => setLat(e.target.value)} inputMode="decimal" required />
+            </label>
+            <label>
+              Longitude
+              <input value={lon} onChange={(e) => setLon(e.target.value)} inputMode="decimal" required />
+            </label>
+            <label>
+              Feed image URL
+              <input value={feedUrl} onChange={(e) => setFeedUrl(e.target.value)} required />
+            </label>
+            <label>
+              Cadence (seconds)
+              <input value={cadence} onChange={(e) => setCadence(e.target.value)} inputMode="numeric" required />
+            </label>
+            <label>
+              Permission note
+              <input value={perm} onChange={(e) => setPerm(e.target.value)} required />
+              <span className="field__hint">Required — a camera cannot be enabled without it.</span>
+            </label>
+            <button type="submit" className="btn btn--primary">
+              Register camera
+            </button>
+          </form>
+
+          <div className="queue-actions">
+            <span className="queue-actions__label">Bulk actions</span>
+            <button onClick={enableAll} className="btn btn--brand btn--sm">Enable all</button>
+            <button onClick={pollAll} className="btn btn--ghost btn--sm">Poll all active</button>
+            <button onClick={() => importFromDatumfeed("austin", 10)} className="btn btn--quiet btn--sm">Import 10 · Austin</button>
+            <button onClick={() => importFromDatumfeed("sanfrancisco", 10)} className="btn btn--quiet btn--sm">Import 10 · San Francisco</button>
+          </div>
+        </div>
+        <div className="panel__foot">
+          Enable a camera, then use <em>Poll now</em> to fetch a frame immediately. It appears on the map as a
+          square <code>C</code> marker — evidence, never a verdict.
+        </div>
+      </section>
+
+      <section className="panel" aria-labelledby="camera-list-heading">
+        <div className="panel__head">
+          <h2 id="camera-list-heading">Camera registry</h2>
+          <span className="panel__count">
+            {activeCount} active / {cameras.length}
+          </span>
+        </div>
+        <div className="panel__body">
+          {cameras.length === 0 ? (
+            <p className="empty-state">
+              <strong>No cameras registered yet.</strong>
+              <span>Register the first SF / Datumfeed feed above, or import a batch in bulk actions.</span>
+            </p>
+          ) : (
+            <div className="table-wrap">
+              <table className="modern-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Camera</th>
+                    <th scope="col">Feed</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cameras.map((c) => (
+                    <tr key={c.id}>
+                      <td>
+                        <strong>{c.label}</strong>
+                        <span className="table-meta">
+                          {c.provider} · {c.city}
+                        </span>
+                      </td>
+                      <td className="table-mono">
+                        {editingId === c.id ? (
+                          <div className="stack-sm">
+                            <input
+                              value={editFeedUrl}
+                              onChange={(e) => setEditFeedUrl(e.target.value)}
+                              placeholder="https://datumfeed.com/.../image.jpg"
+                            />
+                            <input
+                              value={editPerm}
+                              onChange={(e) => setEditPerm(e.target.value)}
+                              placeholder="Update permissionNote (optional)"
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            {c.feedImageUrl}
+                            <span className="table-meta">
+                              last success: {c.lastSuccessAt ? new Date(c.lastSuccessAt).toLocaleString() : "never"}
+                            </span>
+                          </>
+                        )}
+                      </td>
+                      <td>
+                        <span className={`pill ${c.enabled ? "pill--on" : "pill--off"}`}>
+                          {c.enabled ? "Active" : "Inactive"}
+                        </span>
+                        {c.hasPermissionNote ? null : (
+                          <span className="table-meta table-meta--error">No permission note — cannot enable</span>
+                        )}
+                        {c.lastError && <span className="table-meta table-meta--error">{c.lastError}</span>}
+                      </td>
+                      <td className="table-actions">
+                        {editingId === c.id ? (
+                          <>
+                            <button onClick={() => saveEdit(c)} className="btn btn--primary btn--sm">Save</button>
+                            <button onClick={() => setEditingId(null)} className="btn btn--ghost btn--sm">Cancel</button>
+                          </>
+                        ) : (
+                          <>
+                            <button onClick={() => startEdit(c)} className="btn btn--ghost btn--sm">Edit</button>
+                            <button onClick={() => toggle(c)} className="btn btn--quiet btn--sm">{c.enabled ? "Disable" : "Enable"}</button>
+                            <button onClick={() => poll(c.id)} className="btn btn--brand btn--sm">Poll now</button>
+                          </>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

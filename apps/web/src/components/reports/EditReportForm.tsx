@@ -110,10 +110,11 @@ export function EditReportForm({ report }: { report: AccessibilityReport }) {
       </div>
 
       <p className="status-source">
-        Location cannot be edited here; coordinates are part of the original claim.
+        Location cannot be edited here; coordinates are part of the original claim. Verification status and
+        evidence history are also outside this form — only a reviewer changes those, in the review console.
       </p>
 
-      <button type="submit" disabled={saving} className="primary-button">
+      <button type="submit" disabled={saving} className="btn btn--primary">
         {saving ? "Saving…" : "Save changes"}
       </button>
     </form>

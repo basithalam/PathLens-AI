@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import "leaflet/dist/leaflet.css";
 import { fixLeafletIcons } from "@/lib/leaflet-icons";
+import { StatusBadge } from "@/components/StatusBadge";
 import {
   getCoverage,
   recommendRoutes,
@@ -290,100 +291,174 @@ export function RoutePlanner() {
   return (
     <>
       <div className="route-form">
-        <div style={{ display: "grid", gap: 12, background: "var(--surface)", border: "1px solid var(--line)", borderRadius: 16, padding: 16 }}>
-          <p style={{ margin: 0, fontSize: "0.88rem", color: "var(--muted)", fontWeight: 600 }}>Uber-like — tap map or search address</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, alignItems: "end" }}>
-            <label style={{ display: "grid", gap: 4 }}>
-              <span style={{ fontWeight: 700, fontSize: "0.9rem" }}>📍 From — Pick start</span>
-              <div style={{ display: "flex", gap: 6 }}>
-                <input value={originLat} onChange={(e) => setOriginLat(e.target.value)} inputMode="decimal" placeholder="Lat e.g. 24.9116" style={{ flex: 1 }} />
-                <input value={originLon} onChange={(e) => setOriginLon(e.target.value)} inputMode="decimal" placeholder="Lon e.g. 91.8498" style={{ flex: 1 }} />
+        <div className="route-panel">
+          <p className="route-panel__title">
+            Two ways to set an endpoint — type coordinates, search an address, or tap the map.
+          </p>
+
+          <div className="endpoint endpoint--from">
+            <div className="endpoint__field">
+              <span className="endpoint__label" id="from-label">
+                From — start
+              </span>
+              <div className="endpoint__inputs">
+                <input
+                  value={originLat}
+                  onChange={(e) => setOriginLat(e.target.value)}
+                  inputMode="decimal"
+                  placeholder="Lat 24.9116"
+                  aria-label="Origin latitude"
+                />
+                <input
+                  value={originLon}
+                  onChange={(e) => setOriginLon(e.target.value)}
+                  inputMode="decimal"
+                  placeholder="Lon 91.8498"
+                  aria-label="Origin longitude"
+                />
               </div>
-              <input placeholder="Search address — e.g. Zindabazar, Sylhet" onKeyDown={async (e) => { if (e.key === "Enter") { e.preventDefault(); const q=(e.target as HTMLInputElement).value; if(!q) return; const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`); const j=await r.json(); if(j[0]){ setOriginLat(j[0].lat); setOriginLon(j[0].lon); }}}} style={{ marginTop: 4 }} />
-            </label>
-            <button type="button" onClick={() => setPickMode("origin")} aria-pressed={pickMode === "origin"} className={pickMode === "origin" ? "primary-button" : ""} style={{ whiteSpace: "nowrap", height: 36 }}>
-              {pickMode === "origin" ? "✓ Picking..." : "Pick on map"}
+              <input
+                aria-labelledby="from-label"
+                placeholder="Search address — e.g. Zindabazar, Sylhet"
+                onKeyDown={async (e) => { if (e.key === "Enter") { e.preventDefault(); const q=(e.target as HTMLInputElement).value; if(!q) return; const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`); const j=await r.json(); if(j[0]){ setOriginLat(j[0].lat); setOriginLon(j[0].lon); }}}}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setPickMode("origin")}
+              aria-pressed={pickMode === "origin"}
+              className="btn btn--ghost pick-btn"
+            >
+              {pickMode === "origin" ? "✓ Tap the map…" : "Pick on map"}
             </button>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, alignItems: "end" }}>
-            <label style={{ display: "grid", gap: 4 }}>
-              <span style={{ fontWeight: 700, fontSize: "0.9rem" }}>🏁 To — Destination</span>
-              <div style={{ display: "flex", gap: 6 }}>
-                <input value={destLat} onChange={(e) => setDestLat(e.target.value)} inputMode="decimal" placeholder="Lat e.g. 24.9248" style={{ flex: 1 }} />
-                <input value={destLon} onChange={(e) => setDestLon(e.target.value)} inputMode="decimal" placeholder="Lon e.g. 91.8698" style={{ flex: 1 }} />
+
+          <div className="endpoint endpoint--to">
+            <div className="endpoint__field">
+              <span className="endpoint__label" id="to-label">
+                To — destination
+              </span>
+              <div className="endpoint__inputs">
+                <input
+                  value={destLat}
+                  onChange={(e) => setDestLat(e.target.value)}
+                  inputMode="decimal"
+                  placeholder="Lat 24.9248"
+                  aria-label="Destination latitude"
+                />
+                <input
+                  value={destLon}
+                  onChange={(e) => setDestLon(e.target.value)}
+                  inputMode="decimal"
+                  placeholder="Lon 91.8698"
+                  aria-label="Destination longitude"
+                />
               </div>
-              <input placeholder="Search address — e.g. Amberkhana, Sylhet" onKeyDown={async (e) => { if (e.key === "Enter") { e.preventDefault(); const q=(e.target as HTMLInputElement).value; if(!q) return; const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`); const j=await r.json(); if(j[0]){ setDestLat(j[0].lat); setDestLon(j[0].lon); }}}} style={{ marginTop: 4 }} />
-            </label>
-            <button type="button" onClick={() => setPickMode("destination")} aria-pressed={pickMode === "destination"} className={pickMode === "destination" ? "primary-button" : ""} style={{ whiteSpace: "nowrap", height: 36 }}>
-              {pickMode === "destination" ? "✓ Picking..." : "Pick on map"}
+              <input
+                aria-labelledby="to-label"
+                placeholder="Search address — e.g. Amberkhana, Sylhet"
+                onKeyDown={async (e) => { if (e.key === "Enter") { e.preventDefault(); const q=(e.target as HTMLInputElement).value; if(!q) return; const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`); const j=await r.json(); if(j[0]){ setDestLat(j[0].lat); setDestLon(j[0].lon); }}}}
+              />
+            </div>
+            <button
+              type="button"
+              onClick={() => setPickMode("destination")}
+              aria-pressed={pickMode === "destination"}
+              className="btn btn--ghost pick-btn"
+            >
+              {pickMode === "destination" ? "✓ Tap the map…" : "Pick on map"}
             </button>
           </div>
-          <p style={{ margin: 0, fontSize: "0.82rem", color: "var(--muted)" }}>Tap map: <strong style={{ color: pickMode === "origin" ? "#0b6b4f" : "inherit" }}>From</strong> or <strong style={{ color: pickMode === "destination" ? "#ba2e1e" : "inherit" }}>To</strong> — active is highlighted. Green = start, Red = destination.</p>
+
+          <p className="route-hint">
+            The next map tap fills <strong>{pickMode === "origin" ? "From" : "To"}</strong> — the active
+            endpoint is highlighted. Green marks the start, red marks the destination.
+          </p>
         </div>
 
         <fieldset>
           <legend>Your route preferences (saved on this device only)</legend>
           <p>
-            Preferences reorder routes. They never hide a known obstacle, and
-            unknown stays unknown whatever you choose.
+            Preferences reorder routes. They never hide a known obstacle, and unknown stays unknown whatever
+            you choose.
           </p>
-          <label>
+          <label className="switch">
             <input
               type="checkbox"
               checked={preferences.avoidStairs}
               onChange={(e) => updatePreference("avoidStairs", e.target.checked)}
             />{" "}
-            Avoid stairs — a route with a human-verified stair report cannot
-            outrank one without
+            <span>
+              <strong>Avoid stairs</strong> — a route with a human-verified stair report cannot outrank one
+              without
+            </span>
           </label>
-          <br />
-          <label>
+          <label className="switch">
             <input
               type="checkbox"
               checked={preferences.preferVerifiedEvidence}
               onChange={(e) => updatePreference("preferVerifiedEvidence", e.target.checked)}
             />{" "}
-            Prefer verified evidence — fewer uncertain obstacles ranks higher
+            <span>
+              <strong>Prefer verified evidence</strong> — fewer uncertain obstacles ranks higher
+            </span>
           </label>
-          <br />
-          <label>
+          <label className="switch">
             <input
               type="checkbox"
               checked={preferences.avoidStaleEvidence}
               onChange={(e) => updatePreference("avoidStaleEvidence", e.target.checked)}
             />{" "}
-            Avoid stale evidence — fewer obstacles based on old evidence ranks higher
+            <span>
+              <strong>Avoid stale evidence</strong> — fewer obstacles based on old evidence ranks higher
+            </span>
           </label>
-          <br />
-          <label>
+          <label className="switch">
             <input
               type="checkbox"
               checked={preferences.preferShortest}
               onChange={(e) => updatePreference("preferShortest", e.target.checked)}
             />{" "}
-            Prefer shortest — distance counts earlier in ranking
+            <span>
+              <strong>Prefer shortest</strong> — distance counts earlier in ranking
+            </span>
           </label>
         </fieldset>
 
-        <label style={{ marginTop: "0.6rem" }}>
-          <input type="checkbox" checked={showCoverage} onChange={(e) => setShowCoverage(e.target.checked)} /> Coverage layer under routes — see where evidence exists vs insufficient (C grey = insufficient, B orange = obstacle, A green = evidence; letter+colour, never colour alone)
+        <label className="switch">
+          <input type="checkbox" checked={showCoverage} onChange={(e) => setShowCoverage(e.target.checked)} />{" "}
+          <span>
+            <strong>Coverage layer under routes</strong> — see where evidence exists versus where it is
+            insufficient (C hatched grey = insufficient, B amber = obstacle, A green = evidence; letter and
+            colour together, never colour alone)
+          </span>
         </label>
         {showCoverage && coverage && (
-          <p style={{ fontSize: "0.9rem", background: "var(--wash)", padding: "0.5rem 0.7rem", borderRadius: 8 }}>
-            Covering {coverage.summary.totalCells} cells · {coverage.summary.coveredCells} with evidence, {coverage.summary.insufficientCells} without — <em>Unknown is not clear; route may cross C cells.</em>{" "}
-            {coverageLoading && "Updating…"} Cell size ~{Math.round(coverage.cellSizeMeters)} m.
+          <p className="callout callout--unknown">
+            Covering {coverage.summary.totalCells} cells · {coverage.summary.coveredCells} with evidence,{" "}
+            {coverage.summary.insufficientCells} without · cell size ~{Math.round(coverage.cellSizeMeters)} m
+            {coverageLoading ? " · updating…" : ""}.{" "}
+            <em>Unknown is not clear — this route may cross C cells.</em>
           </p>
         )}
 
-        <p>
-          Clicking the map fills the {pickMode}. Then plan the trip. Routes use a
-          walking profile; that is not a validated wheelchair profile, so no route
-          is ever labelled wheelchair-safe here.
+        <p className="hint">
+          Clicking the map fills the <strong>{pickMode}</strong> endpoint, then plan the trip. Routes use a
+          walking profile; that is not a validated wheelchair profile, so no route is ever labelled
+          wheelchair-safe here.
         </p>
 
-        <button type="button" onClick={plan} disabled={busy} className="primary-button">
-          {busy ? "Asking the routing provider…" : "Plan routes"}
-        </button>
+        <div className="auth__actions">
+          <button type="button" onClick={plan} disabled={busy} className="btn btn--primary">
+            {busy ? "Asking the routing provider…" : "Plan routes"}
+          </button>
+          {recommendation ? (
+            <span className="hint">
+              {recommendation.routes.length} candidate route{recommendation.routes.length === 1 ? "" : "s"} ·
+              ranked by evidence, then distance
+            </span>
+          ) : null}
+        </div>
 
         {message && (
           <p role="alert" className="status-error">
@@ -400,12 +475,8 @@ export function RoutePlanner() {
       />
 
       {/* G4: Preference chips under map — always visible, mirrors checkbox state, no hidden ranking */}
-      <div
-        className="preference-chips"
-        aria-label="Active route preferences"
-        style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", margin: "0.75rem 0", alignItems: "center" }}
-      >
-        <span style={{ fontWeight: 600, fontSize: "0.9rem", marginRight: "0.2rem" }}>Preferences:</span>
+      <div className="preference-chips" aria-label="Active route preferences">
+        <span className="preference-chips__label">Preferences:</span>
         <span className={`pill ${preferences.avoidStairs ? "pill--on" : "pill--off"}`} title="A route with a human-verified stair report cannot outrank one without">
           Avoid stairs {preferences.avoidStairs ? "ON" : "OFF"}
         </span>
@@ -418,32 +489,41 @@ export function RoutePlanner() {
         <span className={`pill ${preferences.preferShortest ? "pill--on" : "pill--off"}`} title="Distance counts earlier in ranking">
           Shortest {preferences.preferShortest ? "ON" : "OFF"}
         </span>
-        <span className="status-source" style={{ fontSize: "0.82rem" }}>
+        <span className="status-source">
           Saved on this device · never hides known obstacles · unknown stays unknown
         </span>
       </div>
 
       {recommendation && (
         <section aria-labelledby="route-results-heading" className="route-results">
-          <h2 id="route-results-heading">Candidate routes — with alternatives</h2>
+          <div className="panel__head" style={{ borderRadius: "var(--radius)" }}>
+            <h2 id="route-results-heading">Candidate routes — with alternatives</h2>
+            <span className="panel__count">
+              {recommendation.provider} · {recommendation.profile} profile
+            </span>
+          </div>
           <p>
-            From {recommendation.provider} ({recommendation.profile} profile),
-            ranked by fewest known obstacles. <strong>When the top route is blocked, the next is your alternative — check its obstacles and unknown% before you go.</strong> Ranked first never means proven safe. Unknown stays unknown.
+            Ranked by fewest known obstacles.{" "}
+            <strong>When the top route is blocked, the next is your alternative</strong> — check its
+            obstacles and unknown share before you go. Ranked first never means proven safe.
           </p>
-          <p className="callout callout--info" style={{ fontSize: "0.88rem" }}>
-            PathLens never hides uncertainty: AI confidence is not a guarantee, and a route with no reports is shown as <em>unknown, not clear</em>. Alternatives are ranked by evidence, not just distance.
+          <p className="callout callout--info">
+            PathLens never hides uncertainty: AI confidence is not a guarantee, and a route with no reports
+            is shown as <em>unknown, not clear</em>. Alternatives are ranked by evidence, not just distance.
           </p>
 
-          {recommendation.limitations.map((limitation) => (
-            <p key={limitation} className="limitations">
-              {limitation}
-            </p>
-          ))}
+          {recommendation.limitations.length > 0 && (
+            <ul className="limitations">
+              {recommendation.limitations.map((limitation) => (
+                <li key={limitation}>{limitation}</li>
+              ))}
+            </ul>
+          )}
 
-          <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center", margin: "0.5rem 0" }}>
-            <strong style={{ fontSize: "0.9rem" }}>Preferences applied:</strong>
+          <div className="queue-actions">
+            <strong className="queue-actions__label">Preferences applied</strong>
             {recommendation.appliedPreferences.length === 0 ? (
-              <span className="status-source">Default ranking — fewest known obstacles then shortest</span>
+              <span className="pill pill--unknown">Default ranking — fewest known obstacles then shortest</span>
             ) : (
               recommendation.appliedPreferences.map((pref) => (
                 <span key={pref} className="pill pill--on" title={`Applied: ${pref}`}>
@@ -480,52 +560,87 @@ function RouteCard({
 }) {
   const isBlocked = route.knownObstacles.length > 0;
   const isHighUnknown = route.unknownLengthPercent > 50;
-  const badge = route.index === 0 && !isBlocked && !isHighUnknown ? "✓ Recommended" : isBlocked ? "⚠ Blocked — alternative below" : isHighUnknown ? "❓ Mostly Unknown" : `Alternative ${route.index + 1}`;
-  const badgeClass = route.index === 0 && !isBlocked && !isHighUnknown ? "pill pill--on" : isBlocked ? "mock-label" : "status-source";
+  const isLead = route.index === 0 && !isBlocked && !isHighUnknown;
+  const badge = isLead ? "Recommended" : isBlocked ? "Blocked — alternative below" : isHighUnknown ? "Mostly unknown" : `Alternative ${route.index + 1}`;
+  const badgeClass = isLead
+    ? "pill pill--on"
+    : isBlocked
+      ? "badge badge-bad"
+      : isHighUnknown
+        ? "badge badge-unknown"
+        : "badge badge-neutral";
+  const cardClass = [
+    "route-card",
+    isBlocked ? "route-card--blocked" : isLead ? "route-card--lead" : isHighUnknown ? "route-card--unknown" : "",
+    selected ? "selected" : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <article className={selected ? "route-card selected" : "route-card"} style={isBlocked ? { borderLeft: "4px solid #ba2e1e" } : route.index === 0 ? { borderLeft: "4px solid #0b6b4f" } : undefined}>
+    <article className={cardClass}>
+      <span className="route-rank">
+        Route {route.index + 1}
+      </span>
       <h3>
-        Route {route.index + 1} · {formatDistance(route.distanceMeters)} · about{" "}
-        {Math.round(route.durationSeconds / 60)} min{" "}
-        <span className={badgeClass} style={{ fontSize: "0.78rem", marginLeft: 6 }}>{badge}</span>
+        <span className="num">{formatDistance(route.distanceMeters)}</span>
+        <span className="muted">· about {Math.round(route.durationSeconds / 60)} min</span>
+        <span className={badgeClass}>{badge}</span>
       </h3>
+
+      <div className="unknown-bar">
+        <div className="unknown-bar__track" role="img" aria-label={`${route.unknownLengthPercent.toFixed(0)} percent of this route has no nearby evidence`}>
+          <div
+            className={`unknown-bar__fill ${isHighUnknown ? "unknown-bar__fill--unknown" : isBlocked ? "unknown-bar__fill--warn" : ""}`}
+            style={{ width: `${Math.max(2, 100 - route.unknownLengthPercent)}%` }}
+          />
+        </div>
+        <div className="unknown-bar__label">
+          <span>{(100 - route.unknownLengthPercent).toFixed(0)}% has nearby evidence</span>
+          <span>{route.unknownLengthPercent.toFixed(0)}% unknown</span>
+        </div>
+      </div>
+
       {isBlocked && route.index === 0 && (
         <p role="alert" className="callout callout--warn">
-          This top-ranked route is still blocked by known obstacles. Check Alternative {route.index + 2} below — it may have fewer obstacles or less unknown. Ranked first never means proven safe.
+          This top-ranked route is still blocked by known obstacles. Check Alternative {route.index + 2}{" "}
+          below — it may have fewer obstacles or less unknown. Ranked first never means proven safe.
         </p>
       )}
       {isBlocked && route.index > 0 && (
         <p role="note" className="status-source">
-          Alternative: {route.knownObstacles.length === 0 ? "No known obstacles here, but " : `${route.knownObstacles.length} known obstacle(s) — `}{route.unknownLengthPercent.toFixed(0)}% unknown. Unknown is not clear.
+          Alternative: {route.knownObstacles.length === 0 ? "No known obstacles here, but " : `${route.knownObstacles.length} known obstacle(s) — `}
+          {route.unknownLengthPercent.toFixed(0)}% unknown. Unknown is not clear.
         </p>
       )}
 
       {route.hasConfirmedStairs && (
-        <p role="note" className="mock-label">
-          This route has a human-verified stair report. If stairs are a hard
-          barrier for you, do not choose it on distance alone.
+        <p role="note" className="callout callout--bad">
+          <strong>Human-verified stairs on this route.</strong> If stairs are a hard barrier for you, do not
+          choose it on distance alone.
         </p>
       )}
 
       {route.newestEvidenceAt ? (
-        <p>
+        <p className="hint">
           Newest evidence near this route:{" "}
-          {new Date(route.newestEvidenceAt).toLocaleString()}. Fresher evidence
-          can come from people or from automatic camera checks; neither proves
-          the whole route is accessible.
+          <time className="mono">{new Date(route.newestEvidenceAt).toLocaleString()}</time>. Fresher evidence
+          can come from people or from automatic camera checks; neither proves the whole route is accessible.
         </p>
       ) : (
-        <p>No evidence near this route yet — it is unknown, not proven clear.</p>
+        <p role="note" className="callout callout--unknown">
+          <strong>No evidence near this route yet.</strong> It is unknown, not proven clear.
+        </p>
       )}
 
       {route.unknownLengthPercent > 50 && (
         <p role="note" className="mock-label">
-          Mostly unknown: {route.unknownLengthPercent.toFixed(0)}% of this route has
-          no nearby report. Unknown is not the same as clear.
+          Mostly unknown: {route.unknownLengthPercent.toFixed(0)}% of this route has no nearby report.
+          Unknown is not the same as clear.
         </p>
       )}
 
-      <ul>
+      <ul className="list-bullets">
         {route.explanation.map((line) => (
           <li key={line}>{line}</li>
         ))}
@@ -533,10 +648,8 @@ function RouteCard({
 
       {route.knownObstacles.length > 0 && (
         <>
-          <p>
-            <strong>Known obstacles on this route</strong>
-          </p>
-          <ul>
+          <h4>Known obstacles on this route</h4>
+          <ul className="report-list">
             {route.knownObstacles.map((obstacle) => {
               const ageDays = Math.max(
                 0,
@@ -550,23 +663,38 @@ function RouteCard({
                     : "Uncertain (not human-verified)";
               return (
                 <li key={obstacle.reportId}>
-                  <Link href={`/reports/${obstacle.reportId}`}>{obstacle.title}</Link> —{" "}
-                  {obstacle.obstacleType}, {obstacle.verificationStatus}, about{" "}
-                  {Math.round(obstacle.distanceMeters)} m from the route, evidence{" "}
-                  {new Date(obstacle.evidenceAt).toLocaleDateString()} ({ageDays} day(s) old
-                  {ageDays > 30 ? " — stale (H3.3 StaleEvidenceDays=30 default, backend configurable)" : ""}) · {certainty}
-                  {obstacle.isCameraCandidate
-                    ? " — a person has not confirmed this."
-                    : ""}
-                  {obstacle.hasStairs !== null || obstacle.hasRamp !== null || obstacle.surface !== null
-                    ? ` · Observed: ${[
-                        obstacle.hasStairs !== null ? `stairs ${obstacle.hasStairs ? "yes" : "no"}` : null,
-                        obstacle.hasRamp !== null ? `ramp ${obstacle.hasRamp ? "yes" : "no"}` : null,
-                        obstacle.surface !== null ? `surface ${obstacle.surface}` : null,
-                      ]
-                        .filter(Boolean)
-                        .join(", ")}`
-                    : " · Stairs/ramp/surface not measured here (unknown, not estimated)"}
+                  <div className="list-row__head">
+                    <Link href={`/reports/${obstacle.reportId}`} className="list-row__title">
+                      {obstacle.title}
+                    </Link>
+                    <StatusBadge status={obstacle.verificationStatus} />
+                  </div>
+                  <div className="list-row__meta">
+                    <span className="meta-chip">{obstacle.obstacleType}</span>
+                    <span className="meta-chip">
+                      ~<strong>{Math.round(obstacle.distanceMeters)} m</strong> from the route
+                    </span>
+                    <span className="meta-chip">
+                      evidence <strong>{new Date(obstacle.evidenceAt).toLocaleDateString()}</strong> ·{" "}
+                      {ageDays} d old
+                      {ageDays > 30 ? " — stale (StaleEvidenceDays=30 default, backend configurable)" : ""}
+                    </span>
+                    <span className="meta-chip">{certainty}</span>
+                  </div>
+                  {obstacle.isCameraCandidate ? (
+                    <span className="hint">A person has not confirmed this.</span>
+                  ) : null}
+                  <span className="hint">
+                    {obstacle.hasStairs !== null || obstacle.hasRamp !== null || obstacle.surface !== null
+                      ? `Observed: ${[
+                          obstacle.hasStairs !== null ? `stairs ${obstacle.hasStairs ? "yes" : "no"}` : null,
+                          obstacle.hasRamp !== null ? `ramp ${obstacle.hasRamp ? "yes" : "no"}` : null,
+                          obstacle.surface !== null ? `surface ${obstacle.surface}` : null,
+                        ]
+                          .filter(Boolean)
+                          .join(", ")}`
+                      : "Stairs/ramp/surface not measured here (unknown, not estimated)"}
+                  </span>
                 </li>
               );
             })}
@@ -574,7 +702,7 @@ function RouteCard({
         </>
       )}
 
-      <button type="button" onClick={onSelect} disabled={selected} className="primary-button">
+      <button type="button" onClick={onSelect} disabled={selected} className="btn btn--primary btn--sm">
         {selected ? "Showing on map" : "Show on map"}
       </button>
     </article>

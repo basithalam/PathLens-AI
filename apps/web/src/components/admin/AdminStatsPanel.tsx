@@ -6,9 +6,9 @@ import { authFetch } from "@/lib/auth";
 type Stats = {
   totalReports: number;
   staleReports: number;
-  stalePercent: number;
   unverified: number;
   verified: number;
+  stalePercent: number;
   verifiedPercent: number;
   reportsPerDayLast7: { date: string; count: number }[];
   unknownPercentMapHeuristic: number;
@@ -31,35 +31,99 @@ export function AdminStatsPanel() {
     })();
   }, []);
 
-  if (msg) return <p className="status-error">{msg}</p>;
-  if (!stats) return <p className="status-source">Loading stats…</p>;
+  if (msg) {
+    return (
+      <section className="panel" aria-labelledby="stats-heading">
+        <div className="panel__head">
+          <h2 id="stats-heading">Pilot analytics</h2>
+        </div>
+        <div className="panel__body">
+          <p role="alert" className="status-error">
+            {msg}
+          </p>
+        </div>
+      </section>
+    );
+  }
 
-  const max = Math.max(1, ...stats.reportsPerDayLast7.map(d => d.count));
+  if (!stats) {
+    return (
+      <div className="skeleton" aria-live="polite">
+        <div className="sk-line sk-line--title" />
+        <div className="sk-card" />
+      </div>
+    );
+  }
+
+  const max = Math.max(1, ...stats.reportsPerDayLast7.map((d) => d.count));
+
   return (
-    <div className="card" style={{ marginTop: "1rem" }}>
-      <h3>Analytics Dashboard (SF pilot)</h3>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 12 }}>
-        <div className="hero__trust-card"><strong>Total reports</strong><span>{stats.totalReports}</span></div>
-        <div className="hero__trust-card"><strong>Stale &gt;30d</strong><span>{stats.staleReports} ({stats.stalePercent}%)</span></div>
-        <div className="hero__trust-card"><strong>Verified</strong><span>{stats.verified} ({stats.verifiedPercent}%)</span></div>
-        <div className="hero__trust-card"><strong>Unknown% map heuristic</strong><span>{stats.unknownPercentMapHeuristic}%</span></div>
-        <div className="hero__trust-card"><strong>Feedback total</strong><span>{stats.feedbackTotal} (Wrong/Stale {stats.feedbackWrongOrStale})</span></div>
+    <section className="panel" aria-labelledby="stats-heading">
+      <div className="panel__head">
+        <h2 id="stats-heading">Pilot analytics — San Francisco</h2>
+        <span className="panel__count">live from <code>GET /api/admin/stats</code></span>
       </div>
-      <h4 style={{ marginTop: 16 }}>Reports per day (last 7)</h4>
-      <div style={{ display: "flex", alignItems: "end", gap: 6, height: 80 }}>
-        {stats.reportsPerDayLast7.length === 0 ? (
-          <span className="status-source">No reports last 7 days</span>
-        ) : (
-          stats.reportsPerDayLast7.map(d => (
-            <div key={d.date} style={{ flex: 1, textAlign: "center" }}>
-              <div style={{ height: `${(d.count / max) * 60 + 8}px`, background: "var(--accent)", borderRadius: 4 }} title={`${d.date}: ${d.count}`} />
-              <div style={{ fontSize: "0.7rem", marginTop: 4 }}>{new Date(d.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</div>
-              <div style={{ fontSize: "0.75rem" }}>{d.count}</div>
+      <div className="panel__body">
+        <div className="stat-grid">
+          <div className="stat">
+            <span className="stat__label">Total reports</span>
+            <span className="stat__value">{stats.totalReports}</span>
+            <span className="stat__sub">all sources</span>
+          </div>
+          <div className="stat stat--ok">
+            <span className="stat__label">Human-verified</span>
+            <span className="stat__value">{stats.verifiedPercent}%</span>
+            <span className="stat__sub">
+              {stats.verified} of {stats.totalReports}
+            </span>
+          </div>
+          <div className="stat stat--warn">
+            <span className="stat__label">Stale &gt; 30 d</span>
+            <span className="stat__value">{stats.stalePercent}%</span>
+            <span className="stat__sub">{stats.staleReports} reports</span>
+          </div>
+          <div className="stat">
+            <span className="stat__label">Unknown share (map)</span>
+            <span className="stat__value">{stats.unknownPercentMapHeuristic}%</span>
+            <span className="stat__sub">no nearby evidence — not “clear”</span>
+          </div>
+          <div className="stat stat--bad">
+            <span className="stat__label">Feedback: wrong/stale</span>
+            <span className="stat__value">{stats.feedbackWrongOrStale}</span>
+            <span className="stat__sub">of {stats.feedbackTotal} taps</span>
+          </div>
+        </div>
+
+        <div className="stack-sm">
+          <h3>Reports per day (last 7)</h3>
+          {stats.reportsPerDayLast7.length === 0 ? (
+            <p className="empty-state">
+              <strong>No reports in the last 7 days.</strong>
+              <span>Seed the demo city with ./scripts/seed-sf.ps1 to populate this chart.</span>
+            </p>
+          ) : (
+            <div className="chart" role="img" aria-label="Reports per day for the last 7 days">
+              {stats.reportsPerDayLast7.map((d) => (
+                <div key={d.date} className="chart__col">
+                  <span className="chart__value">{d.count}</span>
+                  <span
+                    className="chart__bar"
+                    style={{ height: `${Math.max(6, (d.count / max) * 72)}px` }}
+                    title={`${d.date}: ${d.count}`}
+                  />
+                  <span className="chart__label">
+                    {new Date(d.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))
-        )}
+          )}
+        </div>
       </div>
-      <p className="status-source">Feedback grouped weekly by cause — see GET /api/reports/feedback/summary</p>
-    </div>
+      <div className="panel__foot">
+        Feedback is grouped weekly by cause — see <code>GET /api/reports/feedback/summary</code>. A feedback
+        tap never changes verification on its own.
+      </div>
+    </section>
   );
 }

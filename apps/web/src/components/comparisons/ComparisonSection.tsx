@@ -70,26 +70,31 @@ function ComparisonCard({
             <img src={evidenceFileUrl(earlier)} alt="Earlier evidence" className="evidence-photo" />
           )}
           <figcaption>
-            Earlier
+            <strong>Earlier</strong>
             {earlier && (
               <>
-                {" "}· {new Date(earlier.captureTimeUtc ?? earlier.uploadedAt).toLocaleString()}
+                <br />
+                {new Date(earlier.captureTimeUtc ?? earlier.uploadedAt).toLocaleString()}
                 <br />
                 {parseAnalysisResult(earlier)?.obstacleType ?? earlier.analysisStatus}
               </>
             )}
           </figcaption>
         </figure>
+        <span className="comparison-arrow" aria-hidden="true">
+          →
+        </span>
         <figure>
           {later && (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={evidenceFileUrl(later)} alt="Later evidence" className="evidence-photo" />
           )}
           <figcaption>
-            Later
+            <strong>Later</strong>
             {later && (
               <>
-                {" "}· {new Date(later.captureTimeUtc ?? later.uploadedAt).toLocaleString()}
+                <br />
+                {new Date(later.captureTimeUtc ?? later.uploadedAt).toLocaleString()}
                 <br />
                 {parseAnalysisResult(later)?.obstacleType ?? later.analysisStatus}
               </>
@@ -98,14 +103,13 @@ function ComparisonCard({
         </figure>
       </div>
 
-      <p>
-        Outcome: <StatusBadge status={comparison.effectiveOutcome} />
-        {comparison.reviewedOutcome && (
-          <>
-            {" "}(human review changed this from the original {comparison.outcome})
-          </>
-        )}
-      </p>
+      <div className="list-row__meta">
+        <span className="queue-actions__label">Outcome</span>
+        <StatusBadge status={comparison.effectiveOutcome} />
+        {comparison.reviewedOutcome ? (
+          <span className="hint">Human review changed this from the original {comparison.outcome}</span>
+        ) : null}
+      </div>
       <p>{comparison.explanation}</p>
 
       {limitations.length > 0 && (
@@ -113,7 +117,7 @@ function ComparisonCard({
           <p>
             <strong>Why this may be wrong</strong>
           </p>
-          <ul>
+          <ul className="list-bullets">
             {limitations.map((text) => (
               <li key={text}>{text}</li>
             ))}
@@ -122,51 +126,60 @@ function ComparisonCard({
       )}
 
       {comparison.effectiveOutcome === "ConflictingEvidence" && (
-        <p role="alert" className="status-error">
-          Conflicting evidence: a human should look at both photos before anyone
-          relies on this report.
+        <p role="alert" className="callout callout--bad">
+          <strong>Conflicting evidence.</strong> A human should look at both photos before anyone relies on
+          this report.
+        </p>
+      )}
+
+      {comparison.effectiveOutcome === "NotObservedInNewImage" && (
+        <p role="note" className="callout callout--unknown">
+          <strong>Not observed in the newer photo.</strong> That is not proof the obstacle was removed — the
+          camera or angle may simply not have covered it.
         </p>
       )}
 
       <p className="status-source">
         Compared {new Date(comparison.createdAt).toLocaleString()}
-        {comparison.modelVersion ? ` · Model: ${comparison.modelVersion}` : ""}
+        {comparison.modelVersion ? ` · model ${comparison.modelVersion}` : ""}
       </p>
 
       {comparison.reviewedOutcome ? (
-        <p>
+        <p className="notice">
           <strong>Human review:</strong> {comparison.reviewedOutcome} — {comparison.reviewReason}
         </p>
       ) : (
         <div className="review-form">
           <p>
-            <strong>Disagree? Record a human review.</strong> The original AI
-            outcome is kept; your decision and reason are stored beside it.
+            <strong>Disagree? Record a human review.</strong> The original AI outcome is kept; your decision
+            and reason are stored beside it.
           </p>
-          <label>
-            Reviewed outcome
-            <select value={reviewOutcome} onChange={(event) => setReviewOutcome(event.target.value)}>
-              {OUTCOMES.map((outcome) => (
-                <option key={outcome} value={outcome}>
-                  {outcome}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Reason
-            <input
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              placeholder="Why is the AI outcome wrong or uncertain?"
-            />
-          </label>
+          <div className="decision-grid">
+            <label>
+              Reviewed outcome
+              <select value={reviewOutcome} onChange={(event) => setReviewOutcome(event.target.value)}>
+                {OUTCOMES.map((outcome) => (
+                  <option key={outcome} value={outcome}>
+                    {outcome}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Reason
+              <input
+                value={reason}
+                onChange={(event) => setReason(event.target.value)}
+                placeholder="Why is the AI outcome wrong or uncertain?"
+              />
+            </label>
+          </div>
           {reviewError && (
             <p role="alert" className="field-error">
               {reviewError}
             </p>
           )}
-          <button type="button" onClick={submitReview} className="primary-button">
+          <button type="button" onClick={submitReview} className="btn btn--primary btn--sm">
             Save human review
           </button>
         </div>
@@ -234,12 +247,14 @@ export function ComparisonSection({
 
       {timeline.length > 0 && (
         <>
-          <h3>Timeline</h3>
+          <h3>Timeline — {timeline.length} photo{timeline.length === 1 ? "" : "s"} at this place</h3>
           <ol className="timeline">
             {timeline.map((item) => (
               <li key={item.id}>
-                {new Date(item.captureTimeUtc ?? item.uploadedAt).toLocaleString()} —{" "}
-                {item.fileName} · {item.analysisStatus}
+                <time className="mono" dateTime={item.captureTimeUtc ?? item.uploadedAt}>
+                  {new Date(item.captureTimeUtc ?? item.uploadedAt).toLocaleString()}
+                </time>{" "}
+                — {item.fileName} · <StatusBadge status={item.analysisStatus} />
                 {item.captureTimeUtc ? "" : " (capture time not provided; upload time shown)"}
               </li>
             ))}
@@ -248,10 +263,9 @@ export function ComparisonSection({
       )}
 
       {completed.length < 2 ? (
-        <p>
-          Two analysed photos are needed before a comparison can run. Upload a
-          second photo above and run analysis on both. (Reload the page after
-          new uploads so they appear here.)
+        <p className="callout callout--unknown">
+          <strong>Two analysed photos are needed before a comparison can run.</strong> Upload a second photo
+          above and run analysis on both, then reload the page so they appear here.
         </p>
       ) : (
         <div className="compare-controls">
@@ -275,7 +289,7 @@ export function ComparisonSection({
               ))}
             </select>
           </label>
-          <button type="button" onClick={compare} disabled={busy} className="primary-button">
+          <button type="button" onClick={compare} disabled={busy} className="btn btn--primary">
             {busy ? "Comparing…" : "Compare photos"}
           </button>
           {message && (

@@ -21,14 +21,17 @@ function AnalysisFindings({ item }: { item: EvidenceItem }) {
 
   if (item.analysisStatus === "Failed") {
     return (
-      <div role="alert" className="field-error">
+      <div role="alert" className="callout callout--bad">
         <p>
-          <strong>Analysis failed.</strong> Use “Retry analysis” below. The server stores the exact reason.
+          <strong>Analysis failed.</strong> Use “Retry analysis” below — the server stores the exact reason
+          and never invents a result.
         </p>
-        <p style={{ fontSize: "0.85rem", opacity: 0.9 }}>
-          G1 hint: If <code>/health/ready</code> shows <code>ai-provider Degraded — missing MetaAi:Endpoint/Model/ApiKey</code>, set
-          <code> .local/set-meta-env.ps1</code> (Groq <code>gsk_...</code> or Llama API <code>LLM_...</code>) then restart API. Check API logs for exact 401/404 body.
-          See <code>docs/AI_GATE_A_REPORT.md</code> G1 for correct endpoint (old <code>api.meta.ai/compat/v1</code> was 404).
+        <p className="hint">
+          G1 hint: if <code>/health/ready</code> shows <code>ai-provider Degraded — missing
+          MetaAi:Endpoint/Model/ApiKey</code>, set <code>.local/set-meta-env.ps1</code> (Groq{" "}
+          <code>gsk_...</code> or Llama API <code>LLM_...</code>) then restart the API. Check API logs for the
+          exact 401/404 body. See <code>docs/AI_GATE_A_REPORT.md</code> G1 for the correct endpoint (the old{" "}
+          <code>api.meta.ai/compat/v1</code> was 404).
         </p>
       </div>
     );
@@ -42,21 +45,24 @@ function AnalysisFindings({ item }: { item: EvidenceItem }) {
 
   return (
     <div className="findings">
-      {isMock && (
+      {isMock ? (
         <p className="mock-label" role="note">
-          Demo/mock analysis — not real AI. This result exists only to exercise
-          the pipeline until a real Meta AI key is configured (G1: set Groq gsk_... or Llama LLM_... in .local/set-meta-env.ps1).
+          <strong>Demo / mock analysis — not real AI.</strong> This result exists only to exercise the
+          pipeline until a real Meta AI key is configured (G1: set Groq gsk_... or Llama LLM_... in
+          .local/set-meta-env.ps1).
         </p>
-      )}
-      {!isMock && (
-        <p className="status-source" role="note" style={{ borderLeft: "3px solid #0b6b4f", paddingLeft: 8 }}>
-          ✓ Live Meta AI — provider <strong>{result.provider}</strong> {result.model ? `(${result.model})` : ""} analyzed this photo. Mock label means pipeline test only.
+      ) : (
+        <p className="notice" role="note">
+          <strong>✓ Live Meta AI</strong> — provider{" "}
+          <span className="provider-tag">
+            {result.provider}
+            {result.model ? ` · ${result.model}` : ""}
+          </span>{" "}
+          analysed this photo. A mock label means a pipeline test only.
         </p>
       )}
       <p>
-        <strong>Possible obstacle:</strong> {result.obstacleType} ·{" "}
-        <strong>Provider:</strong> {result.provider}
-        {result.model ? ` (${result.model})` : ""}
+        <strong>Possible obstacle:</strong> <span className="tag">{result.obstacleType}</span>
       </p>
       {(() => {
         const pct = Math.round(result.confidence * 100);
@@ -64,12 +70,14 @@ function AnalysisFindings({ item }: { item: EvidenceItem }) {
         const label = level === "low" ? "Low — treat as weak evidence" : level === "mid" ? "Medium — uncertain, verify" : "High — still needs human check";
         return (
           <div className="confidence-row" role="note" aria-label={`Confidence ${pct}% ${level}`}>
-            <span className="confidence-label">Confidence: {pct}%</span>
+            <span className="confidence-label">
+              AI confidence
+              <span className={`confidence-pct confidence-pct--${level}`}>{pct}%</span>
+            </span>
             <div className="confidence-track" title={`${pct}% — ${label}`}>
               <div className={`confidence-fill confidence-fill--${level}`} style={{ width: `${Math.max(4, pct)}%` }} />
             </div>
-            <span className={`confidence-pct confidence-pct--${level}`}>{pct}%</span>
-            <span className="status-source" style={{ fontSize: "0.78rem", padding: ".2rem .45rem" }}>{label}</span>
+            <span className="confidence-verdict">{label}</span>
           </div>
         );
       })()}
@@ -78,7 +86,7 @@ function AnalysisFindings({ item }: { item: EvidenceItem }) {
           <p>
             <strong>Visible evidence</strong>
           </p>
-          <ul>
+          <ul className="list-bullets">
             {result.visibleEvidence.map((text) => (
               <li key={text}>{text}</li>
             ))}
@@ -90,21 +98,22 @@ function AnalysisFindings({ item }: { item: EvidenceItem }) {
           <p>
             <strong>Limitations</strong>
           </p>
-          <ul>
+          <ul className="list-bullets">
             {result.limitations.map((text) => (
               <li key={text}>{text}</li>
             ))}
           </ul>
         </>
       )}
-      {result.humanReviewRequired && (
+      {result.humanReviewRequired ? (
         <div className="callout callout--warn" role="note">
-          <strong>Human review required</strong> — a reviewer still needs to verify this before it is treated as fact. AI can be wrong, especially on <span className="confidence-pct--low">low confidence</span>.
+          <strong>Human review required</strong> — a reviewer still needs to verify this before it is treated
+          as fact. AI can be wrong, especially at low confidence.
         </div>
-      )}
-      {!result.humanReviewRequired && (
+      ) : (
         <div className="callout callout--info" role="note">
-          Human review completed — but still treat as evidence, not absolute truth. Check original photo + comparison.
+          <strong>Human review completed</strong> — still treat this as evidence, not absolute truth. Check the
+          original photo and the comparison.
         </div>
       )}
     </div>
@@ -162,28 +171,35 @@ function EvidenceCard({
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={evidenceFileUrl(item)} alt={`Evidence photo ${item.fileName}`} className="evidence-photo" />
       <div>
-        <p>
+        <p className="evidence-file">
           {item.fileName} · {(item.fileSize / 1024).toFixed(1)} KB · uploaded{" "}
           {new Date(item.uploadedAt).toLocaleString()}
         </p>
-        <p>
-          Analysis: <StatusBadge status={item.analysisStatus} />
-          {item.analysisProvider && <> · Provider: {item.analysisProvider}</>}
-        </p>
+        <div className="list-row__meta">
+          <StatusBadge status={item.analysisStatus} />
+          {item.analysisProvider ? <span className="provider-tag">{item.analysisProvider}</span> : null}
+          <span className="meta-chip">
+            evidence id <strong className="mono">{item.id.slice(0, 8)}</strong>
+          </span>
+        </div>
         {item.qualityFlag && item.qualityFlag !== "Suitable" && (
           <p role="note" className="mock-label">
-            Camera frame check: {item.qualityFlag}.{" "}
+            <strong>Camera frame check: {item.qualityFlag}.</strong>{" "}
             {item.qualityNote ??
               "This frame was flagged before any AI analysis; a flagged frame is not evidence that a path is clear or blocked."}
           </p>
         )}
         <AnalysisFindings item={item} />
         {(item.analysisStatus === "Pending" || item.analysisStatus === "Failed") && (
-          <button type="button" onClick={runAnalysis} disabled={busy} className="primary-button">
-            {busy ? "Analyzing…" : item.analysisStatus === "Failed" ? "Retry analysis" : "Run analysis"}
+          <button type="button" onClick={runAnalysis} disabled={busy} className="btn btn--primary btn--sm">
+            {busy ? "Analysing…" : item.analysisStatus === "Failed" ? "Retry analysis" : "Run analysis"}
           </button>
         )}
-        {item.analysisStatus === "Processing" && <p aria-live="polite">Analysis is processing…</p>}
+        {item.analysisStatus === "Processing" && (
+          <p aria-live="polite" className="hint">
+            Analysis is processing…
+          </p>
+        )}
       </div>
     </article>
   );
@@ -290,48 +306,53 @@ export function EvidenceSection({
           chooseFile(event.dataTransfer.files?.[0] ?? null);
         }}
       >
-        <label>
-          Choose a photo or drop it here
-          <input
-            type="file"
-            accept={ACCEPTED}
-            onChange={(event) => chooseFile(event.target.files?.[0] ?? null)}
-          />
-        </label>
-        <label>
-          When was this photo taken? (optional)
-          <input
-            type="datetime-local"
-            value={captureTime}
-            onChange={(event) => setCaptureTime(event.target.value)}
-          />
-        </label>
+        <div className="drop-zone__grid">
+          <label>
+            Choose a photo or drop it here
+            <input
+              type="file"
+              accept={ACCEPTED}
+              onChange={(event) => chooseFile(event.target.files?.[0] ?? null)}
+            />
+          </label>
+          <label>
+            When was this photo taken? (optional)
+            <input
+              type="datetime-local"
+              value={captureTime}
+              onChange={(event) => setCaptureTime(event.target.value)}
+            />
+          </label>
+        </div>
         <p className="status-source">
-          Capture time is your claim, not a verified fact. Without it, comparisons
-          cannot make a time-based claim.
+          Capture time is your claim, not a verified fact. Without it, comparisons cannot make a time-based
+          claim.
         </p>
         {selected && (
-          <p>
+          <p className="evidence-file">
             {selected.name} · {(selected.size / 1024).toFixed(1)} KB{" "}
-            <button type="button" onClick={() => chooseFile(null)}>
+            <button type="button" className="btn btn--ghost btn--sm" onClick={() => chooseFile(null)}>
               Remove
             </button>
           </p>
         )}
         {previewUrl && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewUrl} alt="Selected evidence preview" className="evidence-photo" />
+          <img src={previewUrl} alt="Selected evidence preview" className="drop-zone__preview" />
         )}
         {progress !== null && (
-          <p aria-live="polite">
+          <p aria-live="polite" className="hint">
             Uploading… {progress}% <progress value={progress} max={100} />
           </p>
         )}
-        {selected && progress === null && (
-          <button type="button" onClick={upload} className="primary-button">
-            Upload photo
-          </button>
-        )}
+        <div className="drop-zone__actions">
+          {selected && progress === null && (
+            <button type="button" onClick={upload} className="btn btn--primary">
+              Upload photo
+            </button>
+          )}
+          <span className="hint">JPEG, PNG or WebP · up to 10 MB · compressed on this device before upload</span>
+        </div>
         {message && (
           <p role="alert" className="field-error">
             {message}
@@ -340,11 +361,16 @@ export function EvidenceSection({
       </div>
 
       {items.length === 0 ? (
-        <p>No photo evidence yet for this report.</p>
+        <p className="empty-state">
+          <strong>No photo evidence yet for this report.</strong>
+          <span>Without a photo there is nothing to compare, so this place stays unknown.</span>
+        </p>
       ) : (
         <>
-          <p style={{ fontSize: "0.82rem", color: "var(--muted)" }}>
-            {items.length} photo(s) — live camera 1/min adds fast, 5/page pagination keeps load fast. Page {page} of {totalPages} — {items.length} total
+          <p className="hint">
+            {items.length} photo{items.length === 1 ? "" : "s"} · page {page} of {totalPages} · 5 per page — a
+            live camera adds about one frame a minute, so the list stays paginated instead of loading all of
+            them.
           </p>
           <div className="evidence-list">
             {paged.map((item) => (
@@ -356,17 +382,37 @@ export function EvidenceSection({
             ))}
           </div>
           {totalPages > 1 && (
-            <nav aria-label="Evidence pagination" style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginTop: 12 }}>
-              <button type="button" disabled={page === 1} onClick={() => setPage((p) => Math.max(1, p - 1))} className="btn btn--ghost">← Previous</button>
+            <nav aria-label="Evidence pagination" className="pager">
+              <button
+                type="button"
+                disabled={page === 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="btn btn--ghost btn--sm"
+              >
+                ← Previous
+              </button>
               {Array.from({ length: totalPages }, (_, i) => i + 1)
                 .slice(Math.max(0, page - 3), Math.min(totalPages, page + 2))
                 .map((p) => (
-                  <button key={p} type="button" onClick={() => setPage(p)} className={p === page ? "btn btn--primary" : "btn btn--ghost"} style={{ minWidth: 36 }}>
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPage(p)}
+                    className={p === page ? "btn btn--primary btn--sm" : "btn btn--ghost btn--sm"}
+                    aria-current={p === page ? "page" : undefined}
+                  >
                     {p}
                   </button>
                 ))}
-              <button type="button" disabled={page === totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} className="btn btn--ghost">Next →</button>
-              <span style={{ fontSize: "0.82rem", color: "var(--muted)" }}>{items.length} total · 5/page</span>
+              <button
+                type="button"
+                disabled={page === totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className="btn btn--ghost btn--sm"
+              >
+                Next →
+              </button>
+              <span className="pager__total">{items.length} total</span>
             </nav>
           )}
         </>
