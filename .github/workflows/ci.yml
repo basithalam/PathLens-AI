@@ -41,4 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [backend, frontend]
     steps:
-      - run: echo "health: /health/live always, /health/ready needs DB; OSRM + AI provider ping in next iteration (see H5.3)"
+      # The whole scalar must be quoted: an unquoted "echo "health: ..."" value puts a colon-space
+      # inside a plain scalar, which YAML reads as a mapping key - that parse error stopped every
+      # job in this workflow from ever running.
+      - run: 'echo "health: /health/live always, /health/ready needs DB; OSRM + AI provider ping in next iteration (see H5.3)"'
