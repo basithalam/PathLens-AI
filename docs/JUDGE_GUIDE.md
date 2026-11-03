@@ -99,10 +99,18 @@ attached to have since been deleted, so they no longer open from a report page.
   accuracy. See `evaluation/results.sf-real-eval.json`.
 - **The 25-image SF dataset is synthetic** (own-generated placeholders, no faces or plates) and its
   comparison pairs were run under the **Mock** provider — pipeline proof, not accuracy proof.
-- **The ground truth of that 10-image set is debatable.** On re-reading the photos, `sf-eval-01` is labelled
-  `BlockedSidewalk (planters)` but the frame shows a clear, steep walkway — so it is marked **Disputed**, and
-  `sf-eval-08` is labelled "clear" while café furniture sits on the path. We are reporting the label problem
-  rather than hiding it.
+- **The ground truth of that 10-image set is worse than the model's answer.** Re-reading every photo by hand,
+  three pre-written labels do not survive: `sf-eval-01` is labelled `BlockedSidewalk (planters)` but the frame
+  is a clear, steep walkway (marked **Disputed**); `sf-eval-02` is labelled "scooters on sidewalk" but is a
+  close-up of tactile paving with no scooter in frame; `sf-eval-08` is labelled "clear" while a café table,
+  chairs and a cane sit on the path. `sf-eval-03` is not a footpath view at all — it is a planted garden strip.
+  We are reporting the label problem rather than hiding it, and we did not flip any label to agree with the
+  model. Full detail in `docs/AI_EVALUATION_SF_REAL.md`.
+- **The seeded evaluation rows are visible on the live demo and labelled as such.** The ten reports the
+  evaluation run created are titled `Demo evidence 01…10` and each description says plainly that the photo was
+  borrowed from Wikimedia Commons (CC BY-SA, per-file credit still owed) and is **not** a community submission.
+  Two of them have no photo at all and are marked **Rejected** — that is the rejection path on screen, not an
+  accident.
 - **No real footpath camera exists for Sylhet yet**, so the automatic-update story runs on SF highway cameras,
   which show traffic, not footpaths.
 - **Reporter reputation is empty** on the live demo because the seeded reports were created anonymously; the

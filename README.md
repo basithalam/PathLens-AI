@@ -207,6 +207,7 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 
 **H6 (2026-10-30):** SF pilot ready (was Dhaka Pilot Ready — now SF sole pilot, Dhaka deferred no camera) — SF research `SF_RESEARCH.md` (OSRM 5 samples 1478-2756m), i18n `lib/i18n.tsx` EN/বাংলা + Unicode report, analytics `GET /api/admin/stats` + `AdminStatsPanel` + `ReputationPanel` Bronze/Silver/Gold. Build 0W0E. See `H6_FIX_REPORT.md`.
 > **Superseded 2026-11-03:** Sylhet is the pilot city again (map default, route endpoints, judge demo flow). San Francisco stays only where it is factually true — the public traffic-camera feeds and the synthetic 25-image evaluation set.
+> **Also corrected:** the "i18n `lib/i18n.tsx` EN/বাংলা" claim in this entry is no longer true. Bengali was dropped on 2026-11-01 to English-only for judging; `lib/i18n.tsx` was left as a dead no-op stub that nothing imported, and it has now been **deleted**. If Bengali output returns it must be real, with a test, not a stub.
 
 **H7 / G1 (2026-11-01) — LIVE ✅:** **Meta AI Live — `muse-spark-1.3` @ `https://api.meta.ai/v1/chat/completions` — 200 Verified (2026-11-01)** — `MetaImageAnalysisService` OpenAI-compatible, `AiProviderHealthCheck` Healthy, `docker-compose.yml` + `.env.example` default `AI_PROVIDER=Meta` with **primary `https://api.meta.ai/v1/chat/completions` + `muse-spark-1.3` (Meta, $150 credit, key id `LLM_<id>…` — masked)**, fallback Groq `https://api.groq.com/openai/v1/chat/completions` + `meta-llama/llama-4-maverick-17b-128e-instruct`** (old `api.meta.ai/compat/v1` 404 fixed 2026-10-31, see `docs/AI_GATE_A_REPORT.md` G1). **Live Evidence:** `GET /health/ready` → `ai-provider: Healthy "Meta muse-spark-1.3 @ https://api.meta.ai/v1/chat/completions (key present)"` + `POST /api/reports/{id}/evidence` → `provider: Meta, model: muse-spark-1.3, BlockedSidewalk 0.85, visibleEvidence 4, confidence 90%` (Sylhet 24.91,91.84 `1663695741.jpg` — not Mock `mock-deterministic-v1 0`). `EvidenceSection.tsx` shows `✓ Live Meta AI` vs `Demo/mock` badge. Live requires `GitHub Secrets META_AI_ENDPOINT=https://api.meta.ai/v1/chat/completions, META_AI_MODEL=muse-spark-1.3, META_AI_API_KEY=LLM_...` + `AI_PROVIDER=Meta`; local: `. .local/set-meta-env.ps1` (key id `LLM_<id>…` — masked, value never committed) → `curl /health/ready` Healthy. See `docs/AI_GATE_A_REPORT.md` G1 + `docs/JUDGE_GUIDE.md`.
 
@@ -219,6 +220,35 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 **G5 (2026-11-01):** Deploy & observability — `ci.yml` postgres:17-3.5 service + 92 tests (39 unit + 53 integration via `Ai__Provider=Mock`) + `deploy-hetzner.yml` strict `/health/ready` must Healthy or deploy fails (was degraded pass), `nginx-pathlens.conf` 3001 via `WEB_PORT`, `DEPLOY_HETZNER.md` 3001 verified.
 
 **G6 (2026-11-01):** Demo & submission ready — `docs/DEMO_SCRIPT.md` 2-min (0-20 problem, 20-50 coverage C/B/A, 50-90 G2 SF image + G3 bar/callout, 90-110 route G4 chips, 110-120 audit + G5/G6) + `docs/TEST_PLAN.md` G6 secrets grep log (`git log -p | grep API_KEY` → only placeholders, no real `gsk_`/`sk-`/`LLM_` keys) + 92 tests green. Live URL `https://pathlens.cognitivebd.com` (Hetzner 94.130.109.67 via `nginx-pathlens.conf` 3001/5145) or `docker compose up --build` + `./scripts/seed-sf.ps1`.
+
+## Known caveats, stated plainly
+
+Judges and users should not have to dig for these.
+
+- **CI only started actually running on 2026-11-03.** `ci.yml` line 44 had an unquoted `echo "health: …"` —
+  YAML read the inner colon-space as a mapping key, so the workflow never parsed and **no job had ever run**.
+  The commands themselves were fine; the workflow was not. Run #59 is the first green one (backend 39 unit +
+  53 integration, frontend lint/typecheck/build).
+- **The clean build is partly configured.** `PathLens.Infrastructure.csproj` pins ImageSharp **3.1.8** and sets
+  `<NoWarn>NU1902;NU1903</NoWarn>`, so `dotnet build` reports 0 warnings while two package advisories against
+  that version are suppressed. Reason and upgrade path: `docs/SECURITY.md`.
+- **Real-image accuracy is small and mixed.** 10 borrowed SF footpath photos through `muse-spark-1.3`:
+  **3 correct, 3 incorrect, 2 model abstentions, 2 upload errors, 0 comparison pairs.**
+- **Three of that set's pre-written ground-truth labels did not survive re-reading the photos** (`sf-eval-01`,
+  `sf-eval-02`, `sf-eval-08`; `sf-eval-03` is not a footpath view at all). No label was quietly changed to
+  agree with the model. Detail: `docs/AI_EVALUATION_SF_REAL.md`.
+- **Those 10 images are Wikimedia Commons (CC BY-SA) and the per-file credit is still owed.** That is a licence
+  condition, not a nicety. The 25-image SF set is **synthetic** and its pairs were run under the **Mock**
+  provider — pipeline proof only.
+- **Reporter reputation is empty on the live demo** because the seeded reports have no signed-in author; the
+  panel shows an empty state rather than invented badges.
+- **One API key is reachable in git history** (`771a485`, `2386b7f`), although it is masked in the working
+  tree. It must be treated as revoked; history was not rewritten. `docs/SECURITY.md` G1.
+- **No public footpath camera exists for Sylhet**, so the automatic-update path runs on SF highway cameras that
+  show traffic, not footpaths — and the product says so on screen.
+- **Routing uses OSRM's `foot` profile, which is not a validated wheelchair profile.** No route is ever labelled
+  wheelchair-safe here.
+- **License is undecided** (below).
 
 ## License
 

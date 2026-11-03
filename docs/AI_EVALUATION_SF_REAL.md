@@ -40,20 +40,28 @@ rows 09 and 10 failed at upload; the runner reported it as "Upload did not retur
 `curl -s` hid the HTTP 429. The runner now reads the status code and retries with backoff
 (`-UploadSpacingSeconds`, `-Upload429Retries`).
 
-## Two ground-truth labels that did not survive looking at the photo
+## Three ground-truth labels that did not survive looking at the photo
 
-Re-reading the images by hand while recording reviewer decisions:
+Re-reading every image by hand while recording reviewer decisions:
 
 - **`sf-eval-01`** is labelled `BlockedSidewalk — planters + narrow strip`. The frame shows a steep, **clear**
   hillside walkway: no planters, nothing on the walking line; the only step is at a doorway. The model's
   `StairsOrStep` is also unsupported. This report is recorded **Disputed** — label and model answer both fail
   against the photo.
+- **`sf-eval-02`** is labelled `BlockedSidewalk — scooters/bikes on sidewalk`. The frame is a **close-up of
+  tactile paving and a panel seam at Stockton St** — there is no obstruction in it, and no scooter anywhere.
+  Here the model's abstention (`Unknown 0.30`) is the more defensible answer, so the report was left
+  **Unverified**.
 - **`sf-eval-08`** is labelled `Unknown` ("clear"). The frame shows a café table, two chairs and a walking cane
   **on the walkway**. The model said `BlockedSidewalk 0.60`. Here the model is the more defensible reading, so
   the report was left **Unverified** rather than flipped to agree with a label we no longer trust.
 
-That is the honest state of a 10-image set: the model is wrong three times, the ground truth is wrong at least
-twice, and neither is quietly corrected to match the other.
+A fourth image, **`sf-eval-03`**, is not a footpath view at all — it is a planted garden strip with a small
+wooden structure and a solar light. Its label `Other` is harmless, but no footpath claim can be made from it,
+which is worth knowing before anyone quotes this set as a sidewalk benchmark.
+
+That is the honest state of a 10-image set: the model is wrong three times, **the ground truth is wrong at
+least three times**, and neither is quietly corrected to match the other.
 
 ## Reviewer decisions recorded on the live demo
 
