@@ -265,15 +265,22 @@ Judges and users should not have to dig for these.
 Released under the **MIT License** — see [LICENSE](LICENSE).
 
 The licence covers the code and the documentation in this repository. It deliberately does **not** relicense
-third-party assets, which keep their own terms:
+third-party assets, which keep their own terms. The full inventory — every dependency with its version and
+licence, every hosted service and what its terms require, the Leaflet BSD-2 notice, and the per-file
+attribution ledger for the borrowed photographs — is in **[docs/THIRD_PARTY.md](docs/THIRD_PARTY.md)**.
+Summary:
 
 | Asset | Licence | Status |
 |---|---|---|
-| `evaluation/sf-real-eval/*.jpg` (10 street photos) | Wikimedia Commons, **CC BY-SA 4.0** | **attribution still owed** — source page and author per file are not yet recorded. Tracked in `docs/AI_EVALUATION_SF_REAL.md`. CC BY-SA is copyleft for those images, independent of MIT on the code |
+| `evaluation/sf-real-eval/*.jpg` (10 street photos) | Wikimedia Commons, **CC BY-SA 4.0** | **attribution still owed** — source page and author per file are not recorded, and they are **not recoverable from the files** (no `Artist`/source field; the only `Copyright` strings inside are Adobe/Apple colour-profile boilerplate). Ledger with the fill-in columns: `docs/THIRD_PARTY.md` §6. CC BY-SA is copyleft for those images, independent of MIT on the code |
 | `evaluation/sf-dataset/*.png` (25 images) | own work, synthetic placeholders | no third-party licence |
-| Map tiles | © OpenStreetMap contributors (ODbL for the data) | rendered at runtime by Leaflet, not redistributed here |
-| Routing | OSRM demo service responses | runtime only |
-| `SixLabors.ImageSharp` 3.1.8 | Apache 2.0 | pinned, with two advisories suppressed — see `docs/SECURITY.md` |
+| Map tiles | © OpenStreetMap contributors (ODbL for the data) | rendered at runtime by Leaflet, not redistributed here; attribution control on all three maps |
+| Geocoding | Nominatim public service | called from the browser on Enter; its ≤1 req/s + identification policy is **not enforced in code** — `docs/THIRD_PARTY.md` §4 |
+| Routing | OSRM demo service responses | runtime only; custom User-Agent + Referer sent |
+| `leaflet` 1.9.4 + its default marker/layer images in `apps/web/public/` | **BSD-2-Clause** | copyright notice reproduced in `docs/THIRD_PARTY.md` §5, as that licence requires |
+| `SixLabors.ImageSharp` 3.1.8 | **Six Labors Split License v1.0**, used under its **Apache-2.0 branch** (granted because this project is open source) | pinned, with two advisories suppressed via `NoWarn` — see `docs/SECURITY.md` |
+| Traffic camera feeds (Caltrans CCTV, one aggregator, one placeholder service) | terms **unverified** | hotlinked server-side into evidence storage; polling off on live — `docs/THIRD_PARTY.md` §7 |
 
 No warranty. This is a hackathon prototype: the figures in `evaluation/` are a 10-image demo, not a validated
-accessibility measurement, and routing uses the `foot` profile, which is not a certified wheelchair profile.
+accessibility measurement — and `docs/ERROR_ANALYSIS.md` records that three of that set's own ground-truth
+labels were wrong. Routing uses the `foot` profile, which is not a certified wheelchair profile.

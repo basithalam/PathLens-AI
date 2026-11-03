@@ -49,7 +49,10 @@ git log --all -p -- "*.md" "*.cs" "*.yml" "*.ps1" "*.json" | Select-String -Patt
 
 # Stricter: grep for real key patterns (Groq gsk_ + 20+ alnum, OpenAI sk- , Llama LLM_ + digits)
 git log --all -p | Select-String -Pattern "gsk_[a-zA-Z0-9]{20,}|sk-[a-zA-Z0-9]{20,}|LLM_[0-9]{10,}_[A-Za-z0-9]{10,}" | Select-Object -First 20
-# → (no output) — proves no real key ever committed
+# → (no output). Read that honestly: it proves no *whole* key was committed. It cannot see a partial one.
+# Found 2026-11-03: `docs/DATUMFEED_LIVE.md` carried `gsk_xxx...yyy` — six characters of the real 36-char
+# key, committed in `bffa8bd`, on a line that said "never committed". A pattern demanding 20+ characters
+# after the prefix can never match that shape. Masked now; see `docs/SECURITY.md` §"Second partial exposure".
 
 # Verify ignored files never tracked
 git ls-files | Select-String -Pattern "^\.env$|^\.local/|^\.env\.camera"

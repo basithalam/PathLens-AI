@@ -81,6 +81,9 @@ Every note is labelled as a hackathon demo review. `docs/JUDGE_GUIDE.md` states 
 - **Attribution.** The 10 images are San Francisco street photos sourced from Wikimedia Commons under
   **CC BY-SA**, but neither `manifest.sf-real-eval.csv` nor this file records the source page, author or
   licence notice per image. That credit is a licence condition and **must be added before submission**.
+  The fill-in ledger is `docs/THIRD_PARTY.md` §6, which also records that the credit **cannot be recovered
+  from the files themselves** — every `Copyright` string inside them is colour-profile boilerplate — so only
+  the download history can supply it.
 - **No real comparison pairs.** 0 of the 10 images form a same-place old/new pair, so the comparison engine
   has no evidence from real photography — only the 5 synthetic Mock pairs in `manifest.sf.csv`.
 - **The 25-image SF set is synthetic** (`evaluation/sf-dataset/`, own-generated placeholders) and its

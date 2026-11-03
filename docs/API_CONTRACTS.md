@@ -52,11 +52,11 @@ Base URL (local): `http://localhost:5145`. Errors are RFC 9457 ProblemDetails. M
 
 ## Cameras (Phase A+B)
 
-- `GET /api/cameras` — public list with freshness (`isStale`), last attempt/change/error
-- `GET /api/cameras/{id}` — public detail
-- `POST /api/cameras` — Admin only; a source cannot be enabled without a permission/terms note (`400` otherwise); cadence minimum 30s (NYC profile 60s)
-- `PATCH /api/cameras/{id}` — Admin only; cadence/permission/enabled (removing the note auto-disables)
-- `POST /api/cameras/{id}/poll` — Admin only; one manual poll: `Changed` / `Unchanged` (hash dedupe, no new evidence or AI cost) / `NoMatchingReport` (no report within 100 m; change recorded only) / `Failed` (backoff applies)
+- `GET /api/cameras` â€” public list with freshness (`isStale`), last attempt/change/error
+- `GET /api/cameras/{id}` â€” public detail
+- `POST /api/cameras` â€” Admin only; a source cannot be enabled without a permission/terms note (`400` otherwise); cadence minimum 30s (NYC profile 60s)
+- `PATCH /api/cameras/{id}` â€” Admin only; cadence/permission/enabled (removing the note auto-disables)
+- `POST /api/cameras/{id}/poll` â€” Admin only; one manual poll: `Changed` / `Unchanged` (hash dedupe, no new evidence or AI cost) / `NoMatchingReport` (no report within 100 m; change recorded only) / `Failed` (backoff applies)
 
 Phase C behaviour: after a camera snapshot finishes analysis, it is auto-compared with the prior snapshot from the same camera (existing comparison engine; no manual call needed). A changed image far from any report attaches to that camera's unverified `CameraDetected` candidate (`cameraSourceId` set, `isCameraCandidate` in the reviewer queue) instead of being dropped.
 
@@ -64,7 +64,7 @@ Reviewer queue now also returns `staleCameras` (enabled cameras with no successf
 
 Camera cost gate: `Cameras:DailyAnalysisBudgetPerCamera` (default 240, 0 = unlimited). When spent, a changed snapshot returns `BudgetExceeded`, stores nothing, and leaves the reason in the camera's `lastError` until the UTC day resets. Privacy: snapshots are stored privately and go through the same downscale + EXIF strip as uploads before AI; no face/plate blurring is claimed (no detector integrated).
 
-Phase F1 (explainable ranking): route explanations now include per-obstacle evidence age with a 30-day stale flag, a certain/uncertain certainty split per route, and a cross-route ranking reason (`Route 2 ranks below Route 1 because...`) naming the exact key that separated them — obstacle count, human-verified count, or distance. Ranking order itself is unchanged (F2 will revisit scoring).
+Phase F1 (explainable ranking): route explanations now include per-obstacle evidence age with a 30-day stale flag, a certain/uncertain certainty split per route, and a cross-route ranking reason (`Route 2 ranks below Route 1 because...`) naming the exact key that separated them â€” obstacle count, human-verified count, or distance. Ranking order itself is unchanged (F2 will revisit scoring).
 
 Phase F2 (wheelchair scoring v1): reports accept optional observed attributes `hasStairs`, `hasRamp`, `surface` (Smooth|Uneven|Broken) with `attributeSource`; omitted means unknown and is never estimated. Route requests accept `preferences` (avoidStairs hard rule for human-verified stairs, preferVerifiedEvidence, avoidStaleEvidence, preferShortest); responses echo `appliedPreferences` and flag `hasConfirmedStairs`. Preferences reorder only - they never hide known obstacles.
 

@@ -1,7 +1,9 @@
 # PathLens AI — Judge Guide (3-Minute Demo)
 
-**Start here. This one page is enough to judge. The other 30 files in `docs/` are audit trail and backup —
-including `WHEELCHAIR_USER_GUIDE.md`, the click-by-click manual for how a wheelchair user gives feedback.**
+**Start here. This one page is enough to judge. The other 32 files in `docs/` are audit trail and backup —
+including `WHEELCHAIR_USER_GUIDE.md`, the click-by-click manual for how a wheelchair user gives feedback,
+`ERROR_ANALYSIS.md`, which explains every failure in the evaluation instead of only counting it, and
+`THIRD_PARTY.md`, the licence inventory for everything we did not write.**
 
 **Live Demo:** https://pathlens.cognitivebd.com · **Health:** https://pathlens.cognitivebd.com/health/ready
 **Screens:** `/map` · `/report/new` · `/routes` · `/reports` · `/reviewer` · `/admin`
@@ -121,7 +123,9 @@ attached to have since been deleted, so they no longer open from a report page.
   close-up of tactile paving with no scooter in frame; `sf-eval-08` is labelled "clear" while a café table,
   chairs and a cane sit on the path. `sf-eval-03` is not a footpath view at all — it is a planted garden strip.
   We are reporting the label problem rather than hiding it, and we did not flip any label to agree with the
-  model. Full detail in `docs/AI_EVALUATION_SF_REAL.md`.
+  model. Full detail in `docs/AI_EVALUATION_SF_REAL.md`, and the *why* behind every failure — including the
+  scoring rule that manufactured one "incorrect" and the fact that re-running one photo changed the model's
+  answer — in `docs/ERROR_ANALYSIS.md`.
 - **The seeded evaluation rows are visible on the live demo and labelled as such.** The ten reports the
   evaluation run created are titled `Demo evidence 01…10` and each description says plainly that the photo was
   borrowed from Wikimedia Commons (CC BY-SA, per-file credit still owed) and is **not** a community submission.
@@ -134,18 +138,34 @@ attached to have since been deleted, so they no longer open from a report page.
 - **One API key was committed in plaintext** in `docs/SECURITY.md` and remains reachable in git history
   (`771a485`, `2386b7f`). It is masked in the working tree and must be treated as revoked — see
   `docs/SECURITY.md` G1. History was not rewritten.
+- **A second, smaller exposure was found on 2026-11-03 while writing the licence inventory**:
+  `docs/DATUMFEED_LIVE.md` quoted six characters of a camera-aggregator key (`head...tail`) on a line that
+  claimed the key was "never committed". We verified the fragment matches the real key, masked it, and
+  recorded it in `docs/SECURITY.md` §"Second partial exposure". It is not the AI provider's key and polling
+  is off, so nothing is at immediate risk — but the honest lesson is that our own secrets grep (which
+  demands 20+ characters after the prefix) cannot see a partial key, and we had been quoting that grep as
+  proof.
 - **ImageSharp is pinned to 3.1.8** with `NU1902/NU1903` advisories suppressed for the hackathon
   (`PathLens.Infrastructure.csproj`); the upgrade path is noted in `docs/H1_FIX_REPORT.md`.
 - **License is MIT** (`LICENSE`), covering code and docs. It does not relicense the ten borrowed Wikimedia
   Commons street photos, which stay **CC BY-SA** — their per-file attribution is still owed, and that is the
-  one legal item left open.
+  one legal item left open. **`docs/THIRD_PARTY.md` is the full inventory**: every dependency with its
+  version and licence, the Leaflet BSD-2 notice reproduced as that licence requires, the OpenStreetMap /
+  Nominatim / OSRM / Meta service terms, the camera-feed terms we have *not* verified, and the ten-row
+  attribution ledger with the columns to fill in. It also records why the credit cannot be recovered from
+  the image files (their only `Copyright` strings are Adobe/Apple colour-profile boilerplate), so the gap
+  has a named owner and a shape, not just an apology.
 - **The SAM 3.1 obstruction share is measured, not evaluated.** End-to-end on one real photo (three fallen
   e-scooters across a walkway): `muse-spark-1.3` returned `BlockedSidewalk 0.85`, `sam-3.1` returned 2
   obstacle boxes over 1 walkway box, and the computed share was **23% of the visible walkway** — verified by
-  hand against the box coordinates. It is **off by default** (`SAM31_ENABLED=false`) because it costs two
-  extra billed calls per photo, and it has not been run across the evaluation set, so there is no accuracy
-  figure for it. Two limits are stated in the UI itself: the share is of the walkway **in the photo**, never
-  metres (nothing gives a scale reference), and SAM returns **no confidence score**.
+  hand against the box coordinates. The code default is **off** (`Sam31:Enabled=false`) because it costs two
+  extra billed calls per photo; on this live demo it is switched on through the `SAM31_ENABLED` deployment
+  secret, and **one row has been measured so far** — `Demo evidence 01`, whose walkway is clear, came back at
+  **1% occupied**, which is the negative control agreeing with the photo. It has not been run across the
+  evaluation set, so there is **no accuracy figure for it**, and measurement only happens during analysis:
+  the 581 evidence rows analysed before it was switched on still report *not measured* rather than a number.
+  Two limits are stated in the UI itself: the share is of the walkway **in the photo**, never metres (nothing
+  gives a scale reference), and SAM returns **no confidence score**.
 - **A zero-detection is never shown as "0% blocked".** Measured on that same photo: the bare concept
   `scooter` returned **no boxes at all**, while `scooters, bikes, goods or vehicles blocking the sidewalk`
   returned two. So an empty result means *not measured*, and the code returns `null` for it — reporting 0%

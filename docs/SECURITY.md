@@ -9,7 +9,7 @@
 | `POSTGRES_PASSWORD` | `.env` (gitignored) + `docker-compose.yml` env | GitHub Secret `POSTGRES_PASSWORD` → `.env` via `deploy-hetzner.yml` | committed |
 | `JWT_SIGNING_KEY` | `.env` | GitHub Secret `JWT_SIGNING_KEY` | committed, must be 32+ chars, fail-closed in Production (`Program.cs:39`) |
 | `MetaAi__ApiKey` / `META_AI_API_KEY` | `.local/set-meta-env.ps1` (gitignored, contains `$env:MetaAi__ApiKey`) | GitHub Secrets `META_AI_API_KEY` (+ `META_AI_ENDPOINT`, `META_AI_MODEL`) → `.env` → `docker-compose.yml` → `api` env `MetaAi__ApiKey` | committed, frontend, logs, error messages (code truncates body to 600 chars, never logs key) |
-| `DATUMFEED_API_KEY` | `.local/` | GitHub Secret `DATUMFEED_API_KEY` | committed |
+| `DATUMFEED_API_KEY` | `.local/datumfeed-key.txt` (gitignored) | GitHub Secret `DATUMFEED_API_KEY` | ~~committed~~ — **six characters of it were committed** in `docs/DATUMFEED_LIVE.md` until 2026-11-03; see "Second partial exposure" below |
 
 ## G1 Fix: Exposed key rotation
 
@@ -34,6 +34,29 @@ revocation is the control that actually removes the risk.
 Use endpoint `https://api.meta.ai/v1/chat/completions`, or the Groq fallback
 `https://api.groq.com/openai/v1/chat/completions` / `https://api.llama.com/v1/chat/completions` (old
 `api.meta.ai/compat/v1` returned 404, G1).
+
+## Second partial exposure — found and masked 2026-11-03
+
+While writing `docs/THIRD_PARTY.md` I read `docs/DATUMFEED_LIVE.md` and found a line that said *"never
+committed"* while quoting `gsk_<prefix>...<suffix>` of the Datumfeed key. I compared those six characters
+against the real value in `.local/datumfeed-key.txt` (36 chars, `gsk_` prefix): **both the prefix and the
+suffix matched exactly**, so it was a live key's fragment in a public tracked file, introduced in commit
+`bffa8bd`.
+
+| Where | State now |
+|---|---|
+| `docs/DATUMFEED_LIVE.md` | fragment removed, replaced by a dated correction note |
+| `.local/datumfeed-key.txt` | gitignored, untouched |
+| **git history** | **still contains the six-character fragment** in `bffa8bd` and every later revision until this one |
+
+Six characters alone are not enough to use the key, and the key is not the AI provider's key — it gates an
+optional camera aggregator whose polling is off on the live deployment. So this is not an emergency, but it
+is a real hygiene failure and it is recorded rather than smoothed over: **the doc claimed the opposite of
+what it was doing.** If this project ever leaves hackathon scope, that aggregator key should be rotated
+along with the one in G1.
+
+The lesson applied to this file: a mask that still shows the head and tail of a secret is not a mask. The
+G1 forms (`LLM_1134…<redacted>`) show an id prefix only, which is why they are kept.
 
 ## Local setup (G1)
 
