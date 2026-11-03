@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -152,6 +153,33 @@ public sealed class AnalysisJobProcessor(
                 result.Provider,
                 result.Model,
                 DateTimeOffset.UtcNow);
+
+            // SAM 3.1 measures how much of the walkable region the reported obstacle occupies.
+            // This is an enrichment on top of the classification: it is never allowed to fail the
+            // analysis, and when it cannot measure, it stores nothing so the UI says "not measured"
+            // instead of implying the path is clear.
+            try
+            {
+                var concept = ObstacleConcepts.For(result.ObstacleType);
+                if (concept is not null)
+                {
+                    var measurer = scope.ServiceProvider.GetRequiredService<ISceneMeasurementService>();
+                    var measurement = await measurer.MeasureAsync(
+                        new ImageAnalysisRequest(bytes, currentEvidence.ContentType), concept, stoppingToken);
+
+                    if (measurement is not null)
+                    {
+                        currentEvidence.RecordObstruction(
+                            JsonSerializer.Serialize(measurement), measurement.MeasuredAt);
+                    }
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogInformation(
+                    ex, "Obstruction measurement unavailable for evidence {EvidenceId}; the analysis stands without it.",
+                    currentEvidence.Id);
+            }
 
             // Keep the parent report's evidence freshness up to date.
             var report = await dbContext.Reports.FirstOrDefaultAsync(

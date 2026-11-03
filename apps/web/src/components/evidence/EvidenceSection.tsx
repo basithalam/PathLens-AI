@@ -6,6 +6,7 @@ import {
   getAnalysisJob,
   getEvidence,
   parseAnalysisResult,
+  parseObstruction,
   startAnalysis,
   uploadEvidence,
   type EvidenceItem,
@@ -78,6 +79,33 @@ function AnalysisFindings({ item }: { item: EvidenceItem }) {
               <div className={`confidence-fill confidence-fill--${level}`} style={{ width: `${Math.max(4, pct)}%` }} />
             </div>
             <span className="confidence-verdict">{label}</span>
+          </div>
+        );
+      })()}
+      {(() => {
+        const measurement = parseObstruction(item);
+        if (!measurement) {
+          return (
+            <p className="hint">
+              <strong>Obstruction share:</strong> not measured for this photo. Absence of a measurement is
+              unknown, not a clear path.
+            </p>
+          );
+        }
+        return (
+          <div className="callout callout--info" role="note">
+            <strong>
+              {measurement.walkwayOccupancyPercent}% of the visible walkway in this frame is occupied
+            </strong>{" "}
+            — measured from {measurement.obstacleBoxCount} box(es) that {measurement.provider} (
+            {measurement.model}) returned for the concept “{measurement.obstacleConcept}”, over the region it
+            found for “{measurement.walkwayConcept}”.
+            <span className="hint">
+              {" "}
+              Share of the walkway <em>in the photo</em>, not metres — nothing here gives a scale reference —
+              and {measurement.provider} returns no confidence score, so this is a measurement, not a
+              guarantee.
+            </span>
           </div>
         );
       })()}

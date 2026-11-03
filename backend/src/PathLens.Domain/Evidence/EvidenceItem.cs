@@ -61,6 +61,14 @@ public sealed class EvidenceItem
     public string? AnalysisModel { get; private set; }
     public DateTimeOffset? AnalyzedAt { get; private set; }
 
+    /// <summary>
+    /// Deterministic obstruction measurement over SAM 3.1 boxes, stored apart from the AI analysis
+    /// result so the two provenances never blur: one is what a model claimed, the other is what we
+    /// computed from boxes. Null means not measured - which is unknown, not "clear".
+    /// </summary>
+    public string? ObstructionJson { get; private set; }
+    public DateTimeOffset? ObstructionMeasuredAt { get; private set; }
+
     public static EvidenceItem Create(
         Guid reportId,
         string storageKey,
@@ -136,10 +144,22 @@ public sealed class EvidenceItem
         AnalyzedAt = null;
     }
 
+    /// <summary>
+    /// Stores the deterministic obstruction measurement beside the evidence. A null percent is recorded
+    /// as no measurement at all, so the absence stays visible instead of becoming a number.
+    /// </summary>
+    public void RecordObstruction(string resultJson, DateTimeOffset now)
+    {
+        ObstructionJson = resultJson;
+        ObstructionMeasuredAt = now;
+    }
+
     public void ResetForAnalysis()
     {
         AnalysisStatus = AnalysisStatus.Pending;
         AnalysisResultJson = null;
         AnalyzedAt = null;
+        ObstructionJson = null;
+        ObstructionMeasuredAt = null;
     }
 }

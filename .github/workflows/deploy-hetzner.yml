@@ -72,6 +72,9 @@ jobs:
             META_AI_MODEL=${{ secrets.META_AI_MODEL || '' }}
             META_AI_API_KEY=${{ secrets.META_AI_API_KEY || '' }}
             CAMERAS_POLLING_ENABLED=${{ secrets.CAMERAS_POLLING_ENABLED || 'false' }}
+            # SAM 3.1 obstruction measurement. Off unless the SAM31_ENABLED secret is set to true,
+            # so deploying this code cannot silently start billed segmentation calls.
+            SAM31_ENABLED=${{ secrets.SAM31_ENABLED || 'false' }}
             # Seeded account credentials. Left unset, the API keeps the documented local-development
             # defaults; set them and the next startup re-hashes those accounts, which is how the
             # publicly documented passwords stop working on this host.

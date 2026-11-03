@@ -22,7 +22,9 @@ public sealed record EvidenceResponse(
     string? QualityNote,
     string? PerceptualHash,
     double? ImageBrightness,
-    double? ImageSharpness);
+    double? ImageSharpness,
+    string? ObstructionJson,
+    DateTimeOffset? ObstructionMeasuredAt);
 
 public sealed record AnalysisJobResponse(
     Guid Id,

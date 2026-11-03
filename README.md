@@ -70,7 +70,7 @@ Reviewers can verify, dispute, or reject reports, add notes, and leave a full au
 | ORM | Entity Framework Core |
 | Maps | OpenStreetMap + Leaflet |
 | Routing | OSRM, Valhalla, or GraphHopper (to be validated) |
-| AI | Meta AI image-capable API/model, behind a provider abstraction |
+| AI | Meta AI image-capable API/model, behind a provider abstraction — `muse-spark-1.3` classifies (`/v1/chat/completions`), `sam-3.1` measures the occupied share of the visible walkway (`/v1/responses`, off unless `SAM31_ENABLED=true`) |
 | Storage | S3-compatible private object storage |
 | Testing | xUnit, integration tests, Playwright |
 

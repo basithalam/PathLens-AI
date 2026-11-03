@@ -19,7 +19,7 @@ photo evidence compared over time, with the age, source and verification of ever
 | **Pilot city** | **Sylhet, Bangladesh** (24.9116, 91.8498) — the map opens here |
 | **Manual photo evidence** | Works in any city; the judge can test it in 30 seconds |
 | **Automatic camera feeds** | Only **San Francisco** public feeds exist today (Datumfeed / Caltrans / 511SF / SFMTA). **Sylhet has no public footpath camera** — the map says so instead of pretending otherwise |
-| **AI** | Meta `muse-spark-1.3` at `https://api.meta.ai/v1/chat/completions`, server-side only |
+| **AI** | Two Meta models, each doing one job: **`muse-spark-1.3`** classifies the photo (`POST /v1/chat/completions`) and **`sam-3.1`** measures how much of the walkway the obstacle occupies (`POST /v1/responses`) |
 
 ## Staff logins — one tap, nothing to ask for
 
@@ -139,6 +139,17 @@ attached to have since been deleted, so they no longer open from a report page.
 - **License is MIT** (`LICENSE`), covering code and docs. It does not relicense the ten borrowed Wikimedia
   Commons street photos, which stay **CC BY-SA** — their per-file attribution is still owed, and that is the
   one legal item left open.
+- **The SAM 3.1 obstruction share is measured, not evaluated.** End-to-end on one real photo (three fallen
+  e-scooters across a walkway): `muse-spark-1.3` returned `BlockedSidewalk 0.85`, `sam-3.1` returned 2
+  obstacle boxes over 1 walkway box, and the computed share was **23% of the visible walkway** — verified by
+  hand against the box coordinates. It is **off by default** (`SAM31_ENABLED=false`) because it costs two
+  extra billed calls per photo, and it has not been run across the evaluation set, so there is no accuracy
+  figure for it. Two limits are stated in the UI itself: the share is of the walkway **in the photo**, never
+  metres (nothing gives a scale reference), and SAM returns **no confidence score**.
+- **A zero-detection is never shown as "0% blocked".** Measured on that same photo: the bare concept
+  `scooter` returned **no boxes at all**, while `scooters, bikes, goods or vehicles blocking the sidewalk`
+  returned two. So an empty result means *not measured*, and the code returns `null` for it — reporting 0%
+  would tell a wheelchair user the path is clear, which is the one claim this product exists to avoid.
 - **The staff logins on this demo are the published defaults.** `reviewer@pathlens.local / Reviewer@123` and
   `admin@pathlens.local / Admin@123` work here today — deliberately, so you can open the review console
   without requesting access. The rotation control exists and is tested (`docs/SECURITY.md`), but it engages

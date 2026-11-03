@@ -262,6 +262,26 @@ export interface EvidenceItem {
   perceptualHash: string | null;
   imageBrightness: number | null;
   imageSharpness: number | null;
+  obstructionJson: string | null;
+  obstructionMeasuredAt: string | null;
+}
+
+/// <summary>
+/// Deterministic obstruction share computed from SAM 3.1 boxes. Percentages are of the visible walkway
+/// region in the frame - never metres, because nothing in the photo gives a scale reference.
+/// </summary>
+export interface ObstructionMeasurement {
+  walkwayOccupancyPercent: number;
+  obstacleBoxCount: number;
+  walkwayConcept: string;
+  obstacleConcept: string;
+  frameWidth: number;
+  frameHeight: number;
+  obstacleBoxes: { x1: number; y1: number; x2: number; y2: number }[];
+  walkwayBoxes: { x1: number; y1: number; x2: number; y2: number }[];
+  provider: string;
+  model: string;
+  measuredAt: string;
 }
 
 export interface AnalysisResult {
@@ -292,6 +312,22 @@ export function parseAnalysisResult(item: EvidenceItem): AnalysisResult | null {
   }
   try {
     return JSON.parse(item.analysisResultJson) as AnalysisResult;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Reads the deterministic obstruction measurement. Null means not measured - the UI must say so,
+ * because "0%" would read as "the walkway is clear" and that is the claim this product refuses to make.
+ */
+export function parseObstruction(item: EvidenceItem): ObstructionMeasurement | null {
+  if (!item.obstructionJson) {
+    return null;
+  }
+  try {
+    const parsed = JSON.parse(item.obstructionJson) as ObstructionMeasurement;
+    return typeof parsed.walkwayOccupancyPercent === "number" ? parsed : null;
   } catch {
     return null;
   }

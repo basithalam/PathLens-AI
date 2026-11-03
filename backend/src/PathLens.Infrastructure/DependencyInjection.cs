@@ -91,6 +91,31 @@ public static class DependencyInjection
 
         services.AddHostedService<AnalysisJobProcessor>();
 
+        // SAM 3.1 obstruction measurement. Off unless Sam31:Enabled=true, so an unprobed or unbilled
+        // model can never silently change what the demo shows; with it off, measurement returns
+        // "not measured" and the classification stands alone.
+        services.Configure<Sam31Options>(configuration.GetSection(Sam31Options.SectionName));
+        services.PostConfigure<Sam31Options>(options =>
+        {
+            if (string.IsNullOrWhiteSpace(options.ApiKey))
+            {
+                options.FallbackApiKey = configuration["MetaAi:ApiKey"];
+            }
+        });
+        services.AddHttpClient(nameof(Sam31SceneMeasurementService));
+        var samEnabled = string.Equals(configuration["Sam31:Enabled"], "true", StringComparison.OrdinalIgnoreCase) &&
+                         !string.Equals(aiProvider, "Mock", StringComparison.OrdinalIgnoreCase);
+        if (samEnabled)
+        {
+            services.AddScoped<ISceneMeasurementService>(serviceProvider => new Sam31SceneMeasurementService(
+                serviceProvider.GetRequiredService<IHttpClientFactory>(),
+                serviceProvider.GetRequiredService<IOptions<Sam31Options>>()));
+        }
+        else
+        {
+            services.AddScoped<ISceneMeasurementService, MockSceneMeasurementService>();
+        }
+
         services.Configure<Cameras.CameraOptions>(configuration.GetSection(Cameras.CameraOptions.SectionName));
         services.AddHttpClient(nameof(Cameras.CameraIngestionService));
         services.AddScoped<Application.Cameras.ICameraRepository, CameraRepository>();

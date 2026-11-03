@@ -37,6 +37,8 @@ services:
       MetaAi__Endpoint: ${META_AI_ENDPOINT:-}
       MetaAi__Model: ${META_AI_MODEL:-}
       MetaAi__ApiKey: ${META_AI_API_KEY:-}
+      # SAM 3.1 obstruction measurement - off unless SAM31_ENABLED=true
+      Sam31__Enabled: ${SAM31_ENABLED:-false}
       Cameras__PollingEnabled: ${CAMERAS_POLLING_ENABLED:-false}
       DOTNET_ROLE: api
     expose:
@@ -89,6 +91,7 @@ services:
       MetaAi__Endpoint: ${META_AI_ENDPOINT:-}
       MetaAi__Model: ${META_AI_MODEL:-}
       MetaAi__ApiKey: ${META_AI_API_KEY:-}
+      Sam31__Enabled: ${SAM31_ENABLED:-false}
       Cameras__PollingEnabled: ${CAMERAS_POLLING_ENABLED:-false}
       Storage__RootPath: /app/storage
     depends_on:

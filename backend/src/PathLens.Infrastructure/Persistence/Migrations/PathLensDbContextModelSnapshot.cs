@@ -271,6 +271,12 @@ namespace PathLens.Infrastructure.Persistence.Migrations
                     b.Property<double?>("Longitude")
                         .HasColumnType("double precision");
 
+                    b.Property<string>("ObstructionJson")
+                        .HasColumnType("text");
+
+                    b.Property<DateTimeOffset?>("ObstructionMeasuredAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("PerceptualHash")
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");

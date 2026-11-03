@@ -128,7 +128,9 @@ public sealed class EvidenceService(IEvidenceRepository repository, IObjectStora
         item.QualityNote,
         item.PerceptualHash,
         item.ImageBrightness,
-        item.ImageSharpness);
+        item.ImageSharpness,
+        item.ObstructionJson,
+        item.ObstructionMeasuredAt);
 
     public static AnalysisJobResponse ToResponse(AnalysisJob job) => new(
         job.Id,
