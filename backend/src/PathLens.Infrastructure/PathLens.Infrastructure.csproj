@@ -23,6 +23,10 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- Measured 2026-11-04, not assumed: 3.1.12 lists six advisories instead of two, and 4.1.3 has none
+         but fails the build demanding a purchased Six Labors license file. Upgrading is not an available
+         fix here, so the two NU190x warnings on 3.1.8 are suppressed and disclosed
+         (docs/THIRD_PARTY.md, docs/SECURITY.md) rather than hidden. -->
     <NoWarn>NU1902;NU1903</NoWarn>
   </PropertyGroup>
 

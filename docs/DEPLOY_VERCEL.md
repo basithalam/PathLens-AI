@@ -36,7 +36,7 @@
 
 **Local alternative (no deploy):** `docker compose up --build` → `http://localhost:3000` + `http://localhost:5145/health/live` — valid per Rules (public repo + 3-min video).
 
-**CD flow that actually exists:** `push main` → `ci.yml` (backend build + 52 unit + 53 integration tests against
+**CD flow that actually exists:** `push main` → `ci.yml` (backend build + 55 unit + 53 integration tests against
 a `postgis/postgis:17-3.5` service, then frontend lint + typecheck + build) → `deploy-hetzner.yml` (verify →
 SSH to Hetzner → `docker compose up --build -d` → strict `/health/ready` gate requiring `database` and
 `ai-provider` Healthy) → live URL for the demo video.

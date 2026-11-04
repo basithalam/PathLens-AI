@@ -161,7 +161,7 @@ public sealed class AnalysisJobProcessor(
             try
             {
                 var concept = ObstacleConcepts.For(result.ObstacleType);
-                if (concept is not null)
+                if (concept is not null && ObstacleConcepts.MeasuresOccupancy(result.ObstacleType))
                 {
                     var measurer = scope.ServiceProvider.GetRequiredService<ISceneMeasurementService>();
                     var measurement = await measurer.MeasureAsync(

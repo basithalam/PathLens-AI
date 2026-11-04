@@ -1,5 +1,9 @@
 # PathLens AI
 
+**Built solo — one developer, one repository, no team — for the Meta Global AI Developer Hackathon 2026,
+Indie Developer Track.** Runs on the Meta Model API: `muse-spark-1.3` classifies the obstacle and `sam-3.1`
+measures how much of the visible walkway it occupies.
+
 **Evidence-Aware Accessibility Intelligence — Judge: Start at `docs/JUDGE_GUIDE.md` (3-min demo, 1 page)**
 **Testing with real users? `docs/WHEELCHAIR_USER_GUIDE.md` is the click-by-click manual for how a wheelchair
 user gives feedback through the UI — and what this build cannot take as feedback yet.**
@@ -195,7 +199,7 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 
 ## Status
 
-🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–6 + F1–F6 are complete: reports/evidence persist, analysis/comparison end-to-end, map with coverage grid (C/B/A, cache, click-to-zoom), routes with explainable ranking + wheelchair v1, human review + duplicate + feedback, cameras A–E (SF demo city 37.7749,-122.4194; NYC leg blocked honestly, now 511SF/SFMTA/Caltrans candidates). 105 tests (52 unit + 53 integration) + frontend lint/typecheck/build green.
+🚧 In development for the Meta Global AI Developer Hackathon 2026. Phases 0–6 + F1–F6 are complete: reports/evidence persist, analysis/comparison end-to-end, map with coverage grid (C/B/A, cache, click-to-zoom), routes with explainable ranking + wheelchair v1, human review + duplicate + feedback, cameras A–E (SF demo city 37.7749,-122.4194; NYC leg blocked honestly, now 511SF/SFMTA/Caltrans candidates). 108 tests (55 unit + 53 integration) + frontend lint/typecheck/build green.
 
 **H1 (2026-10-30):** leaflet 404 fixed (fixLeafletIcons + public images), pagination preserves search/type, full `docker-compose.yml` (api+web+db+worker profile), `output: standalone`, ImageSharp 3.1.8 Release green, `.env.example` — `docker compose up --build` one-click. See `docs/H1_FIX_REPORT.md`.
 

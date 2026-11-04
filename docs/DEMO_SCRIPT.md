@@ -22,13 +22,13 @@
 
 **Step 6 — 2:40-3:00 Human Reviewer Verifies (Audit):** `/reviewer` → Login `reviewer@pathlens.local` → Queue `Unverified + Conflicting + Stale camera` → `HumanVerified/Disputed/Rejected` + Note → Audit trail (`/reviewer/audit` actor/prev/new/note/time) → Map marker `V` — VO: Human decides, audit remembers — AI never auto-verifies.
 
-**Backup & Live Proof (G1,G3,G5):** `GET /health/ready` → `database Healthy, ai-provider Healthy Meta muse-spark-1.3` + `GET /api/reports` → `analysisProvider: Meta, confidence 90%` — not Mock. `G3 confidence bar + callout + 429 5s backoff` + CI 105 tests (52 unit + 53 integration) + `JUDGE_GUIDE.md` 1 page.
+**Backup & Live Proof (G1,G3,G5):** `GET /health/ready` → `database Healthy, ai-provider Healthy Meta muse-spark-1.3` + `GET /api/reports` → `analysisProvider: Meta, confidence 90%` — not Mock. `G3 confidence bar + callout + 429 5s backoff` + CI 108 tests (55 unit + 53 integration) + `JUDGE_GUIDE.md` 1 page.
 
 **Old 2-min script archived — new 6-step 3-min is Judge-facing.**
 
 
 
-**110–120s Honest + Impact (F6+G5+G6):** F6 QuickFeedback 4 buttons (StillVisible/NotInNewPhoto/WrongOrStale/NotSure — never auto-verifies) + camera `isStale` on `/map`. **G5:** CI `postgres:17-3.5` service + 105 tests (52 unit + 53 integration via `Ai__Provider=Mock`) + strict `/health/ready` must Healthy (or deploy fails). **G6:** `git grep` for key shapes now returns only masked forms and `${{ secrets.* }}` references — **but a
+**110–120s Honest + Impact (F6+G5+G6):** F6 QuickFeedback 4 buttons (StillVisible/NotInNewPhoto/WrongOrStale/NotSure — never auto-verifies) + camera `isStale` on `/map`. **G5:** CI `postgres:17-3.5` service + 108 tests (55 unit + 53 integration via `Ai__Provider=Mock`) + strict `/health/ready` must Healthy (or deploy fails). **G6:** `git grep` for key shapes now returns only masked forms and `${{ secrets.* }}` references — **but a
 full Llama key was printed inside `docs/SECURITY.md` and is reachable in tracked commits `771a485`/`2386b7f`**;
 it is masked in the working tree and must be treated as revoked (`docs/SECURITY.md` G1). History was not
 rewritten. `evaluation/results.sf.json`: 25 synthetic images, 6 correct / 19 inconclusive under **Mock**,

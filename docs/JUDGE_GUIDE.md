@@ -166,6 +166,17 @@ attached to have since been deleted, so they no longer open from a report page.
   the 581 evidence rows analysed before it was switched on still report *not measured* rather than a number.
   Two limits are stated in the UI itself: the share is of the walkway **in the photo**, never metres (nothing
   gives a scale reference), and SAM returns **no confidence score**.
+- **Occupancy is measured only where the number means something.** On 2026-11-04 a Sylhet photo whose
+  walking line is clear, with an open drain along its edge, came back as **100% occupied** — the model had
+  classified it `BrokenSurface`, and the surface concept segmented the whole damaged pavement. The
+  arithmetic was correct; the metric was not. Broken paving degrades a walkway, it does not occupy it, so
+  `ObstacleConcepts.MeasuresOccupancy` now restricts measurement to obstacles that physically stand on the
+  path (`BlockedSidewalk`, `ConstructionBarrier`, `Other`) and returns no measurement for surface defects,
+  which the UI shows as unknown. Three unit tests pin that, including the one asserting a type can have a
+  valid segmentation concept and still be unmeasurable. The full account is `docs/ERROR_ANALYSIS.md` §9.
+  **The limit this leaves:** PathLens still cannot put a number on the commonest hazard in Sylhet. An open
+  drain is recorded as a report and shown on the map, but it has no occupancy percentage — the type
+  vocabulary has no `OpenDrain` value, and area-share is the wrong instrument for a trench anyway.
 - **A zero-detection is never shown as "0% blocked".** Measured on that same photo: the bare concept
   `scooter` returned **no boxes at all**, while `scooters, bikes, goods or vehicles blocking the sidewalk`
   returned two. So an empty result means *not measured*, and the code returns `null` for it — reporting 0%

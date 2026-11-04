@@ -52,9 +52,20 @@ complete `dependencies` block, and all styling is hand-written in `apps/web/src/
 Apache-2.0 when the consumer "is consuming the Work in for use in software licensed under an Open Source or
 Source Available license". PathLens is distributed under MIT, so the Apache-2.0 branch applies and no
 commercial licence is required. `requireLicenseAcceptance` is `true` on this package, so the licence text
-should be kept with any redistributed build. The two open NuGet advisories on 3.1.8 are suppressed via
-`NoWarn` rather than patched — recorded in `docs/SECURITY.md`, because a build that reports zero warnings
-is only *configured* to be clean.
+should be kept with any redistributed build.
+
+**Why the two advisories are still suppressed — measured 2026-11-04, not assumed.** "Just upgrade" does not
+work here, so the build was run against each candidate:
+
+| Version | Result |
+|---|---|
+| 3.1.8 (in use) | `NU1902` + `NU1903` suppressed by `<NoWarn>` in `PathLens.Infrastructure.csproj`; build reports 0 warnings / 0 errors |
+| 3.1.12 | **Worse** — six advisories instead of two (`GHSA-gwg2-r3hj-4w44`, `j3p4-wp97-rph4`, `j9gm-c75j-xc9q`, `jjfr-hcj7-qf5w`, `v76p-62qx-wwq2`, `wmxv-xphr-5c9g`), 60 build warnings |
+| 4.1.3 | No advisories at all, but **the build fails**: `No Six Labors license found. Set $(SixLaborsLicenseKey)…` — v4 demands a licence file, which for this project means the commercial branch of the same split licence |
+
+So the honest state is a pinned version with two disclosed advisories, not a clean build. The suppression is
+recorded in `docs/SECURITY.md`, `docs/TEST_PLAN.md` and here, and the reason now sits as a comment inside the
+`.csproj` so the next reader does not repeat the experiment.
 
 ## 3. Data and imagery we wrote ourselves
 

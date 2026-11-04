@@ -171,4 +171,39 @@ public class ObstructionGeometryTests
         Assert.Null(ObstacleConcepts.For(nameof(ObstacleType.Unknown)));
         Assert.Null(ObstacleConcepts.For("NotARealType"));
     }
+
+    [Fact]
+    public void Obstacles_that_stand_on_the_walkway_are_measured()
+    {
+        Assert.True(ObstacleConcepts.MeasuresOccupancy(nameof(ObstacleType.BlockedSidewalk)));
+        Assert.True(ObstacleConcepts.MeasuresOccupancy(nameof(ObstacleType.ConstructionBarrier)));
+        Assert.True(ObstacleConcepts.MeasuresOccupancy(nameof(ObstacleType.Other)));
+    }
+
+    [Fact]
+    public void Surface_defects_are_never_reported_as_an_occupancy_share()
+    {
+        // Measured on 2026-11-04: a Sylhet photo with a clear walking line and an open drain along its
+        // edge was classified BrokenSurface, and the surface concept segmented the whole damaged
+        // pavement - the share came back 100% occupied. Broken paving degrades a walkway, it does not
+        // occupy it, so these types must not be measured at all.
+        foreach (var type in new[]
+        {
+            nameof(ObstacleType.BrokenSurface), nameof(ObstacleType.MissingOrBlockedRamp),
+            nameof(ObstacleType.StairsOrStep), nameof(ObstacleType.Unknown), "NotARealType",
+        })
+        {
+            Assert.False(ObstacleConcepts.MeasuresOccupancy(type),
+                $"{type} is not an object standing on the walkway and must not report a share");
+        }
+    }
+
+    [Fact]
+    public void A_type_can_have_a_concept_and_still_be_unmeasurable()
+    {
+        // The guard is separate from the concept table on purpose: BrokenSurface has a valid segmentation
+        // concept, so a check on the concept alone would let the misleading 100% through.
+        Assert.NotNull(ObstacleConcepts.For(nameof(ObstacleType.BrokenSurface)));
+        Assert.False(ObstacleConcepts.MeasuresOccupancy(nameof(ObstacleType.BrokenSurface)));
+    }
 }

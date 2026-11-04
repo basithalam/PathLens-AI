@@ -136,3 +136,37 @@ columns before any comparison claim is made from this dataset.
 
 Until then the honest claim is: **the pipeline works end to end on real photographs, the model is right
 three times out of six answerable cases, and our own ground truth was wrong at least three times.**
+
+## 9. Addendum, 2026-11-04: the metric that returned 100% on a clear path
+
+The most serious defect this analysis found was not in the model or the labels — it was in **our own metric**,
+and it surfaced on a photograph uploaded by the developer from Sylhet (report `12dc9594`, evidence
+`c7400b06`, a footpath with a clear walking line and an excavated drain running along its edge).
+
+| run | what happened | measurement |
+|---|---|---|
+| 1 | Muse said `Other 0.65`. Replaying the service's two queries by hand: **1 box** for `"the paved pedestrian walkway"`, **0 boxes / empty text** for `"obstacle blocking the sidewalk"` | `null` — correct, the line really is clear |
+| 2 | After widening the `Other` concept (`edc8613`) the same photo was re-analysed. Muse said **`BrokenSurface 0.55`** this time | **100% occupied** |
+
+The 100% is not an arithmetic bug. `ObstructionGeometry` clipped, unioned and capped correctly: the surface
+concept `"cracked, broken, raised or missing paving in the walking surface"` segmented the *whole damaged
+pavement*, so obstacle area ≥ walkway area. **The metric was answering a question nobody asked.** Broken
+paving does not *occupy* a walkway, it *degrades* it — and the answer it produced, "this path is entirely
+blocked", is the most dangerous false claim the feature can make, in the opposite direction to the one the
+product was built to guard against.
+
+Two things came out of it:
+
+1. `ObstacleConcepts.MeasuresOccupancy` — occupancy is now measured **only** for obstacles that physically
+   stand on the walking line (`BlockedSidewalk`, `ConstructionBarrier`, `Other`). `BrokenSurface`,
+   `MissingOrBlockedRamp` and `StairsOrStep` return no measurement at all, which the UI reports as unknown.
+   Three unit tests pin it, including the one that asserts a type can have a valid segmentation concept and
+   still be unmeasurable — because checking the concept alone is exactly what let the 100% through.
+2. **A second, independent proof of non-determinism:** the same file, same model, same prompt gave `Other
+   0.65` and then `BrokenSurface 0.55`. A single-run classification is not a stable fact about an image, so
+   no per-image claim in this repository should be read as reproducible.
+
+What remains unproven: whether SAM 3.1 can ever quantify an open drain as a *share of walkway occupied*.
+The honest answer today is that it cannot — the hazard that matters most in the pilot city is described by
+the type vocabulary as `Other` or `BrokenSurface`, and neither is measurable as an area share. That is a
+coverage gap in the design, not a bug to patch, and it is stated in `docs/JUDGE_GUIDE.md`.

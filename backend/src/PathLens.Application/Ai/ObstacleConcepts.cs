@@ -27,4 +27,25 @@ public static class ObstacleConcepts
         nameof(ObstacleType.Other) => "an obstacle, open drain, trench, excavation or pile of material blocking or narrowing the sidewalk",
         _ => null,
     };
+
+    /// <summary>
+    /// Whether an occupancy share is a meaningful number for this obstacle type at all.
+    ///
+    /// Measured on 2026-11-04 against a Sylhet photo whose walking line is clear and whose hazard is the
+    /// excavated drain along its edge: the model classified it <c>BrokenSurface</c>, the surface concept
+    /// segmented the whole damaged pavement, and the share came back <b>100% occupied</b>. The arithmetic
+    /// was right; the metric was not. Broken paving does not occupy a walkway, it degrades it, so
+    /// obstacle-area over walkway-area answers a question nobody asked - and the answer it gives ("the path
+    /// is entirely blocked") is the most dangerous false claim this feature can make.
+    ///
+    /// Only obstacles that physically stand on the walking line are measured. Everything else gets no
+    /// measurement, which the UI reports as unknown - never as 0% and never as a clear path.
+    /// </summary>
+    public static bool MeasuresOccupancy(string obstacleType) => obstacleType switch
+    {
+        nameof(ObstacleType.BlockedSidewalk) => true,
+        nameof(ObstacleType.ConstructionBarrier) => true,
+        nameof(ObstacleType.Other) => true,
+        _ => false,
+    };
 }
