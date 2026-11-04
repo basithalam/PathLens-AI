@@ -31,6 +31,9 @@ export default async function HomePage() {
           <Link href="/routes" className="btn btn--ghost">
             Plan a route
           </Link>
+          <Link href="/manual" className="btn btn--ghost">
+            User manual
+          </Link>
         </div>
         <div className="hero__trust">
           <div className="hero__trust-card">

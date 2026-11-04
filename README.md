@@ -12,6 +12,8 @@ user gives feedback through the UI — and what this build cannot take as feedba
 
 **Demo video (3 min):** https://www.youtube.com/watch?v=6IHM7WiYKSg
 
+**User manual:** https://pathlens.cognitivebd.com/manual (printable: `docs/user-manual.html`) — how every feature works for public users, reviewers and admins.
+
 **Open globally — works in any city.** The map opens on Sylhet, Bangladesh (24.9116, 91.8498) as a demo seed and manual photo reporting works from anywhere. Public traffic-camera feeds exist only for San Francisco today (Datumfeed / Caltrans / 511SF /
 SFMTA), so they are shown as a separate evidence source — and where no camera exists the map says so
 rather than hiding it.

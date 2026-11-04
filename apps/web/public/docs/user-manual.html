@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PathLens AI — User Manual</title>
+<style>
+:root{--bg:#f5f8f7;--surface:#fff;--ink:#0c1a15;--muted:#56675f;--line:#dde7e2;--brand:#0b6b4f;--brandink:#054534;--ghost:#e4f4ee;--accent:#1f5fd8;--warn:#97600a;--bad:#b42318;--r:14px}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "Segoe UI",Inter,system-ui,sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:24px 18px 80px}
+.hero{background:linear-gradient(135deg,#075340,#062018);color:#fff;border-radius:20px;padding:36px 32px;margin:8px 0 22px}
+.hero .badge{display:inline-block;background:#0b6b4f;border-radius:999px;padding:6px 16px;font-size:13px;font-weight:700;letter-spacing:.04em}
+.hero h1{margin:14px 0 6px;font-size:34px;line-height:1.2}
+.hero p{color:#b6e3d1;margin:6px 0}
+.hero .meta{font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px;margin:16px 0}
+.card h2{margin:0 0 8px;font-size:22px}
+.card h3{margin:18px 0 6px;font-size:17px}
+.kbd{display:inline-block;background:#0c1a15;color:#fff;border-radius:6px;padding:1px 9px;font-size:13px;font-weight:700}
+.step{background:#f2f6f4;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:8px 0}
+.step b.stepn{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:8px;background:var(--brand);color:#fff;font-size:14px;margin-right:8px}
+.warn{background:#fdf3e0;border:1px solid #f0d6a4;border-radius:10px;padding:12px 14px;margin:10px 0}
+.bad{background:#fdeceb;border:1px solid #f3bfba;border-radius:10px;padding:12px 14px;margin:10px 0}
+.ok{background:var(--ghost);border:1px solid #bfded0;border-radius:10px;padding:12px 14px;margin:10px 0}
+table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:#f2f6f4}
+code{background:#eef3f1;border-radius:6px;padding:1px 7px;font-size:13.5px}
+.toc a{color:var(--brandink)}
+.foot{color:var(--muted);font-size:14px;margin-top:26px}
+@media print{.wrap{max-width:100%}body{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="hero">
+<span class="badge">META GLOBAL AI HACKATHON 2026 · INDIE / SOLO</span>
+<h1>PathLens AI — User Manual</h1>
+<p>Evidence-aware accessibility intelligence. Every claim shows its age, source and verification. Unknown stays unknown — no route is ever labelled safe.</p>
+<p class="meta">Live: https://pathlens.cognitivebd.com · Demo video: https://www.youtube.com/watch?v=6IHM7WiYKSg · Open globally — works in any city (map opens on Sylhet as demo seed).</p>
+</div>
+<div class="card toc">
+<h2>Contents</h2>
+<p><a href="#start">1. Start here</a> · <a href="#public">2. Public user</a> · <a href="#reviewer">3. Reviewer</a> · <a href="#admin">4. Admin</a> · <a href="#rules">5. Honesty rules</a> · <a href="#trouble">6. Troubleshooting</a></p>
+</div>
+<div class="card" id="start">
+<h2>1. Start here — who needs an account?</h2>
+<table>
+<tr><th>What you do</th><th>Where</th><th>Login?</th></tr>
+<tr><td>Browse map, reports, routes</td><td><code>/map</code> · <code>/reports</code> · <code>/routes</code></td><td>No</td></tr>
+<tr><td>Report an obstacle, upload photo, run AI, compare, quick feedback</td><td><code>/report/new</code> and any report page</td><td>No</td></tr>
+<tr><td>Verify / dispute / reject, audit trail</td><td><code>/reviewer</code></td><td>Yes — Reviewer card</td></tr>
+<tr><td>Camera registry, city analytics, reputation</td><td><code>/admin</code></td><td>Yes — Admin card</td></tr>
+</table>
+<div class="step"><b class="stepn">A</b><b>/reviewer</b> shows only <span class="kbd">Reviewer</span> + <span class="kbd">User</span> one-tap cards. <b>/admin</b> shows only the <span class="kbd">Admin</span> card. Typing another role's email still works, but the API answers <code>403</code> where that role has no right — that is the point.</div>
+<p>Demo accounts: <code>reviewer@pathlens.local / Reviewer@123</code> · <code>admin@pathlens.local / Admin@123</code> · <code>user@pathlens.local / User@123</code>. Seeded demo logins on a throwaway dataset; a real deployment rotates them (see <code>docs/SECURITY.md</code>).</p>
+</div>
+<div class="card" id="public">
+<h2>2. Public user — no account needed</h2>
+<h3>2.1 Accessibility map (<code>/map</code>)</h3>
+<div class="step"><b class="stepn">1</b>Open <b>Accessibility map</b>. Pan or zoom — reports reload for the area you look at. A place with no marker is <b>unknown, not proven accessible</b>.</div>
+<div class="step"><b class="stepn">2</b>Marker letters carry meaning without colour: <span class="kbd">!</span> Unverified · <span class="kbd">V</span> HumanVerified · <span class="kbd">?</span> Disputed · <span class="kbd">X</span> Rejected · square <span class="kbd">C</span> camera evidence.</div>
+<div class="step"><b class="stepn">3</b>Toggle <b>Coverage</b> to see the grid: grey hatched C = insufficient evidence, amber B = obstacle evidence, green A = evidence present. Click a cell to zoom and filter.</div>
+<div class="step"><b class="stepn">4</b><b>Use my location</b> recentres the map. Denying permission leaves manual panning fully usable.</div>
+<h3>2.2 Report an obstacle (<code>/report/new</code> or + Report)</h3>
+<div class="step"><b class="stepn">1</b>Fill <b>Title</b> (name the place), <b>Obstacle type</b> (<code>BlockedSidewalk · BrokenSurface · MissingOrBlockedRamp · StairsOrStep · ConstructionBarrier · Other · Unknown</code>), <b>Severity</b> (<code>Unknown · Low · Medium · High</code>).</div>
+<div class="step"><b class="stepn">2</b>Location: <b>Use my location</b> (GPS + accuracy note; over 50 m warns to drag the pin), <b>Pick on map</b>, or type coordinates. Coordinates are a claim, not a verified fact.</div>
+<div class="step"><b class="stepn">3</b><b>What did you actually see?</b> — Stairs? Ramp? Surface? Leave <b>Unknown</b> when you did not check. A wrong <i>No</i> is worse than an honest <i>Unknown</i>.</div>
+<div class="step"><b class="stepn">4</b>Tick consent, press <b>Create report</b>. The report arrives <b>Unverified</b> — correct and shown openly.</div>
+<h3>2.3 Photo + Meta AI (report page → Photo evidence)</h3>
+<div class="step"><b class="stepn">1</b>Upload JPEG/PNG/WebP ≤ 10 MB (compressed on device, EXIF stripped). Press <b>Run analysis</b>.</div>
+<div class="step"><b class="stepn">2</b>Read the card: <b>✓ Live Meta AI — provider Meta · muse-spark-1.3</b> (a <i>Demo/mock</i> badge means pipeline test only), possible obstacle, confidence bar (red &lt;40 · orange 40–70 · green &gt;70), visible evidence, limitations, and <b>Human review required</b>.</div>
+<div class="step"><b class="stepn">3</b><b>Obstruction share</b> (sam-3.1): a share of the walkway <i>in the photo</i>, never metres, no confidence score. <i>Not measured</i> means unknown — e.g. <code>BrokenSurface</code> is deliberately never measured as a share.</div>
+<h3>2.4 Compare over time (report page → Evidence explorer)</h3>
+<div class="step"><b class="stepn">1</b>Upload a second photo of the same place and analyse both. Pick earlier + later, press <b>Compare photos</b>.</div>
+<div class="step"><b class="stepn">2</b>Four outcomes only, always with explanation: <code>LikelyStillPresent · NotObservedInNewImage · ConflictingEvidence · Inconclusive</code>. <b>Not observed never means removed.</b></div>
+<h3>2.5 Quick feedback + correction</h3>
+<div class="step"><b class="stepn">1</b>On any report, tap <b>Still visible · Not in new photo · Information wrong or old · Not sure</b>. A tap creates a review note — it never auto-verifies.</div>
+<div class="step"><b class="stepn">2</b>Correct your own claim anytime at <code>/reports/{id}/edit</code> (no login).</div>
+<h3>2.6 Plan a route (<code>/routes</code>)</h3>
+<div class="step"><b class="stepn">1</b>Enter start + destination (type, address search, or click origin/destination on the map), set preferences (<b>Avoid stairs · Verified · Avoid stale · Shortest</b>), press <b>Plan routes</b>.</div>
+<div class="step"><b class="stepn">2</b>Compare 2–3 real OSRM foot-geometry cards ranked by <b>fewest known obstacles</b>: known obstacles within 50 m, <b>unknown %</b> (no report nearby — never clear), <b>Certain vs Uncertain</b> split, <b>stale &gt;30d</b> flag, <b>hasConfirmedStairs</b> warning.</div>
+<div class="warn"><b>OSRM foot routing is not wheelchair-validated. No route is ever labelled wheelchair-safe.</b> <i>Recommended</i> means fewest proven obstacles — not proven safe. Preferences reorder; they never hide an obstacle.</div>
+</div>
+<div class="card" id="reviewer">
+<h2>3. Reviewer console (<code>/reviewer</code>) — Reviewer login</h2>
+<div class="step"><b class="stepn">1</b>Open <b>Reviewer dashboard</b>, press <b>Sign in</b> on the <b>Reviewer</b> card (one tap). The <b>User</b> card is there so you can prove a plain user gets <code>403</code>.</div>
+<div class="step"><b class="stepn">2</b><b>Reports waiting for review</b> — unverified reports, camera candidates, duplicate suggestions, conflicting comparisons. Open a report, read photo + AI + timeline.</div>
+<div class="step"><b class="stepn">3</b>Decide with a note: <b>HumanVerified</b> (seen and true) · <b>Disputed</b> (evidence disagrees) · <b>Rejected</b> (no evidence / invalid). The decision is stored <i>beside</i> the AI outcome — never overwrites it. Duplicates: <b>Confirm</b> (pointer, stays visible) or <b>Reject</b> (stays independent).</div>
+<div class="step"><b class="stepn">4</b>Check <b>Recent audit trail</b> — actor, previous to new, note, time. The queue reloads after every decision. <b>Log out</b> from the session bar when done.</div>
+<div class="ok">An Admin login also passes this queue. A User login is rejected with <i>Your session is not a reviewer session</i> — expected behaviour, not a bug.</div>
+</div>
+<div class="card" id="admin">
+<h2>4. Admin console (<code>/admin</code>) — Admin login only</h2>
+<div class="step"><b class="stepn">1</b>Sign in with the <b>Admin</b> card (one tap). Reviewer/User sessions see <i>Admin-only — the API answers 403</i> and must sign out first.</div>
+<div class="step"><b class="stepn">2</b><b>Camera registry</b> — <b>Register camera</b> (provider, external id, label, city, lat/lon, feed URL, cadence 60s+, permission note). A camera <b>cannot be enabled without a permission note</b>. <b>Poll now</b> pulls one live frame: unchanged creates nothing (no AI cost); changed becomes <code>CameraFeed</code> evidence on the nearest report within 100 m, or a new auto <b>CameraDetected candidate</b> (Unknown, Unverified) entering the same Meta AI queue. Square <span class="kbd">C</span> on the map is evidence, never a verdict. Auto-polling is OFF on the demo — trigger manually. <b>Stale</b> (10 min+ without success) is flagged, never trusted.</div>
+<div class="step"><b class="stepn">3</b><b>City analytics</b> — total reports, human-verified percent, stale percent, unknown share, wrong/stale feedback, 7-day chart. Live from <code>GET /api/admin/stats</code>.</div>
+<div class="step"><b class="stepn">4</b><b>Reputation</b> — Bronze 1+ · Silver 3+ · Gold 5+ verified reports. Empty on the demo because seeded reports have no signed-in author — shown as empty, not invented.</div>
+<div class="warn">An admin never edits a verdict from here. Verification happens only in <code>/reviewer</code>.</div>
+</div>
+<div class="card" id="rules">
+<h2>5. Honesty rules — read before a real trip</h2>
+<table>
+<tr><th>You see</th><th>It means</th></tr>
+<tr><td>No reports / empty map</td><td>Nobody reported here — <b>unknown, not clear</b>.</td></tr>
+<tr><td><code>NotObservedInNewImage</code></td><td>Not seen in the newer photo — <b>never proves removed</b>.</td></tr>
+<tr><td><code>Unknown</code> / <i>not measured</i></td><td>Not checked — never estimated, never 0%.</td></tr>
+<tr><td>Route card <i>Recommended</i></td><td>Fewest known obstacles — <b>not wheelchair-safe proof</b>.</td></tr>
+<tr><td>Camera frame (highway)</td><td>Traffic view, not footpath — stays <code>Inconclusive</code> by design.</td></tr>
+</table>
+</div>
+<div class="card" id="trouble">
+<h2>6. Troubleshooting</h2>
+<table>
+<tr><th>Symptom</th><th>Fix</th></tr>
+<tr><td>Photo upload 429</td><td>10 uploads/hour limit — wait, or pace eval runs.</td></tr>
+<tr><td>Sign-in 429</td><td>5 attempts/minute — wait one minute.</td></tr>
+<tr><td>Analysis Failed</td><td>Check <code>/health/ready</code> ai-provider, then <b>Retry analysis</b>.</td></tr>
+<tr><td>No compare options</td><td>Both photos need <i>Completed</i> analysis first.</td></tr>
+<tr><td><i>Demo/mock</i> badge</td><td>Provider is Mock — pipeline test, not real AI.</td></tr>
+<tr><td>Map empty</td><td>Nobody reported there — that <i>is</i> the message.</td></tr>
+</table>
+<p class="foot">PathLens AI · Built solo for the Meta Global AI Developer Hackathon 2026, Indie Track · MIT (code/docs) · Live https://pathlens.cognitivebd.com · Judge: docs/JUDGE_GUIDE.md · Unknown is unknown.</p>
+</div>
+</div>
+</body>
+</html>
+

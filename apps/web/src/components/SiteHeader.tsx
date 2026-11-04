@@ -8,6 +8,7 @@ const NAV = [
   { href: "/map", label: "Map" },
   { href: "/routes", label: "Routes" },
   { href: "/reports", label: "Reports" },
+  { href: "/manual", label: "Manual" },
 ];
 
 const TEAM_NAV = [
