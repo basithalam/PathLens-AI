@@ -71,7 +71,8 @@ Current state of the tracked tree:
 - `docs/SECURITY.md` and `README.md` now carry masked forms (`LLM_1134…<redacted>`, `LLM_<id>_…`), never a usable value.
 - `.env.example` is the only tracked env file and holds empty placeholders.
 - `${{ secrets.META_AI_API_KEY }}` references in the workflows are the only live-key path.
-- The exposed key is treated as **revoked**, and history was deliberately **not** rewritten — see
+- The exposed key is **compromised**; revocation is a provider-console action that this repository cannot
+  verify, so nothing here claims it is done. History was deliberately **not** rewritten — see
   `docs/SECURITY.md` G1 for why.
 
 Frontend never sees `MetaAi__ApiKey` (only `NEXT_PUBLIC_API_BASE_URL`). Re-run the grep above before

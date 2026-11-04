@@ -29,6 +29,20 @@ public sealed class EvidenceRepository(PathLensDbContext dbContext) : IEvidenceR
             .OrderByDescending(item => item.UploadedAt)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<EvidenceItem>> ListMeasuredObstructionsAsync(
+        IReadOnlyCollection<Guid> reportIds, CancellationToken cancellationToken)
+    {
+        if (reportIds.Count == 0)
+        {
+            return Array.Empty<EvidenceItem>();
+        }
+
+        return await dbContext.EvidenceItems.AsNoTracking()
+            .Where(item => reportIds.Contains(item.ReportId) && item.ObstructionJson != null)
+            .OrderByDescending(item => item.ObstructionMeasuredAt)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task AddJobAsync(AnalysisJob job, CancellationToken cancellationToken) =>
         await dbContext.AnalysisJobs.AddAsync(job, cancellationToken);
 

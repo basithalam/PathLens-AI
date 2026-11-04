@@ -21,6 +21,7 @@ public sealed class RouteRecommendationService(
     IRoutingService routingService,
     IReportRepository reportRepository,
     IRouteRecommendationRepository recommendationRepository,
+    PathLens.Application.Evidence.IEvidenceRepository evidenceRepository,
     Microsoft.Extensions.Options.IOptions<RouteEvaluationOptions>? routingOptions = null)
 {
     /// <summary>Reports closer than this to the route count as known obstacles on it.</summary>
@@ -53,6 +54,12 @@ public sealed class RouteRecommendationService(
         var reportPoints = areaReports
             .Select(report => new GeoPoint(report.Latitude, report.Longitude))
             .ToList();
+
+        // Newest measured obstruction share per report, so an explanation can say how much of the visible
+        // walkway a known obstacle covers. A report missing from this map was never measured, and the
+        // explanation says so - it never falls back to 0%.
+        var obstructionShares = await LoadObstructionSharesAsync(
+            areaReports.Select(report => report.Id).ToList(), cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
 
@@ -116,8 +123,12 @@ public sealed class RouteRecommendationService(
                             ? "uncertain (camera-detected candidate, not human-verified)"
                             : "uncertain (not human-verified)";
 
+                    var shareText = obstructionShares.TryGetValue(obstacle.ReportId, out var share)
+                        ? $"covers about {share}% of the visible walkway in its photo (SAM 3.1; a share of the photo, not metres)"
+                        : "obstruction share not measured for its photo";
+
                     explanation.Add(
-                        $"- {obstacle.Title} ({obstacle.ObstacleType}, {obstacle.VerificationStatus}) about {obstacle.DistanceMeters:0} m from the route; {ageText}; {certainty}.");
+                        $"- {obstacle.Title} ({obstacle.ObstacleType}, {obstacle.VerificationStatus}) about {obstacle.DistanceMeters:0} m from the route; {ageText}; {certainty}; {shareText}.");
                 }
 
                 var certainCount = nearby.Count(info => info.VerificationStatus == "HumanVerified");
@@ -343,6 +354,44 @@ public sealed class RouteRecommendationService(
             $"{aboveName} and {belowName} tie on known obstacles and distance; their order is not meaningful.",
             $"{belowName} and {aboveName} tie on known obstacles and distance; their order is not meaningful.");
     }
+
+    /// <summary>
+    /// Newest measured obstruction share per report. A row whose JSON cannot be read is skipped instead of
+    /// guessed at, so a corrupt measurement still shows up as unknown rather than as a number.
+    /// </summary>
+    private async Task<IReadOnlyDictionary<Guid, int>> LoadObstructionSharesAsync(
+        IReadOnlyCollection<Guid> reportIds,
+        CancellationToken cancellationToken)
+    {
+        var shares = new Dictionary<Guid, int>();
+        var measured = await evidenceRepository.ListMeasuredObstructionsAsync(reportIds, cancellationToken);
+
+        foreach (var item in measured)
+        {
+            // The repository orders newest-first, so the first usable row per report wins.
+            if (shares.ContainsKey(item.ReportId) || item.ObstructionJson is null)
+            {
+                continue;
+            }
+
+            try
+            {
+                using var document = JsonDocument.Parse(item.ObstructionJson);
+                if (document.RootElement.TryGetProperty("WalkwayOccupancyPercent", out var percent) &&
+                    percent.ValueKind == JsonValueKind.Number)
+                {
+                    shares[item.ReportId] = percent.GetInt32();
+                }
+            }
+            catch (JsonException)
+            {
+                // Not a share we can stand behind; leaving the report out makes the route say so.
+            }
+        }
+
+        return shares;
+    }
+
     public async Task<RouteRecommendationResponse?> GetAsync(Guid id, CancellationToken cancellationToken)
     {
         var record = await recommendationRepository.GetAsync(id, cancellationToken);

@@ -23,9 +23,12 @@ document** while writing the rotation note. That made the credential public in t
 | `README.md` | key id masked to `LLM_<id>_…` on 2026-11-03 |
 | **git history** | **still contains the full value** in `771a485` and `2386b7f` (plus cline checkpoint commits) — search history for the `LLM_1134…` prefix to list them |
 
-The old key value is therefore treated as **compromised and revoked**, not as something this file still
-protects. **Action required:** revoke it in the Meta/Groq developer console and issue a replacement; a repo
-that was public at any point cannot be un-leaked by editing the current files.
+The old key value is **compromised** — it is reachable in public history and must never be relied on again.
+Whether it has actually been **revoked** cannot be verified from this repository, and this file does not
+claim it has: revocation is an action in the Meta/Groq developer console, not a property of the code, and no
+test here can observe it. Until the owner confirms it, treat the value as live. **Action required:** revoke
+it and issue a replacement — a repo that was public at any point cannot be un-leaked by editing the current
+files.
 
 History was **not** rewritten (`filter-repo` + force-push). Rewriting shared history days before a
 submission deadline risks breaking the deployed clone at `/opt/pathlens`, which pulls `main` — the

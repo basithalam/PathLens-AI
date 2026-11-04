@@ -18,7 +18,7 @@
 
 **Step 4 — 1:30-2:10 Evidence Comparison (Change Over Time):** Same report → 2 photos (earlier + later) → `POST /api/comparisons` → `LikelyStillPresent` (scooters still there) / `NotObservedInNewImage` (not seen, **not proves removed**) / `ConflictingEvidence` / `Inconclusive` (4 states, location ≤25m strong, timestamp trust, 8 unit tests). Show Timeline → Comparison card → Explanation: *What changed, what did not, what cannot be known.*
 
-**Step 5 — 2:10-2:40 Route Planner — Evidence Gaps + Alternatives (Sylhet):** Origin 24.9116,91.8498 → Dest 24.9248,91.8698 → `Plan routes` → 2-3 OSRM foot routes (real geometry, `walking profile; not validated wheelchair` honest) → **Ranked by fewest known obstacles, not distance** → `Route 1 ⚠ Blocked — alternative below` (1 BlockedSidewalk, red) vs `Route 2 ✓ Recommended` (0 known, green) vs `Route 3 ❓ Mostly Unknown 62%` → VO: `UnknownLengthPercent` (25m sampling, no report within 100m) → Unknown ≠ clear — `hasConfirmedStairs` warning + `Stale 30d` + `Certain (HumanVerified) vs Uncertain (camera)` — Preferences `Avoid stairs ON` flips ranking, never hides obstacle. *Evidence gap + known obstacle explained per route.*
+**Step 5 — 2:10-2:40 Route Planner — Evidence Gaps + Alternatives (Sylhet):** Origin 24.9116,91.8498 → Dest 24.9248,91.8698 → `Plan routes` → 2-3 OSRM foot routes (real geometry, `walking profile; not validated wheelchair` honest) → **Ranked by fewest known obstacles, not distance** → `Route 1 ⚠ Blocked — alternative below` (1 BlockedSidewalk, red) vs `Route 2 ✓ Recommended` (0 known, green) vs `Route 3 ❓ Mostly Unknown 62%` → VO: `UnknownLengthPercent` (25m sampling, no report within 100m) → Unknown ≠ clear — `hasConfirmedStairs` warning + `Stale 30d` + `Certain (HumanVerified) vs Uncertain (camera)` — Preferences `Avoid stairs ON` flips ranking, never hides obstacle. *Evidence gap + known obstacle explained per route.* Each listed obstacle also carries its measured share — `covers about 23% of the visible walkway in its photo (SAM 3.1; a share of the photo, not metres)` — or, when nothing was measured, `obstruction share not measured for its photo`. Say which one you are seeing; the share never changes the ranking order.
 
 **Step 6 — 2:40-3:00 Human Reviewer Verifies (Audit):** `/reviewer` → Login `reviewer@pathlens.local` → Queue `Unverified + Conflicting + Stale camera` → `HumanVerified/Disputed/Rejected` + Note → Audit trail (`/reviewer/audit` actor/prev/new/note/time) → Map marker `V` — VO: Human decides, audit remembers — AI never auto-verifies.
 
@@ -30,7 +30,8 @@
 
 **110–120s Honest + Impact (F6+G5+G6):** F6 QuickFeedback 4 buttons (StillVisible/NotInNewPhoto/WrongOrStale/NotSure — never auto-verifies) + camera `isStale` on `/map`. **G5:** CI `postgres:17-3.5` service + 108 tests (55 unit + 53 integration via `Ai__Provider=Mock`) + strict `/health/ready` must Healthy (or deploy fails). **G6:** `git grep` for key shapes now returns only masked forms and `${{ secrets.* }}` references — **but a
 full Llama key was printed inside `docs/SECURITY.md` and is reachable in tracked commits `771a485`/`2386b7f`**;
-it is masked in the working tree and must be treated as revoked (`docs/SECURITY.md` G1). History was not
+it is masked in the working tree and must be treated as compromised — revocation is a console action this
+repo cannot verify (`docs/SECURITY.md` G1). History was not
 rewritten. `evaluation/results.sf.json`: 25 synthetic images, 6 correct / 19 inconclusive under **Mock**,
 5 pairs of which 1 correct — pipeline proof, not accuracy.
 

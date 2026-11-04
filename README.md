@@ -187,7 +187,7 @@ dotnet run --project backend/src/PathLens.Api --urls http://localhost:5145
 curl http://localhost:5145/health/ready  # ai-provider must be Healthy
 ```
 
-Without this configuration an analysis job fails with an explicit field-level error (`missing: MetaAi:Endpoint, MetaAi:Model, MetaAi:ApiKey`) — it never invents a result. For tests or a clearly labelled demo, set `$env:Ai__Provider = "Mock"`; mock findings are marked in the UI as "Demo/mock analysis — not real AI". See `docs/AI_GATE_A_REPORT.md` G1 + `docs/SECURITY.md` for rotation after exposed key `LLM_1134...` (now revoked placeholder).
+Without this configuration an analysis job fails with an explicit field-level error (`missing: MetaAi:Endpoint, MetaAi:Model, MetaAi:ApiKey`) — it never invents a result. For tests or a clearly labelled demo, set `$env:Ai__Provider = "Mock"`; mock findings are marked in the UI as "Demo/mock analysis — not real AI". See `docs/AI_GATE_A_REPORT.md` G1 + `docs/SECURITY.md` for rotation after exposed key `LLM_1134...` (masked to a placeholder here; revocation happens in the provider console and cannot be verified from this repository).
 
 Evidence comparison (Phase 3): `POST /api/comparisons`, `GET /api/comparisons/{id}`, `GET /api/reports/{id}/comparisons`, and `POST /api/comparisons/{id}/review`. The deterministic rules engine checks location match, timestamp trust, and newer-photo strength before allowing `LikelyStillPresent` or `NotObservedInNewImage`; anything weak becomes `Inconclusive`, and different findings become `ConflictingEvidence`. `NotObservedInNewImage` never means an obstacle was removed. A human review is stored beside the original outcome (never overwriting it) and changes the effective outcome. The report page shows a side-by-side evidence explorer with a timeline and the review form.
 
@@ -226,7 +226,7 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 **G5 (2026-11-01):** Deploy & observability — `ci.yml` postgres:17-3.5 service + 92 tests (39 unit + 53 integration via `Ai__Provider=Mock`) + `deploy-hetzner.yml` strict `/health/ready` must Healthy or deploy fails (was degraded pass), `nginx-pathlens.conf` 3001 via `WEB_PORT`, `DEPLOY_HETZNER.md` 3001 verified.
 
 **G6 (2026-11-01):** Demo & submission ready — `docs/DEMO_SCRIPT.md` 2-min (0-20 problem, 20-50 coverage C/B/A, 50-90 G2 SF image + G3 bar/callout, 90-110 route G4 chips, 110-120 audit + G5/G6) + `docs/TEST_PLAN.md` G6 secrets grep log + 92 tests green. Live URL `https://pathlens.cognitivebd.com` (Hetzner 94.130.109.67 via `nginx-pathlens.conf` 3001/5145) or `docker compose up --build` + `./scripts/seed-sf.ps1`.
-> **Corrected 2026-11-03:** the G6 secrets-grep claim ("history contains only placeholders") was **false** — a full Llama API key was printed inside `docs/SECURITY.md` and is reachable in tracked commits `771a485` and `2386b7f`. It is masked in the working tree, treated as revoked, and the history was deliberately not rewritten. See `docs/SECURITY.md` G1 and `docs/TEST_PLAN.md`. Also: CI had not actually run a single job until 2026-11-03 (`docs/FINAL_VERIFICATION.md`).
+> **Corrected 2026-11-03:** the G6 secrets-grep claim ("history contains only placeholders") was **false** — a full Llama API key was printed inside `docs/SECURITY.md` and is reachable in tracked commits `771a485` and `2386b7f`. It is masked in the working tree, treated as compromised (revocation is a provider-console action this repository cannot verify), and the history was deliberately not rewritten. See `docs/SECURITY.md` G1 and `docs/TEST_PLAN.md`. Also: CI had not actually run a single job until 2026-11-03 (`docs/FINAL_VERIFICATION.md`).
 
 ## Known caveats, stated plainly
 
@@ -250,7 +250,8 @@ Judges and users should not have to dig for these.
 - **Reporter reputation is empty on the live demo** because the seeded reports have no signed-in author; the
   panel shows an empty state rather than invented badges.
 - **One API key is reachable in git history** (`771a485`, `2386b7f`), although it is masked in the working
-  tree. It must be treated as revoked; history was not rewritten. `docs/SECURITY.md` G1.
+  tree. It must be treated as compromised until the owner confirms revocation in the provider console;
+  history was not rewritten. `docs/SECURITY.md` G1.
 - **No public footpath camera exists for Sylhet**, so the automatic-update path runs on SF highway cameras that
   show traffic, not footpaths — and the product says so on screen.
 - **Routing uses OSRM's `foot` profile, which is not a validated wheelchair profile.** No route is ever labelled

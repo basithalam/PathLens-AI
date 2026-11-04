@@ -136,7 +136,8 @@ attached to have since been deleted, so they no longer open from a report page.
 - **Reporter reputation is empty** on the live demo because the seeded reports were created anonymously; the
   panel shows an honest empty state instead of fake badges.
 - **One API key was committed in plaintext** in `docs/SECURITY.md` and remains reachable in git history
-  (`771a485`, `2386b7f`). It is masked in the working tree and must be treated as revoked — see
+  (`771a485`, `2386b7f`). It is masked in the working tree and must be treated as **compromised** — whether
+  it has been revoked is an action in the provider console that this repository cannot verify. See
   `docs/SECURITY.md` G1. History was not rewritten.
 - **A second, smaller exposure was found on 2026-11-03 while writing the licence inventory**:
   `docs/DATUMFEED_LIVE.md` quoted six characters of a camera-aggregator key (`head...tail`) on a line that
@@ -177,6 +178,12 @@ attached to have since been deleted, so they no longer open from a report page.
   **The limit this leaves:** PathLens still cannot put a number on the commonest hazard in Sylhet. An open
   drain is recorded as a report and shown on the map, but it has no occupancy percentage — the type
   vocabulary has no `OpenDrain` value, and area-share is the wrong instrument for a trench anyway.
+- **The share also appears in route explanations, and never as an inferred zero.** A known obstacle listed
+  under a route now reads `…certain (human-verified); covers about 23% of the visible walkway in its photo
+  (SAM 3.1; a share of the photo, not metres)`, and when nothing was measured it reads
+  `obstruction share not measured for its photo`. The share is **explanation only** — it does not move the
+  ranking, which still goes on fewest known obstacles, then distance, then the preference chips. Ranking an
+  unmeasured path as safer than a measured one would be inventing data.
 - **A zero-detection is never shown as "0% blocked".** Measured on that same photo: the bare concept
   `scooter` returned **no boxes at all**, while `scooters, bikes, goods or vehicles blocking the sidewalk`
   returned two. So an empty result means *not measured*, and the code returns `null` for it — reporting 0%
