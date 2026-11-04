@@ -13,11 +13,12 @@ Must-say lines (champion points):
 - "No report does not mean clear. Not observed never means removed."
 - "OSRM foot profile — not wheelchair-validated, never labelled safe."
 - "Most cities have no footpath camera yet — map says so."
+- "Camera API connected: Poll now pulls a live frame → auto CameraDetected candidate (Unverified) → same Meta AI analysis."
 
 PRE-SHOOT (5 min):
 - Chrome 1920x1080, 100% zoom, light theme. Hide bookmarks.
-- Tabs order: / | /map | /report/new | /routes | /reviewer | /admin | /health/ready
-- Login ready: reviewer@pathlens.local / Reviewer@123 (one-tap Sign in card).
+- Tabs order: / | /map | /admin | /report/new | /routes | /reviewer | /health/ready
+- Login ready: reviewer@pathlens.local / Reviewer@123 AND admin@pathlens.local / Admin@123 (camera Poll needs Admin).
 - 2 photos ready on desktop: footpath photo + 2nd photo same place for Compare.
 - OBS 1080p30, mic test, fan off, phone silent. Record window only.
 - Fail fallback: localhost http://localhost:3000 + say "local fallback, same build".
@@ -27,12 +28,17 @@ SCENE 0 — HOOK 0:00-0:20 (Home /)
 [VO] "I built PathLens AI solo for the Meta hackathon. A normal map shows the road. It never tells a wheelchair user — is the ramp blocked today? How old is that info? PathLens makes that gap visible."
 [Do] Scroll pipeline 1-6 fast, click Explore the map.
 
-SCENE 1 — MAP 0:20-0:50 (/map)
+SCENE 1 — MAP 0:20-0:40 (/map)
 [Show] Map opens Sylhet seed. Letters ! V ? X, square C cameras. Coverage ON.
 [VO] "Map is OSM + Leaflet, works in any city. Letters work without colour. Grey hatched C means nobody reported here — explicitly not clear. Where no camera exists, it says so."
 [Do] Pan once to another city (e.g. Dhaka) to prove global, show empty-state "unknown, not clear".
 
-SCENE 2 — REPORT + AI 0:50-1:30 (/report/new -> /reports/id)
+SCENE 1B — CAMERA API LIVE 0:40-1:00 (/admin -> /map -> report page) [HIGHLIGHT]
+[Show] /admin as Admin: camera row -> Poll now -> "Changed/CandidateCreated" message. Cut to /map square C marker, open its CameraDetected candidate report.
+[VO] "Camera API connected: Poll now pulls a live frame from the registered feed. Unchanged frame creates nothing — no AI cost. Changed frame becomes CameraFeed evidence on the nearest report within 100 metres, or a new auto CameraDetected candidate — Unknown and Unverified — then the SAME Meta AI analysis queue runs on it. Square C on the map is evidence, never a verdict, and a stale feed is flagged, not trusted."
+[Do] Point permission note gate (no note = no enable), daily budget line, quality note, Live Meta badge on camera evidence. Honest add: "Live auto-polling is OFF on this demo — I trigger Poll now manually. SF demo feeds show highway, not footpath — so a highway frame stays Inconclusive, and that is the product working."
+
+SCENE 2 — REPORT + AI 1:00-1:30 (/report/new -> /reports/id)
 [Show] Create: title, BlockedSidewalk, Use my location, consent, Create. Upload photo, Run analysis.
 [VO] "Report from any city with GPS or map pin. EXIF stripped. Live Meta AI returns type, evidence, confidence and limitations — never a verdict. SAM 3.1 adds N% of walkway occupied in this photo — not metres, no confidence score. Not measured means unknown, not clear."
 [Do] Point confidence bar (red<40 orange40-70 green>70), Live Meta badge, Human review required.
@@ -57,7 +63,7 @@ SCENE 6 — CLOSE 2:50-3:00
 [End card] Live URL + GitHub + "Built solo — Indie 2026".
 
 60-SEC SHORT:
-0:00-0:10 Hook + global line / 0:10-0:25 Map coverage unknown / 0:25-0:40 Upload + Live Meta + SAM% / 0:40-0:50 Routes + foot disclaimer / 0:50-0:60 Review + Unknown is unknown + URL.
+0:00-0:10 Hook + global line / 0:10-0:25 Map + CAMERA Poll now -> square C candidate (highlight) / 0:25-0:40 Upload + Live Meta + SAM% / 0:40-0:50 Routes + foot disclaimer / 0:50-0:60 Review + Unknown is unknown + URL.
 
 NEVER SAY: "wheelchair-safe route", "accurate", "covers Sylhet city", "real-time cameras everywhere".
 IF FAILS: 429 = "10/hour limit protects demo". AI slow = show Demo evidence 01 (1% negative control). OSRM slow = open cached recommendation by id.
