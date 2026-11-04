@@ -25,8 +25,9 @@ photo evidence compared over time, with the age, source and verification of ever
 
 ## Staff logins — one tap, nothing to ask for
 
-The demo is **deliberately open**. Both consoles show all three seeded accounts with the password printed on
+The demo is **deliberately open**. Each console shows only its own seeded accounts with the password printed on
 the card and a **Sign in** button on each — one tap, no typing, no need to message the author.
+`/reviewer` shows Reviewer + User, `/admin` shows Admin only.
 
 | Account | Email | Password | What it unlocks |
 |---|---|---|---|

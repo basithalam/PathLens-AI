@@ -137,7 +137,14 @@ export function ReviewerDashboard() {
   }
 
   if (!user) {
-    return <SignInPanel defaultRole="Reviewer" onSignedIn={async (next) => { setUser(next); await loadQueue(); }} />;
+    return (
+      <SignInPanel
+        defaultRole="Reviewer"
+        visibleRoles="reviewer"
+        heading="Reviewer access"
+        onSignedIn={async (next) => { setUser(next); await loadQueue(); }}
+      />
+    );
   }
 
   const reports = queue?.reports ?? [];

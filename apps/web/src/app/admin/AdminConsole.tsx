@@ -36,6 +36,8 @@ export function AdminConsole() {
         title="Sign in as Admin"
         blurb="Registering a live camera feed is a trust decision, not a configuration detail. A camera cannot be enabled without a permission note, and its snapshots stay un-verified candidates until a reviewer says otherwise."
         defaultRole="Admin"
+        visibleRoles="admin"
+        heading="Admin access"
         onSignedIn={setUser}
       />
     );

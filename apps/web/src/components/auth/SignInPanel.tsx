@@ -3,6 +3,33 @@
 import { useState } from "react";
 import { login, type SessionUser } from "@/lib/auth";
 
+const REVIEWER_ROLES = [
+  {
+    role: "Reviewer",
+    mark: "R",
+    email: "reviewer@pathlens.local",
+    password: "Reviewer@123",
+    can: "Verify, dispute or reject reports and comparisons",
+  },
+  {
+    role: "User",
+    mark: "U",
+    email: "user@pathlens.local",
+    password: "User@123",
+    can: "Ordinary signed-in reporter — the API answers 403 on review",
+  },
+] as const;
+
+const ADMIN_ROLES = [
+  {
+    role: "Admin",
+    mark: "A",
+    email: "admin@pathlens.local",
+    password: "Admin@123",
+    can: "Register cameras, read city analytics and reputation",
+  },
+] as const;
+
 const ROLES = [
   {
     role: "Reviewer",
@@ -27,6 +54,8 @@ const ROLES = [
   },
 ] as const;
 
+type RoleEntry = (typeof ROLES)[number];
+
 /**
  * One sign-in surface for both staff consoles. It only calls the existing
  * POST /api/auth/login path in lib/auth — no new auth behaviour.
@@ -39,14 +68,19 @@ export function SignInPanel({
   title = "Sign in to the review console",
   blurb = "Human review is what turns a claim into something other people can rely on. Every decision you make here is written to an audit trail with your name, the previous value and your note.",
   defaultRole = "Reviewer",
+  visibleRoles = "reviewer",
+  heading = "Reviewer access",
   onSignedIn,
 }: {
   title?: string;
   blurb?: string;
   defaultRole?: string;
+  visibleRoles?: "reviewer" | "admin";
+  heading?: string;
   onSignedIn: (user: SessionUser) => void;
 }) {
-  const preset = ROLES.find((entry) => entry.role === defaultRole) ?? ROLES[0];
+  const shownRoles: readonly RoleEntry[] = visibleRoles === "admin" ? ADMIN_ROLES : REVIEWER_ROLES;
+  const preset = ROLES.find((entry) => entry.role === defaultRole) ?? shownRoles[0];
   const [email, setEmail] = useState<string>(preset.email);
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -66,13 +100,13 @@ export function SignInPanel({
     }
   }
 
-  function fillRole(role: (typeof ROLES)[number]) {
+  function fillRole(role: RoleEntry) {
     setEmail(role.email);
     setPassword(role.password);
     setError(null);
   }
 
-  async function quickSignIn(role: (typeof ROLES)[number]) {
+  async function quickSignIn(role: RoleEntry) {
     setError(null);
     setBusy(role.role);
     setEmail(role.email);
@@ -90,7 +124,7 @@ export function SignInPanel({
   return (
     <section className="auth" aria-labelledby="signin-heading">
       <aside className="auth__aside">
-        <h2 id="signin-heading">Reviewer &amp; Admin access</h2>
+        <h2 id="signin-heading">{heading}</h2>
         <p>
           {blurb}
         </p>
@@ -114,7 +148,7 @@ export function SignInPanel({
         </p>
 
         <div className="auth__roles" role="group" aria-label="Demo accounts — one tap signs in">
-          {ROLES.map((role) => {
+          {shownRoles.map((role) => {
             const active = role.email === email;
             return (
               <div key={role.role} className={`auth__role${active ? " auth__role--active" : ""}`}>
@@ -142,7 +176,7 @@ export function SignInPanel({
 
         <form onSubmit={onSubmit} className="stack-sm" noValidate>
           <p className="auth__hint">
-            Or type them — the same three accounts, nothing hidden from the panel above.
+            Or type them — the same {shownRoles.length === 1 ? "account" : "accounts shown"}, nothing hidden from the panel above.
           </p>
           <div className="field">
             <label htmlFor="signin-email">Email</label>
@@ -165,7 +199,7 @@ export function SignInPanel({
               autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="Reviewer@123 · Admin@123 · User@123"
+              placeholder={visibleRoles === "admin" ? "Admin@123" : "Reviewer@123 · User@123"}
               required
             />
           </div>
