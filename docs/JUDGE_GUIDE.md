@@ -113,7 +113,7 @@ attached to have since been deleted, so they no longer open from a report page.
 
 ## What is NOT proven (our own limits, stated)
 
-- **Real-image accuracy is small and mixed.** The 2026-11-01 run covered ten borrowed SF footpath photos
+- **Real-image accuracy — v2 fixed read (2026-11-04): 6 correct / 1 incorrect / 0 errors on 7 images** (`docs/AI_EVALUATION_SF_REAL_V2.md` + `evaluation/results.sf-real-eval.v2.json`; labels fixed from photos, temperature 0, abstain guardrail 0.35, runner scoring fixed). V1 (2026-11-01) record kept: ten borrowed SF footpath photos
   through `muse-spark-1.3`: **3 correct, 3 incorrect, 2 inconclusive, 2 upload errors, 0 usable pairs.**
   Re-scored against the photographs themselves — fairer, because three of our own labels were wrong — **6 of
   the 8 images that reached the model hold up** (4 named correctly, 2 correctly abstained), 1 is a clear model

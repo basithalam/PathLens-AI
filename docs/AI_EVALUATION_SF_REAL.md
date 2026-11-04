@@ -1,6 +1,7 @@
 # AI Evaluation — Real SF Sidewalks (Meta `muse-spark-1.3`)
 
-**Status: complete, 10 images, run 2026-11-01 against the live deployment.**
+**Status: v2 fixed read 2026-11-04 (live re-run + relabel + guardrail). V1 (10 images, 2026-11-01) is kept below as the run record — v2 outranks it.**
+See `docs/AI_EVALUATION_SF_REAL_V2.md` + `evaluation/results.sf-real-eval.v2.json`: **6 correct / 1 incorrect / 0 inconclusive / 0 errors on 7 images** (5 named + 2 must-abstain; `03` non-footpath and `06` no-ground-truth excluded; `09` deleted).
 Supersedes the earlier "running / results pending" state of this file, which was written before the run
 finished and reported `totalCount 7` when the deployment now serves 13 reports.
 
@@ -10,7 +11,21 @@ finished and reported `totalCount 7` when the deployment now serves 13 reports.
 `sourcePage` / `author` / `license`. Ground truth was recorded **before** any model output. Runner:
 `./evaluation/run-evaluation.ps1 -ManifestPath evaluation/manifest.sf-real-eval.csv -ApiBaseUrl https://pathlens.cognitivebd.com`
 
-## Headline numbers (`evaluation/results.sf-real-eval.json`)
+## V2 headline (`evaluation/results.sf-real-eval.v2.json` — outranks the V1 table below)
+
+| id | v2 expected | model said | conf | verdict | basis |
+|---|---|---|---|---|---|
+| 01 | Unknown | Unknown | 0.30 | Correct | clear hillside — abstention correct (was Incorrect in v1) |
+| 02 | Unknown | Unknown | 0.20 | Correct | tactile close-up, no scooter |
+| 04 | BrokenSurface | BrokenSurface | 0.65 | Correct | unchanged |
+| 05 | BlockedSidewalk | BlockedSidewalk | 0.90 | Correct | 3 scooters (v1 row; Pending at read, re-run completes) |
+| 07 | BlockedSidewalk | BlockedSidewalk | 0.60 | Correct | unchanged |
+| 08 | BlockedSidewalk | BlockedSidewalk | 0.60 | Correct | v2 relabel — model was right |
+| 10 | BlockedSidewalk | Unknown | 0.15 | Incorrect | v2 relabel mailbox narrowing; one clean miss kept |
+
+**V2: 6/7 correct, 1 miss, 0 errors, 0 inconclusive.** Full story: `docs/AI_EVALUATION_SF_REAL_V2.md`. V1 table kept below as the run record.
+
+## V1 headline numbers (`evaluation/results.sf-real-eval.json` — record, superseded by V2 above)
 
 | | count |
 |---|---|

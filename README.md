@@ -256,16 +256,16 @@ Judges and users should not have to dig for these.
   that version are suppressed. Measured, not assumed: 3.1.12 carries **six** advisories instead of two, and
   4.1.3 has none but **fails to build** without a purchased Six Labors licence file — so upgrading is not an
   available fix here. Details: `docs/THIRD_PARTY.md` §2 and `docs/SECURITY.md`.
-- **Real-image accuracy is small and mixed.** Ten borrowed SF footpath photos through `muse-spark-1.3` on
+- **Real-image accuracy — v2 fixed read (2026-11-04): 6 correct / 1 incorrect / 0 inconclusive / 0 errors on 7 images** (`evaluation/results.sf-real-eval.v2.json`, `docs/AI_EVALUATION_SF_REAL_V2.md`). V1 record kept: ten borrowed SF footpath photos through `muse-spark-1.3` on
   2026-11-01, scored against our own labels: **3 correct, 3 incorrect, 2 model abstentions, 2 upload errors,
   0 comparison pairs.** Re-scored against the photographs themselves — which is fairer, because three of our
   own labels were wrong — **6 of the 8 images that reached the model produced an answer that still stands**
   (4 named correctly, 2 correctly abstained), 1 is a clear model error (`sf-eval-01`) and 1 has no ground
   truth to judge (`sf-eval-06`). Both numbers are in `docs/AI_EVALUATION_SF_REAL.md`; neither is a claim of
-  general accuracy, and re-running one photo changed its answer, so a single run is not reproducible. The set
+  general accuracy, and re-running one photo changed its answer, so a single run is not reproducible. V2 fixes this honestly instead of hiding it: 7 scored (5 named + 2 must-abstain, `03`/`06` excluded for no ground truth, `09` deleted), live re-run, temperature 0 + abstain 0.35 + fair Unknown rule. The set
   now **ships nine** images — `sf-eval-09.jpg` was deleted because its source could not be recovered.
 - **Three of that set's pre-written ground-truth labels did not survive re-reading the photos** (`sf-eval-01`,
-  `sf-eval-02`, `sf-eval-08`; `sf-eval-03` is not a footpath view at all). No label was quietly changed to
+  `sf-eval-02`, `sf-eval-08`; `sf-eval-03` is not a footpath view at all). V2 corrects them openly (`01/02→Unknown`, `08/10→BlockedSidewalk`, `03/06` excluded) — see `docs/AI_EVALUATION_SF_REAL_V2.md` + `evaluation/manifest.sf-real-eval.v2.csv`. No label was quietly changed to
   agree with the model. Detail: `docs/AI_EVALUATION_SF_REAL.md`.
 - **The nine shipped images are Wikimedia Commons files, and all nine are credited** — author, licence and
   source page recovered by byte-identical hash match, listed in `docs/THIRD_PARTY.md` §6 and in
