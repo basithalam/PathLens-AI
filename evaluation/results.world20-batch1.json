@@ -1,0 +1,20 @@
+{
+  "summary": {
+    "generatedAt": "2026-11-04T19:35:00Z",
+    "apiBaseUrl": "https://pathlens.cognitivebd.com",
+    "manifest": "evaluation/manifest.world20-batch1.csv",
+    "set": "World20 batch 1 — 8 verified images, each with its own GPS + attribution. No Before/After claims (single photos from different cities). Hawaii OSM #9 excluded: license unclear.",
+    "images": { "total": 8, "correct": 5, "abstainCorrect": 3, "incorrect": 0, "errors": 0 },
+    "note": "Ramp photos that show a clear accessible ramp are scored Correct when the model abstains (Unknown) — a ramp is not an obstacle. Barrier/ramp-gap photos must name the type."
+  },
+  "images": [
+    { "id": "w01", "reportId": "26d6f9fd-ad3a-4044-bf4f-e5b57c665f10", "file": "w01-philadelphia-ramp3616.jpg", "expected": "MissingOrBlockedRamp", "actual": "MissingOrBlockedRamp", "confidence": 0.70, "verdict": "Correct", "license": "CC BY-SA 4.0 Nick-philly", "lat": 39.934408, "lon": -75.158883 },
+    { "id": "w02", "reportId": "1cee2e95-fac8-4fe9-94ab-5a58a7cdaad4", "file": "w02-philadelphia-ramp3500.jpg", "expected": "MissingOrBlockedRamp", "actual": "MissingOrBlockedRamp", "confidence": 0.80, "verdict": "Correct", "license": "CC BY-SA 4.0 Nick-philly", "lat": 39.93415, "lon": -75.158595 },
+    { "id": "w03", "reportId": "c1e3f390-ada4-4fcf-b3cd-c9e19a50b069", "file": "w03-barcelona-tempramp.jpg", "expected": "ConstructionBarrier", "actual": "ConstructionBarrier", "confidence": 0.85, "verdict": "Correct", "license": "CC BY 2.0 Eric Fischer", "lat": 41.397455, "lon": 2.1507 },
+    { "id": "w04", "reportId": "594550a5-f730-4567-805f-3796c4ede4bb", "file": "w04-spain-tempramp.jpg", "expected": "ConstructionBarrier", "actual": "ConstructionBarrier", "confidence": 0.85, "verdict": "Correct", "license": "CC BY 2.0 Eric Fischer", "lat": 43.258025, "lon": -2.94825 },
+    { "id": "w05", "reportId": "def7b125-0672-4c83-8ab9-1dedf100cabb", "file": "w05-colchester-lowered.jpg", "expected": "Abstain-Unknown", "actual": "Unknown", "confidence": 0.30, "verdict": "Correct", "license": "CC0 Ezekielf", "lat": 44.529253, "lon": -73.175161, "note": "clear accessible ramp — abstention is the right answer" },
+    { "id": "w06", "reportId": "17f70280-ad82-409e-9957-aa8a1702b4ae", "file": "w06-colchester-long.jpg", "expected": "Abstain-Unknown", "actual": "Unknown", "confidence": 0.20, "verdict": "Correct", "license": "CC0 Ezekielf", "lat": 44.528761, "lon": -73.175828, "note": "clear ramp — abstention correct" },
+    { "id": "w07", "reportId": "eca06f8e-2c05-4151-9f7a-1bae89284b70", "file": "w07-colchester-flat.jpg", "expected": "MissingOrBlockedRamp", "actual": "MissingOrBlockedRamp", "confidence": 0.72, "verdict": "Correct", "license": "CC0 Ezekielf", "lat": 44.529003, "lon": -73.171486 },
+    { "id": "w08", "reportId": "85a14b42-bb86-425e-b8c0-19771f03efa7", "file": "w08-winooski-flush.jpg", "expected": "Abstain-Unknown", "actual": "Unknown", "confidence": 0.20, "verdict": "Correct", "license": "CC0 Ezekielf", "lat": 44.490714, "lon": -73.184017, "note": "clear flush ramp — abstention correct" }
+  ]
+}
