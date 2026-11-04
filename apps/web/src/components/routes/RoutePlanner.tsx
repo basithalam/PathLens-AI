@@ -319,7 +319,7 @@ export function RoutePlanner() {
               </div>
               <input
                 aria-labelledby="from-label"
-                placeholder="Search address — e.g. Zindabazar, Sylhet"
+                placeholder="Search address — e.g. Zindabazar, Dhaka or Market St, San Francisco"
                 onKeyDown={async (e) => { if (e.key === "Enter") { e.preventDefault(); const q=(e.target as HTMLInputElement).value; if(!q) return; const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`); const j=await r.json(); if(j[0]){ setOriginLat(j[0].lat); setOriginLon(j[0].lon); }}}}
               />
             </div>
@@ -356,7 +356,7 @@ export function RoutePlanner() {
               </div>
               <input
                 aria-labelledby="to-label"
-                placeholder="Search address — e.g. Amberkhana, Sylhet"
+                placeholder="Search address — e.g. Amberkhana, Dhaka or Ferry Building, San Francisco"
                 onKeyDown={async (e) => { if (e.key === "Enter") { e.preventDefault(); const q=(e.target as HTMLInputElement).value; if(!q) return; const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1`); const j=await r.json(); if(j[0]){ setDestLat(j[0].lat); setDestLon(j[0].lon); }}}}
               />
             </div>

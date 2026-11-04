@@ -46,7 +46,7 @@ export function AdminConsole() {
       <>
         <SessionBar user={user} onLogout={() => { clearSession(); setUser(null); }} />
         <p role="alert" className="callout callout--warn">
-          <strong>{user.displayName} is signed in as {user.role}.</strong> Cameras, pilot analytics and
+          <strong>{user.displayName} is signed in as {user.role}.</strong> Cameras, city analytics and
           reporter reputation are Admin-only — the API answers 403 for this role. Sign out and use the Admin
           demo account to open them.
         </p>

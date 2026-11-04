@@ -12,7 +12,7 @@ export default async function HomePage() {
     <>
       <section className="hero">
         <div className="hero__badge">
-          <span className="hero__dot" aria-hidden="true" /> Meta Global AI Hackathon 2026 · Sylhet pilot
+          <span className="hero__dot" aria-hidden="true" /> Meta Global AI Hackathon 2026 · Open globally — works in any city
         </div>
         <h1 className="hero__title">
           Can this path be used <span>right now</span> — and how sure are we?
@@ -147,7 +147,7 @@ export default async function HomePage() {
           <div className="feature-card__icon" aria-hidden="true">
             ▣
           </div>
-          <h3>Cameras &amp; Pilot Ops</h3>
+          <h3>Cameras &amp; City Ops</h3>
           <p>Registered public feeds poll on a cadence; a stale feed is flagged instead of trusted.</p>
           <span className="feature-card__link">Operations →</span>
         </Link>

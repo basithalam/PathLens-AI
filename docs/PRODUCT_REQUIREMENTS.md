@@ -15,12 +15,11 @@ Wheelchair users need to know before travel: is a ramp blocked, is an old obstac
 - **Review:** JWT (reviewer@pathlens.local / Reviewer@123, admin@pathlens.local / Admin@123), queue (unverified + conflicting + stale cameras + duplicate suggestions), audit trail, camera candidates.
 - **Feedback (F6):** `POST /api/reports/{id}/feedback` 4 kinds (StillVisible/NotInNewPhoto/WrongOrStale/NotSure), audit, anonymous→admin fallback, never auto-verifies; frontend quick capture map picker + QuickFeedback buttons.
 
-## Demo city
-**Pilot city: Sylhet, Bangladesh (24.9116, 91.8498)** — the map default, the route demo endpoints and the
-judge flow all open there. San Francisco is **not** the pilot; it remains in the build only where it is
+## Open globally — demo seed Sylhet
+**Open globally — works in any city.** The map default, the route demo endpoints and the
+judge flow open on Sylhet, Bangladesh (24.9116, 91.8498) only as a demo seed. San Francisco remains in the build only where it is
 factually true: the public traffic-camera feeds (511SF Bay / SFMTA / Caltrans / GenericPublicFeed) and the
-synthetic 25-image evaluation set. The NYC camera leg was blocked honestly (`camera-live-gate.md`), and
-Dhaka is not a pilot at all — no camera source, no dataset.
+synthetic 25-image evaluation set. The NYC camera leg was blocked honestly (`camera-live-gate.md`). Any city works for manual reporting — no allow-list.
 
 ## Non-goals (F7+)
 Live city-wide coverage, guaranteed wheelchair-safe routing, native app, real-time moderation at scale, custom model training, Mapillary live — per Blueprint §1.3.

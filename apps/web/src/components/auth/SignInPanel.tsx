@@ -16,7 +16,7 @@ const ROLES = [
     mark: "A",
     email: "admin@pathlens.local",
     password: "Admin@123",
-    can: "Register cameras, read pilot analytics and reputation",
+    can: "Register cameras, read city analytics and reputation",
   },
   {
     role: "User",

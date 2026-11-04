@@ -9,8 +9,8 @@ namespace PathLens.Infrastructure.Health;
 /// <summary>H5.3 extended /health/ready — pings OSRM (best-effort, degraded not unhealthy).</summary>
 public sealed class OsrmHealthCheck(IOptions<RoutingOptions> options, IHttpClientFactory httpFactory) : IHealthCheck
 {
-    // A real, routable pair in the pilot city. Probing 0,0 only proves the host answers;
-    // this proves the same code path the route planner uses.
+    // A real, routable pair. Probing 0,0 only proves the host answers;
+    // this proves the same code path the route planner uses (SF pair; OSRM works globally).
     private const string ProbeCoordinates = "37.7749,-122.4194;37.7785,-122.4135";
 
     public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)

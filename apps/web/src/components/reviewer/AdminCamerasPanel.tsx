@@ -211,8 +211,9 @@ export function AdminCamerasPanel() {
             <p className="empty-state">
               <strong>No cameras registered yet.</strong>
               <span>
-                The pilot city is Sylhet, and Sylhet has no public footpath camera today — that gap is shown on the
-                map, not hidden. Register a feed to see the camera path work; the available public feeds are San
+                PathLens is open globally — report from any city. There is no public footpath camera
+                registered for most cities yet — that gap is shown on the
+                map, not hidden. Register a feed to see the camera path work; the available public feeds today are San
                 Francisco (Datumfeed / Caltrans / 511SF / SFMTA).
               </span>
             </p>

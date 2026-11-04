@@ -183,7 +183,7 @@ public class ObstructionGeometryTests
     [Fact]
     public void Surface_defects_are_never_reported_as_an_occupancy_share()
     {
-        // Measured on 2026-11-04: a Sylhet photo with a clear walking line and an open drain along its
+        // Measured on 2026-11-04: a demo-seed Sylhet photo with a clear walking line and an open drain along its
         // edge was classified BrokenSurface, and the surface concept segmented the whole damaged
         // pavement - the share came back 100% occupied. Broken paving degrades a walkway, it does not
         // occupy it, so these types must not be measured at all.

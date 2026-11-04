@@ -130,7 +130,7 @@ Four buttons, verbatim labels:
 | Where | What they see |
 |---|---|
 | `/reviewer` → audit trail | `FeedbackStillVisible`, `FeedbackNotInNewPhoto`, `FeedbackWrongOrStale` entries with time and actor |
-| `/admin` → Pilot analytics | the **Feedback: wrong/stale** stat tile |
+| `/admin` → City analytics | the **Feedback: wrong/stale** stat tile |
 | API | `GET /api/reports/feedback/summary` — weekly, grouped by cause |
 
 > **Explain this before they tap:** feedback never changes a report's verification status by itself. A

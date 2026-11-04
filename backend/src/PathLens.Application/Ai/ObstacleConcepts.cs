@@ -21,9 +21,9 @@ public static class ObstacleConcepts
         nameof(ObstacleType.MissingOrBlockedRamp) => "the dropped kerb ramp at the curb",
         nameof(ObstacleType.StairsOrStep) => "stairs or a step on the footpath",
         nameof(ObstacleType.ConstructionBarrier) => "construction barriers, scaffolding or hoarding on the sidewalk",
-        // Widened on 2026-11-03 after a Sylhet photo (footpath clear, open drain along its edge) classified
+        // Widened on 2026-11-03 after a demo-seed Sylhet photo (footpath clear, open drain along its edge) classified
         // as Other and returned zero obstacle boxes: the old phrase asked only for things that *block*, so
-        // the most common hazard in the pilot city was unmeasurable. Still returns null, never 0%.
+        // the most common hazard in the demo-seed city was unmeasurable. Still returns null, never 0%.
         nameof(ObstacleType.Other) => "an obstacle, open drain, trench, excavation or pile of material blocking or narrowing the sidewalk",
         _ => null,
     };
@@ -31,7 +31,7 @@ public static class ObstacleConcepts
     /// <summary>
     /// Whether an occupancy share is a meaningful number for this obstacle type at all.
     ///
-    /// Measured on 2026-11-04 against a Sylhet photo whose walking line is clear and whose hazard is the
+    /// Measured on 2026-11-04 against a demo-seed Sylhet photo whose walking line is clear and whose hazard is the
     /// excavated drain along its edge: the model classified it <c>BrokenSurface</c>, the surface concept
     /// segmented the whole damaged pavement, and the share came back <b>100% occupied</b>. The arithmetic
     /// was right; the metric was not. Broken paving does not occupy a walkway, it degrades it, so

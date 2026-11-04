@@ -10,10 +10,9 @@ user gives feedback through the UI — and what this build cannot take as feedba
 
 **Live:** https://pathlens.cognitivebd.com | **Health:** https://pathlens.cognitivebd.com/health/ready
 
-**Pilot city: Sylhet, Bangladesh.** The map opens there and the manual photo path is built around Sylhet
-footpaths. Public traffic-camera feeds exist only for San Francisco today (Datumfeed / Caltrans / 511SF /
-SFMTA), so they are shown as a separate evidence source — and the absence of any Sylhet camera is stated on
-the map rather than hidden.
+**Open globally — works in any city.** The map opens on Sylhet, Bangladesh (24.9116, 91.8498) as a demo seed and manual photo reporting works from anywhere. Public traffic-camera feeds exist only for San Francisco today (Datumfeed / Caltrans / 511SF /
+SFMTA), so they are shown as a separate evidence source — and where no camera exists the map says so
+rather than hiding it.
 
 
 
@@ -212,7 +211,8 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 **H5 (2026-10-30):** production hardened — JWT fail-closed, CORS multi-origin, rate limiting login 5/min upload 10/hour (429), moderation blocklist, privacy retention `PRIVACY_RETENTION.md` (30d/1y/GDPR soft-delete `DELETE /api/reports/{id}`), CI `ci.yml`, health OSRM+AI, docs dedup. Build 0W0E. See `H5_FIX_REPORT.md`.
 
 **H6 (2026-10-30):** SF pilot ready (was Dhaka Pilot Ready — now SF sole pilot, Dhaka deferred no camera) — SF research `SF_RESEARCH.md` (OSRM 5 samples 1478-2756m), i18n `lib/i18n.tsx` EN/Bengali + Unicode report, analytics `GET /api/admin/stats` + `AdminStatsPanel` + `ReputationPanel` Bronze/Silver/Gold. Build 0W0E. See `H6_FIX_REPORT.md`.
-> **Superseded 2026-11-03:** Sylhet is the pilot city again (map default, route endpoints, judge demo flow). San Francisco stays only where it is factually true — the public traffic-camera feeds and the synthetic 25-image evaluation set.
+> **Superseded 2026-11-03:** Sylhet became the demo-seed city (map default, route endpoints, judge demo flow). San Francisco stays only where it is factually true — the public traffic-camera feeds and the synthetic 25-image evaluation set.
+> **Update 2026-11-04:** PathLens is **open globally — works in any city**. Sylhet remains only as the default map seed and one demo dataset; manual photo reporting, map, and routing work from anywhere via geolocation + pan.
 > **Also corrected:** the "i18n `lib/i18n.tsx` EN/Bengali" claim in this entry is no longer true. Bengali was dropped on 2026-11-01 to English-only for judging; `lib/i18n.tsx` was left as a dead no-op stub that nothing imported, and it has now been **deleted**. If Bengali output returns it must be real, with a test, not a stub.
 
 **H7 / G1 (2026-11-01) — LIVE ✅:** **Meta AI Live — `muse-spark-1.3` @ `https://api.meta.ai/v1/chat/completions` — 200 Verified (2026-11-01)** — `MetaImageAnalysisService` OpenAI-compatible, `AiProviderHealthCheck` Healthy, `docker-compose.yml` + `.env.example` default `AI_PROVIDER=Meta` with **primary `https://api.meta.ai/v1/chat/completions` + `muse-spark-1.3` (Meta, $150 credit, key id `LLM_<id>…` — masked)**, fallback Groq `https://api.groq.com/openai/v1/chat/completions` + `meta-llama/llama-4-maverick-17b-128e-instruct`** (old `api.meta.ai/compat/v1` 404 fixed 2026-10-31, see `docs/AI_GATE_A_REPORT.md` G1). **Live Evidence:** `GET /health/ready` → `ai-provider: Healthy "Meta muse-spark-1.3 @ https://api.meta.ai/v1/chat/completions (key present)"` + `POST /api/reports/{id}/evidence` → `provider: Meta, model: muse-spark-1.3, BlockedSidewalk 0.85, visibleEvidence 4, confidence 90%` (Sylhet 24.91,91.84 `1663695741.jpg` — not Mock `mock-deterministic-v1 0`). `EvidenceSection.tsx` shows `✓ Live Meta AI` vs `Demo/mock` badge. Live requires `GitHub Secrets META_AI_ENDPOINT=https://api.meta.ai/v1/chat/completions, META_AI_MODEL=muse-spark-1.3, META_AI_API_KEY=LLM_...` + `AI_PROVIDER=Meta`; local: `. .local/set-meta-env.ps1` (key id `LLM_<id>…` — masked, value never committed) → `curl /health/ready` Healthy. See `docs/AI_GATE_A_REPORT.md` G1 + `docs/JUDGE_GUIDE.md`.
@@ -261,7 +261,7 @@ Judges and users should not have to dig for these.
   **synthetic** and its pairs were run under the **Mock** provider — pipeline proof only.
 - **Reporter reputation is empty on the live demo** because the seeded reports have no signed-in author; the
   panel shows an empty state rather than invented badges.
-- **No public footpath camera exists for Sylhet**, so the automatic-update path runs on SF highway cameras that
+- **Most cities have no public footpath camera yet**, so the automatic-update path runs on SF highway cameras that
   show traffic, not footpaths — and the product says so on screen.
 - **Routing uses OSRM's `foot` profile, which is not a validated wheelchair profile.** No route is ever labelled
   wheelchair-safe here.

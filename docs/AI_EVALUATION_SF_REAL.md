@@ -91,7 +91,7 @@ the right call. One did not stand (`sf-eval-01`). One cannot be judged either wa
 truth to compare against). Two never reached the model because of our own rate limiter.
 
 What this is **not**: a claim that the model is accurate, or that every image was answered correctly. It is
-ten images, one city that is not our pilot city, and a re-scoring that depends on our own reading of each
+ten images, one city (San Francisco evaluation set — PathLens itself is open globally), and a re-scoring that depends on our own reading of each
 frame — the same reading that found three of our own labels wrong. The machine record still says 3 correct /
 3 incorrect / 2 inconclusive / 2 errors, and both numbers have to be quoted together to be honest.
 

@@ -47,7 +47,7 @@ export function ReportForm() {
   const [locationNote, setLocationNote] = useState<string | null>(null);
   const [showMiniMap, setShowMiniMap] = useState(false);
 
-  // Auto-fill from user's current location on first load — Sylhet/SF fallback only if denied
+  // Auto-fill from user's current location on first load — works in any city (no city fallback)
   useEffect(() => {
     if (typeof navigator !== "undefined" && navigator.geolocation && !latitude && !longitude) {
       navigator.geolocation.getCurrentPosition(

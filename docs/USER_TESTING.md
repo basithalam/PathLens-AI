@@ -3,10 +3,10 @@
 **Goal:** Without testing with real wheelchair users, impact is 0 (idea.txt §6). This protocol is for a 20-minute hallway test with 3–5 people with mobility limitations.
 
 ## Recruitment (honest)
-- 3–5 participants: wheelchair users (manual/electric) + 1 caregiver/assistant mix, **Sylhet, Bangladesh pilot (24.91,91.84) — SF deferred to Datumfeed 37 cameras, SF Bay NGO deferred**. Recruit via Sylhet local NGO, hospital rehab, community (consent, no coercion).
+- 3–5 participants: wheelchair users (manual/electric) + 1 caregiver/assistant mix, **any city (demo seed: Sylhet, Bangladesh 24.91,91.84; camera demo: SF Datumfeed 37 cameras)**. Recruit via local NGO, hospital rehab, community (consent, no coercion).
 - Compensation: local rate + transport + snack. No real name published without written consent — quotes use participant P1/P2 with role only.
 - Status **2026-11-01: PENDING — User will provide (per chat 2026-11-01)** — protocol ready, recruitment pending user-supplied participants. Until then, this file records plan + anticipated backlog, not fabricated results.
-- Update **2026-11-01:** Map/Route pilot switched to Sylhet 24.91,91.84 (from SF 37.7749) — `a871b26` — coverage/route now Sylhet. H8 proxy (reviewer, NOT wheelchair user) completed — see `H8_WHEELCHAIR_USER_TEST.md`; real wheelchair P1/P2 pending user.
+- Update **2026-11-01:** Map/Route demo seed is Sylhet 24.91,91.84 (works in any city — pan anywhere) — `a871b26` — coverage/route now opens on Sylhet. H8 proxy (reviewer, NOT wheelchair user) completed — see `H8_WHEELCHAIR_USER_TEST.md`; real wheelchair P1/P2 pending user.
 - Update **2026-10-31 H8:** 1 proxy run completed (reviewer, NOT wheelchair user) — see `H8_WHEELCHAIR_USER_TEST.md` for P0 metrics + 2 backlog fixes; real wheelchair recruitment still pending (P1/P2 after consent).
 
 ## Consent template (copy to paper form)

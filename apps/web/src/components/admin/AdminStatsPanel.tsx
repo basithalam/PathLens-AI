@@ -35,7 +35,7 @@ export function AdminStatsPanel() {
     return (
       <section className="panel" aria-labelledby="stats-heading">
         <div className="panel__head">
-          <h2 id="stats-heading">Pilot analytics</h2>
+          <h2 id="stats-heading">City analytics</h2>
         </div>
         <div className="panel__body">
           <p role="alert" className="status-error">
@@ -60,7 +60,7 @@ export function AdminStatsPanel() {
   return (
     <section className="panel" aria-labelledby="stats-heading">
       <div className="panel__head">
-        <h2 id="stats-heading">Pilot analytics — Sylhet</h2>
+        <h2 id="stats-heading">City analytics — all cities</h2>
         <span className="panel__count">live from <code>GET /api/admin/stats</code></span>
       </div>
       <div className="panel__body">

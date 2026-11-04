@@ -7,9 +7,10 @@
 > **"Corrections as of 2026-11-03"** at the bottom, and that section outranks the table.
 
 **City on 2026-10-30:** San Francisco, CA 37.7749,-122.4194 — sole pilot; Dhaka deferred, no camera source.
-**City today:** **Sylhet, Bangladesh** is the pilot (map default, route endpoints, judge demo flow). San
+**2026-11-03:** Sylhet became the demo-seed city (map default, route endpoints, judge demo flow). San
 Francisco remains only where it is factually true — the public traffic-camera feeds and the synthetic
 25-image evaluation set. See `docs/JUDGE_GUIDE.md`.
+**Update 2026-11-04:** PathLens is **open globally — works in any city** (Sylhet stays only as the default map seed).
 
 ## Build proof (2026-10-30)
 ```

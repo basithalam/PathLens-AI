@@ -14,13 +14,13 @@ Helps a wheelchair user or pedestrian judge whether a footpath is *likely* usabl
 photo evidence compared over time, with the age, source and verification of every claim shown, and with
 **unknown stated as unknown** instead of a fake "safe".
 
-## Pilot city, and where the evidence comes from
+## Open globally, and where the evidence comes from
 
 | | |
 |---|---|
-| **Pilot city** | **Sylhet, Bangladesh** (24.9116, 91.8498) — the map opens here |
+| **Open globally** | **Works in any city** — the map opens on Sylhet, Bangladesh (24.9116, 91.8498) as a demo seed |
 | **Manual photo evidence** | Works in any city; the judge can test it in 30 seconds |
-| **Automatic camera feeds** | Only **San Francisco** public feeds exist today (Datumfeed / Caltrans / 511SF / SFMTA). **Sylhet has no public footpath camera** — the map says so instead of pretending otherwise |
+| **Automatic camera feeds** | Only **San Francisco** public feeds exist today (Datumfeed / Caltrans / 511SF / SFMTA). **Most cities have no public footpath camera yet** — the map says so instead of pretending otherwise |
 | **AI** | Two Meta models, each doing one job: **`muse-spark-1.3`** classifies the photo (`POST /v1/chat/completions`) and **`sam-3.1`** measures how much of the walkway the obstacle occupies (`POST /v1/responses`) |
 
 ## Staff logins — one tap, nothing to ask for
@@ -31,7 +31,7 @@ the card and a **Sign in** button on each — one tap, no typing, no need to mes
 | Account | Email | Password | What it unlocks |
 |---|---|---|---|
 | **Reviewer** | `reviewer@pathlens.local` | `Reviewer@123` | the queue, verify / dispute / reject, audit trail |
-| **Admin** | `admin@pathlens.local` | `Admin@123` | reviewer rights **plus** camera registry, pilot analytics, reputation |
+| **Admin** | `admin@pathlens.local` | `Admin@123` | reviewer rights **plus** camera registry, city analytics, reputation |
 | **User** | `user@pathlens.local` | `User@123` | signed-in reporter — review endpoints answer **403** (try it, it is the point) |
 
 Sign in at `/reviewer` or `/admin`. These are seeded hackathon accounts on a demo dataset, not real users; a
@@ -65,7 +65,7 @@ either.
 **0:00–0:30 — the problem.** A wheelchair user reaches a crossing, the footpath is blocked by parked
 motorbikes, they must turn back. A normal map showed the road, not the blockage.
 
-**0:30–1:30 — `/map`.** Opens on Sylhet. Marker letters carry meaning without colour:
+**0:30–1:30 — `/map`.** Opens on Sylhet as a demo seed (works in any city — pan anywhere). Marker letters carry meaning without colour:
 `!` unverified · `V` human-verified · `?` disputed · `X` rejected. Square `C` markers are cameras, kept
 visually separate from human reports. Click a marker → the list and the map stay in sync → open a report.
 Turn on **Coverage layer**: cells marked `C` (hatched) mean *nobody has reported here* — explicitly not
@@ -77,7 +77,7 @@ the model says it saw, its **limitations**, and `Human review required`. Upload 
 photos** → one of `LikelyStillPresent` / `NotObservedInNewImage` / `ConflictingEvidence` / `Inconclusive`, each
 with an explanation. *Not observed* never becomes *removed*.
 
-**2:30–3:00 — `/routes`.** Two Sylhet points (24.9116, 91.8498 → 24.9248, 91.8698) → **Plan routes** → real
+**2:30–3:00 — `/routes`.** Two demo points in Sylhet (24.9116, 91.8498 → 24.9248, 91.8698) — or any two points in any city → **Plan routes** → real
 OSRM geometry, ranked by fewest known obstacles, with the **unknown share of each route** drawn as a hatched
 bar. Preference chips reorder; they never hide an obstacle. The profile is `foot`, and the page says plainly
 that this is **not a validated wheelchair profile**.
@@ -108,7 +108,7 @@ attached to have since been deleted, so they no longer open from a report page.
 2. `curl "https://pathlens.cognitivebd.com/api/reports?page=1&pageSize=5"` → reports with `HumanVerified` present
 3. Open any report with a photo → evidence shows `✓ Live Meta AI` with provider `Meta`, not `Demo/mock`
 4. `/reviewer` → sign in with the **Reviewer** demo card → queue, decisions, audit trail
-5. `/admin` → sign in with the **Admin** card → camera registry, pilot analytics, reputation
+5. `/admin` → sign in with the **Admin** card → camera registry, city analytics, reputation
 
 ## What is NOT proven (our own limits, stated)
 
@@ -137,7 +137,7 @@ attached to have since been deleted, so they no longer open from a report page.
   that it is **not** a community submission. Two of them have no photo at all and are marked **Rejected** —
   that is the rejection path on screen, not an accident; for `Demo evidence 09` the borrowed file itself has
   since been deleted from the repository because its source could not be recovered.
-- **No real footpath camera exists for Sylhet yet**, so the automatic-update story runs on SF highway cameras,
+- **Most cities have no public footpath camera yet**, so the automatic-update story runs on SF highway cameras,
   which show traffic, not footpaths.
 - **Reporter reputation is empty** on the live demo because the seeded reports were created anonymously; the
   panel shows an honest empty state instead of fake badges.
@@ -164,7 +164,7 @@ attached to have since been deleted, so they no longer open from a report page.
   the 581 evidence rows analysed before it was switched on still report *not measured* rather than a number.
   Two limits are stated in the UI itself: the share is of the walkway **in the photo**, never metres (nothing
   gives a scale reference), and SAM returns **no confidence score**.
-- **Occupancy is measured only where the number means something.** On 2026-11-04 a Sylhet photo whose
+- **Occupancy is measured only where the number means something.** On 2026-11-04 a demo-seed Sylhet photo whose
   walking line is clear, with an open drain along its edge, came back as **100% occupied** — the model had
   classified it `BrokenSurface`, and the surface concept segmented the whole damaged pavement. The
   arithmetic was correct; the metric was not. Broken paving degrades a walkway, it does not occupy it, so
@@ -172,7 +172,7 @@ attached to have since been deleted, so they no longer open from a report page.
   path (`BlockedSidewalk`, `ConstructionBarrier`, `Other`) and returns no measurement for surface defects,
   which the UI shows as unknown. Three unit tests pin that, including the one asserting a type can have a
   valid segmentation concept and still be unmeasurable. The full account is `docs/ERROR_ANALYSIS.md` §9.
-  **The limit this leaves:** PathLens still cannot put a number on the commonest hazard in Sylhet. An open
+  **The limit this leaves:** PathLens still cannot put a number on the commonest hazard in the demo-seed city Sylhet. An open
   drain is recorded as a report and shown on the map, but it has no occupancy percentage — the type
   vocabulary has no `OpenDrain` value, and area-share is the wrong instrument for a trench anyway.
 - **The share also appears in route explanations, and never as an inferred zero.** A known obstacle listed

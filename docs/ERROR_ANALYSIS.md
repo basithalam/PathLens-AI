@@ -118,7 +118,7 @@ columns before any comparison claim is made from this dataset.
 
 ## 7. What this set does **not** prove
 
-- **n = 10**, one run, one model, one city — and that city is San Francisco, not our pilot city Sylhet.
+- **n = 10**, one run, one model, one city evaluation set (San Francisco photos — PathLens itself is open globally).
 - No wheelchair user was involved, so nothing here measures impact (see `docs/USER_TESTING.md`).
 - 0 comparison pairs, so the comparison engine has **no evidence from real photography** — only 5 synthetic
   Mock pairs in `manifest.sf.csv`.
@@ -169,6 +169,6 @@ Two things came out of it:
    no per-image claim in this repository should be read as reproducible.
 
 What remains unproven: whether SAM 3.1 can ever quantify an open drain as a *share of walkway occupied*.
-The honest answer today is that it cannot — the hazard that matters most in the pilot city is described by
+The honest answer today is that it cannot — the hazard that matters most in the demo-seed city is described by
 the type vocabulary as `Other` or `BrokenSurface`, and neither is measurable as an area share. That is a
 coverage gap in the design, not a bug to patch, and it is stated in `docs/JUDGE_GUIDE.md`.

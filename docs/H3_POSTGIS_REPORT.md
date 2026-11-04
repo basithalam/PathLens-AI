@@ -33,7 +33,7 @@ Blueprint promised PostgreSQL+PostGIS, but local 5433 was trust-auth without ext
 
 ## Limitations
 - Geography `ST_MakePoint` geography uses WGS84 spheroid; distance thresholds (50m obstacle, 100m coverage) are metres as required.
-- Viewport `ST_Within` with `ST_MakeEnvelope(...,4326)::geography` handles antimeridian poorly — the pilot city Sylhet and the San Francisco camera viewports used so far both sit well away from it.
+- Viewport `ST_Within` with `ST_MakeEnvelope(...,4326)::geography` handles antimeridian poorly — the Sylhet demo-seed view and the San Francisco camera viewports used so far both sit well away from it.
 - No migration enforces PostGIS — local stays usable for hackathon judging without Docker.
 
 ## Next
