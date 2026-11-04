@@ -48,6 +48,12 @@ Error analysis: group incorrect by cause (wrong type, location mismatch, poor vi
 
 Current provider: `IImageAnalysisService` abstraction, `MetaImageAnalysisService` (OpenAI-compatible, `MetaAi__Endpoint/Model/ApiKey`) + `MockImageAnalysisService` for tests/demo (UI labels “Demo/mock analysis — not real AI”). Gate A (live Meta test) requires real key — per project rule, requested only after development, as done for NYC camera gate.
 
+## How the two Meta models work (code-verified, 2026-11-04)
+
+**`muse-spark-1.3` — classification** (`backend/src/PathLens.Infrastructure/Ai/MetaImageAnalysisService.cs`): prepares the photo (`ImageDownscaler`: longest edge 1568, JPEG q85, EXIF/GPS stripped), sends one `POST {Endpoint}/chat/completions` with a fixed schema-1.0 instruction + base64 `image_url` (60 s timeout, Bearer key server-side only), extracts `choices[0].message.content`, validates via `ImageAnalysisResultParser` (schema 1.0, known `ObstacleType`, confidence 0..1) and stamps provider/model/time. Missing config → loud `missing: MetaAi:Endpoint, MetaAi:Model, MetaAi:ApiKey` (502); bad reply → `Meta AI returned an unusable analysis`. Never invents. **Solves:** unlabelled photo → typed, confidence-scored, limitation-stated evidence that can be ranked and compared.
+
+**`sam-3.1` — measurement** (`Sam31SceneMeasurementService.cs` + `Sam31Options.cs`, concepts in `ObstacleConcepts.cs`, geometry in `ObstructionGeometry.cs`): two `POST {Sam31:Endpoint}/v1/responses` prompts per image — walkway concept (`the paved pedestrian walkway`) + obstacle concept for the classified type (full phrases; `Unknown` has none). SAM returns `<|box;…|>` tokens with no score; boxes are clipped to the walkway, unioned (overlap counted once), largest walkway wins → **1..100 share of visible walkway**. No box → **null = unknown, never 0%**. Measured-only types: `BlockedSidewalk`, `ConstructionBarrier`, `Other`. Opt-in via `Sam31:Enabled=true` (two billed calls/photo). **Solves:** *how much* of this frame's path is blocked — shown in evidence + route explanations, never in ranking.
+
 ## Latest run — H2 Honest Demo (2026-10-30) — kept for CI
 
 **Mode:** `Mock` (pipeline proof, not accuracy proof) — API `http://localhost:5145` on `localhost:5433` trust DB.

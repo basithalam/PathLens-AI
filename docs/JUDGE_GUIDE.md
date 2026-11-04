@@ -21,7 +21,7 @@ photo evidence compared over time, with the age, source and verification of ever
 | **Open globally** | **Works in any city** — the map opens on Sylhet, Bangladesh (24.9116, 91.8498) as a demo seed |
 | **Manual photo evidence** | Works in any city; the judge can test it in 30 seconds |
 | **Automatic camera feeds** | Only **San Francisco** public feeds exist today (Datumfeed / Caltrans / 511SF / SFMTA). **Most cities have no public footpath camera yet** — the map says so instead of pretending otherwise |
-| **AI** | Two Meta models, each doing one job: **`muse-spark-1.3`** classifies the photo (`POST /v1/chat/completions`) and **`sam-3.1`** measures how much of the walkway the obstacle occupies (`POST /v1/responses`) |
+| **AI** | Two Meta models, each doing one job: **`muse-spark-1.3`** classifies the photo (`POST /v1/chat/completions` — EXIF stripped, schema-1.0 validated, provider/model stamped; unconfigured → honest 502) and **`sam-3.1`** measures how much of the walkway the obstacle occupies (`POST /v1/responses` — two concept prompts, box geometry, null = unknown never 0%, only `BlockedSidewalk/ConstructionBarrier/Other`) |
 
 ## Staff logins — one tap, nothing to ask for
 

@@ -40,9 +40,20 @@ Ordinary maps cannot confirm the current accessibility of a specific place. Path
 
 ## What PathLens AI Does
 
-### AI Accessibility Analysis
+### AI Accessibility Analysis — Meta `muse-spark-1.3` (what it is, how it works, what it solves)
 
-Analyzes a photo of a path, identifies possible obstacle types, describes the visible evidence, and reports confidence and limitations. AI observations are never presented as verified facts.
+Each photo is classified by **Meta `muse-spark-1.3`** through the Meta Model API (`POST {MetaAi:Endpoint}/v1/chat/completions`, OpenAI-compatible). The pipeline around it:
+
+1. **Prepare:** the photo is downscaled (longest edge 1568, JPEG q85) and **EXIF/GPS is stripped** before it leaves the server (`ImageDownscaler`).
+2. **Ask:** one chat message — a text part with the fixed schema-1.0 instruction (seven obstacle types, visible evidence, limitations, confidence 0..1, `humanReviewRequired`) plus an `image_url` base64 data URI — and the model id from config.
+3. **Validate:** the reply's `choices[0].message.content` (string or parts array) must parse as **schemaVersion 1.0** with a known `ObstacleType` and confidence 0..1 (`ImageAnalysisResultParser`); anything else fails the job with `Meta AI returned an unusable analysis` — it never invents a result.
+4. **Store + show:** provider `Meta` + model `muse-spark-1.3` + timestamp are stamped on the evidence; the UI shows `✓ Live Meta AI`, the type, the confidence bar, visible evidence, limitations and `Human review required`.
+
+**What problems it solves:** a human photo becomes structured, comparable evidence in seconds — type + confidence + stated limits — instead of an unlabelled image nobody can rank or compare. Without config it fails loudly (`missing: MetaAi:Endpoint, MetaAi:Model, MetaAi:ApiKey` → 502); tests use the labelled `Mock` provider. Measured accuracy on 10 real photos: 3 correct / 3 incorrect / 2 abstained / 2 upload errors — a demo, not a claim (see `docs/AI_EVALUATION_SF_REAL.md`).
+
+### Obstruction Measurement — Meta `sam-3.1` (what it is, how it works, what it solves)
+
+The same photo is then measured by **Meta `sam-3.1`** (`POST {Sam31:Endpoint}/v1/responses`, default `https://api.meta.ai/v1/responses`): two concept-segmentation prompts per image — one for `the paved pedestrian walkway`, one for the obstacle phrase matching the classified type (`ObstacleConcepts`: full phrases, never bare nouns — `scooter` found zero boxes where `scooters blocking the sidewalk` found two). SAM answers with `<|box;…|>` tokens and **no score**; deterministic geometry (`ObstructionGeometry`: clip to walkway, union overlapping boxes, largest walkway wins) computes **share of visible walkway occupied, 1..100**. Missing walkway or obstacle box returns **null = unknown, never 0%**. Only `BlockedSidewalk`, `ConstructionBarrier`, `Other` are measured — surface defects (`BrokenSurface` etc.) return no share by design after a clear-path photo measured 100% on damaged paving. Off unless `Sam31:Enabled=true` (two billed calls per photo); live demo has it on. What it solves: *how much* of the path is blocked in this frame — a number the classifier alone cannot give — shown in evidence cards and route explanations, never in ranking.
 
 ### Evidence Timeline & Comparison
 
