@@ -1,5 +1,7 @@
 # Error Analysis — what we got wrong, and why
 
+> **Accuracy today 2026-11-04: SF v2 6/7 + World20 12/12 = 18/19 answerable (94.7%), 0 errors.** This file is the V1 record (3/3/2/0 on 10) — kept to show what was fixed, not the current claim. V2: `docs/AI_EVALUATION_SF_REAL_V2.md`. World20: `docs/WORLD20_BATCH12.md`.
+
 Companion to `docs/AI_EVALUATION_SF_REAL.md`. That file reports the numbers; this one explains the
 mechanism behind each failure — including the failures in **our own labels, our own scoring rule and our own
 test harness**. Written from `evaluation/results.sf-real-eval.json` (the record) and from re-reading each

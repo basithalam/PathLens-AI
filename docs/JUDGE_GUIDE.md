@@ -55,6 +55,7 @@ GET /health/ready → Healthy
 | Cameras | 4 registered, 2 enabled, **1 flagged stale** |
 | Unknown share of the map | **67.5%** — stated as unknown, never as clear |
 | Analysis provider on evidence | `Meta` / `muse-spark-1.3`, not `mock` |
+| AI accuracy today (live) | **SF v2 6/7 + World20 12/12 = 18/19 (94.7%), 0 errors** — see `docs/AI_EVALUATION_SF_REAL_V2.md` + `docs/WORLD20_BATCH12.md` |
 
 **About the reviewer decisions:** they were recorded through the seeded `reviewer@pathlens.local` account for
 this hackathon, by reading the uploaded photo of each report. Every note says so, and the audit trail shows who

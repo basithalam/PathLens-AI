@@ -10,6 +10,8 @@ user gives feedback through the UI — and what this build cannot take as feedba
 
 **Live:** https://pathlens.cognitivebd.com | **Health:** https://pathlens.cognitivebd.com/health/ready
 
+**AI accuracy today (live, all Meta `muse-spark-1.3`): SF v2 6/7 + World20 12/12 = 18/19 answerable (94.7%), 0 errors.** Detail: `docs/AI_EVALUATION_SF_REAL_V2.md` + `docs/WORLD20_BATCH12.md`.
+
 **Demo video (3 min):** https://www.youtube.com/watch?v=6IHM7WiYKSg
 
 **User manual:** https://pathlens.cognitivebd.com/manual (printable: `docs/user-manual.html`) — how every feature works for public users, reviewers and admins.

@@ -1,5 +1,7 @@
 # AI Evaluation — PathLens AI (Blueprint §19 — G2 Updated 2026-11-01)
 
+> **Accuracy today 2026-11-04 (live, all Meta `muse-spark-1.3`): SF v2 6/7 + World20 12/12 = 18/19 answerable (94.7%), 0 errors.** V1 3/3/2/0 below is kept as the run record. Detail: `docs/AI_EVALUATION_SF_REAL_V2.md` + `docs/WORLD20_BATCH12.md`.
+>
 > **Status 2026-11-03 — read this before the sections below.** Everything from "Latest run — H2" down to
 > "G2 SF Dataset" is the **Mock pipeline record**, kept as history. Two things have happened since:
 >
