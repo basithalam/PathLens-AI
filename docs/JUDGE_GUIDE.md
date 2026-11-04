@@ -68,8 +68,7 @@ either.
 motorbikes, they must turn back. A normal map showed the road, not the blockage.
 
 **0:30–1:30 — `/map`.** Opens on Sylhet as a demo seed (works in any city — pan anywhere). Marker letters carry meaning without colour:
-`!` unverified · `V` human-verified · `?` disputed · `X` rejected. Square `C` markers are cameras, kept
-visually separate from human reports. Click a marker → the list and the map stay in sync → open a report.
+`!` unverified · `V` human-verified · `?` disputed · `X` rejected. Square `C` markers are cameras — try the live one: [`CameraDetected candidate — SF US-101`](https://pathlens.cognitivebd.com/reports/9ef305d4-48eb-4e77-af6e-db57b437b4ae) (`/admin → Poll now → C on map → same Meta AI queue`, 866 frames, highway stays `Inconclusive`). Click a marker → the list and the map stay in sync → open a report.
 Turn on **Coverage layer**: cells marked `C` (hatched) mean *nobody has reported here* — explicitly not
 "clear". Click a cell to zoom it.
 
