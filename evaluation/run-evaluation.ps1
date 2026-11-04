@@ -118,7 +118,11 @@ foreach ($row in $rows) {
             }
         }
 
-        if ($UploadSpacingSeconds -gt 0) { Start-Sleep -Seconds $UploadSpacingSeconds }
+            # Upload spacing defaults to 370s (just over the 10/hour limit) when the caller leaves it 0,
+            # so a fresh 9-image v2 run never trips our own 429. Explicit values still win.
+            $spacing = $UploadSpacingSeconds
+            if ($spacing -le 0) { $spacing = 370 }
+            if ($spacing -gt 0) { Start-Sleep -Seconds $spacing }
 
         $job = Invoke-ApiJson -Method Post -Path "/api/evidence/$($evidence.id)/analyze" -Body $null
 
@@ -147,9 +151,16 @@ foreach ($row in $rows) {
         $completed = Invoke-ApiJson -Method Get -Path "/api/evidence/$($evidence.id)"
         $analysis = $completed.analysisResultJson | ConvertFrom-Json
 
-        $verdict = if ($analysis.obstacleType -eq $row.expectedObstacle) { "Correct" }
-            elseif ($analysis.obstacleType -eq "Unknown") { "Inconclusive" }
-            else { "Incorrect" }
+        # v2 scoring (honest): "Unknown" expected means the photo has no verifiable obstruction —
+        # the model must abstain. A named answer there is genuinely wrong; an abstention is correct.
+        # For named expectations the old rule stands: Unknown actual = safe abstention (Inconclusive).
+        if ($row.expectedObstacle -eq "Unknown") {
+            $verdict = if ($analysis.obstacleType -eq "Unknown") { "Correct" } else { "Incorrect" }
+        } else {
+            $verdict = if ($analysis.obstacleType -eq $row.expectedObstacle) { "Correct" }
+                elseif ($analysis.obstacleType -eq "Unknown") { "Inconclusive" }
+                else { "Incorrect" }
+        }
 
         $entry = [ordered]@{
             id = $row.id

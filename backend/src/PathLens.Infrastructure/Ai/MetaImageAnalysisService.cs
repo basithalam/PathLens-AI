@@ -46,6 +46,8 @@ public sealed class MetaImageAnalysisService(
         var payload = new
         {
             model = _options.Model,
+            temperature = 0,
+            top_p = 0.1,
             messages = new[]
             {
                 new
@@ -61,6 +63,7 @@ public sealed class MetaImageAnalysisService(
                                 Answer with JSON only, matching this schema exactly:
                                 {"schemaVersion":"1.0","obstacleType":"BlockedSidewalk|BrokenSurface|MissingOrBlockedRamp|StairsOrStep|ConstructionBarrier|Other|Unknown","visibleEvidence":["what is visibly seen"],"limitations":["what cannot be seen or is uncertain"],"confidence":0.0,"humanReviewRequired":true}
                                 Describe only what is visible. Do not claim GPS location or capture time from the image.
+                                If the walking line is clear with nothing on it, use obstacleType "Unknown" with low confidence and explain why in limitations.
                                 If the image does not show the path clearly, use obstacleType "Unknown" and say why in limitations.
                                 """,
                         },
