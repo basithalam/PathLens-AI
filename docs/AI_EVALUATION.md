@@ -6,11 +6,13 @@
 > 1. **The live gate is open.** `Ai__Provider=Meta` runs against `https://api.meta.ai/v1/chat/completions`
 >    with `muse-spark-1.3`; `/health/ready` reports `ai-provider: Healthy`. The Groq/Llama endpoints in the
 >    commands below are the **fallback**, not the current default.
-> 2. **A real-photo run exists and has been measured.** 10 borrowed SF footpath photos through the live
->    model: **3 correct, 3 incorrect, 2 model abstentions, 2 upload errors, 0 comparison pairs**
->    (`evaluation/results.sf-real-eval.json`). Three of that set's own pre-written ground-truth labels did not
->    survive re-reading the photos. Full detail, including the reviewer decisions recorded against them:
->    `docs/AI_EVALUATION_SF_REAL.md`.
+> 2. **A real-photo run exists and has been measured.** Ten borrowed SF footpath photos through the live
+>    model on 2026-11-01: **3 correct, 3 incorrect, 2 model abstentions, 2 upload errors, 0 comparison pairs**
+>    (`evaluation/results.sf-real-eval.json`). Re-scored against the photographs themselves — three of our own
+>    pre-written ground-truth labels did not survive re-reading — six of the eight images that reached the
+>    model hold up. The set now ships nine: `sf-eval-09.jpg` was deleted on 2026-11-04 because its source could
+>    not be recovered. Full detail, including the reviewer decisions recorded against them:
+>    `docs/AI_EVALUATION_SF_REAL.md` and `docs/ERROR_ANALYSIS.md`.
 >
 > So: 25-image synthetic + Mock = **pipeline proof**. 10-image real + Meta = **the only accuracy evidence there
 > is, and it is small and mixed.** Neither is a general-accuracy claim. The runner also reads HTTP status now,

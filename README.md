@@ -241,23 +241,24 @@ Judges and users should not have to dig for these.
   that version are suppressed. Measured, not assumed: 3.1.12 carries **six** advisories instead of two, and
   4.1.3 has none but **fails to build** without a purchased Six Labors licence file — so upgrading is not an
   available fix here. Details: `docs/THIRD_PARTY.md` §2 and `docs/SECURITY.md`.
-- **Real-image accuracy is small and mixed.** 10 borrowed SF footpath photos through `muse-spark-1.3`, scored
-  against our own labels: **3 correct, 3 incorrect, 2 model abstentions, 2 upload errors, 0 comparison
-  pairs.** Re-scored against the photographs themselves — which is fairer, because three of our own labels
-  were wrong — **6 of the 8 images that reached the model produced an answer that still stands** (4 named
-  correctly, 2 correctly abstained), 1 is a clear model error (`sf-eval-01`) and 1 has no ground truth to
-  judge (`sf-eval-06`). Both numbers are in `docs/AI_EVALUATION_SF_REAL.md`; neither is a claim of general
-  accuracy, and re-running one photo changed its answer, so a single run is not reproducible.
+- **Real-image accuracy is small and mixed.** Ten borrowed SF footpath photos through `muse-spark-1.3` on
+  2026-11-01, scored against our own labels: **3 correct, 3 incorrect, 2 model abstentions, 2 upload errors,
+  0 comparison pairs.** Re-scored against the photographs themselves — which is fairer, because three of our
+  own labels were wrong — **6 of the 8 images that reached the model produced an answer that still stands**
+  (4 named correctly, 2 correctly abstained), 1 is a clear model error (`sf-eval-01`) and 1 has no ground
+  truth to judge (`sf-eval-06`). Both numbers are in `docs/AI_EVALUATION_SF_REAL.md`; neither is a claim of
+  general accuracy, and re-running one photo changed its answer, so a single run is not reproducible. The set
+  now **ships nine** images — `sf-eval-09.jpg` was deleted because its source could not be recovered.
 - **Three of that set's pre-written ground-truth labels did not survive re-reading the photos** (`sf-eval-01`,
   `sf-eval-02`, `sf-eval-08`; `sf-eval-03` is not a footpath view at all). No label was quietly changed to
   agree with the model. Detail: `docs/AI_EVALUATION_SF_REAL.md`.
-- **The 10 borrowed images are Wikimedia Commons files, and 9 of them are now credited** — author, licence and
-  source page recovered by byte-identical hash match, listed in `docs/THIRD_PARTY.md` §6. The licences are not
-  all the same (CC BY 4.0, CC BY-SA 4.0, CC0, CC BY 2.0), which is why per-file credit was the right thing to
-  chase rather than a blanket statement. **`sf-eval-09.jpg` is still uncredited** — no source was found, so it
-  should be removed before any release beyond this hackathon. Attribution is a licence condition, not a
-  nicety. The 25-image SF set is **synthetic** and its pairs were run under the **Mock** provider — pipeline
-  proof only.
+- **The nine shipped images are Wikimedia Commons files, and all nine are credited** — author, licence and
+  source page recovered by byte-identical hash match, listed in `docs/THIRD_PARTY.md` §6 and in
+  `manifest.sf-real-eval.csv`. The licences are not all the same (CC BY 4.0, CC BY-SA 4.0, CC0, CC BY 2.0),
+  which is why per-file credit was worth chasing rather than a blanket statement. A tenth file,
+  `sf-eval-09.jpg`, **was deleted on 2026-11-04** because no source could be found — shipping it uncredited
+  would have been a licence breach. Attribution is a licence condition, not a nicety. The 25-image SF set is
+  **synthetic** and its pairs were run under the **Mock** provider — pipeline proof only.
 - **Reporter reputation is empty on the live demo** because the seeded reports have no signed-in author; the
   panel shows an empty state rather than invented badges.
 - **No public footpath camera exists for Sylhet**, so the automatic-update path runs on SF highway cameras that
@@ -270,9 +271,9 @@ Judges and users should not have to dig for these.
   asking the author for a password. This is a demo dataset on a throwaway hackathon deployment, not a
   production system. The rotation control exists (`Auth:Seed*` + `DEMO_*_PASSWORD` secrets, see
   `docs/SECURITY.md`) for anyone who runs this for real; it is **not** enabled here, deliberately.
-- **License is MIT** (`LICENSE`), covering code and docs only — the ten borrowed Wikimedia Commons street
-  photos keep their own licences (CC BY / CC BY-SA / CC0), credited per file in `docs/THIRD_PARTY.md` §6 with
-  one still unrecovered. See the License section below.
+- **License is MIT** (`LICENSE`), covering code and docs only — the borrowed Wikimedia Commons street
+  photos keep their own licences (CC BY / CC BY-SA / CC0), credited per file in `docs/THIRD_PARTY.md` §6.
+  See the License section below.
 
 ## License
 
@@ -286,7 +287,7 @@ Summary:
 
 | Asset | Licence | Status |
 |---|---|---|
-| `evaluation/sf-real-eval/*.jpg` (10 street photos) | Wikimedia Commons — **licences differ per file**: CC BY 4.0, CC BY-SA 4.0, CC0 ×2, CC BY 2.0 ×4, and one unrecovered | **9 of 10 credited** — author, licence and source page recovered by byte-identical SHA-256 match against Commons' 960px thumbnails, recorded in `docs/THIRD_PARTY.md` §6 and in `manifest.sf-real-eval.csv`. `sf-eval-09.jpg` is the open one: no source found, so it should be deleted before any release beyond the hackathon. These images are not relicensed by MIT |
+| `evaluation/sf-real-eval/*.jpg` (9 street photos) | Wikimedia Commons — **licences differ per file**: CC BY 4.0, CC BY-SA 4.0, CC0 ×2, CC BY 2.0 ×4 | **DONE — all nine credited**: author, licence and source page recovered by byte-identical SHA-256 match against Commons' 960px thumbnails, recorded in `docs/THIRD_PARTY.md` §6 and in `manifest.sf-real-eval.csv`. A tenth file (`sf-eval-09.jpg`) was deleted on 2026-11-04 because its source could not be recovered. These images are not relicensed by MIT |
 | `evaluation/sf-dataset/*.png` (25 images) | own work, synthetic placeholders | no third-party licence |
 | Map tiles | © OpenStreetMap contributors (ODbL for the data) | rendered at runtime by Leaflet, not redistributed here; attribution control on all three maps |
 | Geocoding | Nominatim public service | called from the browser on Enter; its ≤1 req/s + identification policy is **not enforced in code** — `docs/THIRD_PARTY.md` §4 |

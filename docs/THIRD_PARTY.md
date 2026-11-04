@@ -11,7 +11,7 @@ source call sites — not from memory.
 
 | # | Obligation | Status |
 |---|---|---|
-| 1 | Per-file attribution for the 10 borrowed street photos in `evaluation/sf-real-eval/` | **9 of 10 DONE** — author, licence and source page recovered by byte-identical SHA-256 match and recorded in §6 and in the manifest. **`sf-eval-09.jpg` still OPEN**: its source was not found, so it should be deleted before any release beyond the hackathon |
+| 1 | Per-file attribution for the borrowed street photos in `evaluation/sf-real-eval/` | **DONE** — nine shipped images each credited with author, licence and source page, recovered by byte-identical SHA-256 match (§6, and the `sourcePage`/`author`/`license` columns in `manifest.sf-real-eval.csv`). The tenth file could not be traced and was **deleted on 2026-11-04** rather than shipped uncredited |
 | 2 | Reproduce the Leaflet BSD-2-Clause copyright notice in documentation | **DONE** — §5 |
 | 3 | Keep the OpenStreetMap attribution control visible on every map | **DONE** — present on all three maps (§4) |
 | 4 | Honour the Nominatim usage policy (rate + identification) | **PARTIAL — documented, not enforced in code** (§4) |
@@ -103,11 +103,11 @@ Redistribution and use in source and binary forms, with or without modification,
 two conditions of the BSD-2-Clause licence (retain the notice in source; reproduce it in binary
 documentation) are met. The full text is in `node_modules/leaflet/LICENSE`.
 
-## 6. The ten borrowed street photographs — attribution ledger
+## 6. The borrowed street photographs — attribution ledger
 
-`evaluation/sf-real-eval/sf-eval-01.jpg` … `sf-eval-10.jpg` are San Francisco street photographs downloaded
-from **Wikimedia Commons**. They are *not* covered by this project's MIT licence, and each keeps its own
-terms.
+`evaluation/sf-real-eval/` holds **nine** San Francisco street photographs downloaded from **Wikimedia
+Commons**. They are *not* covered by this project's MIT licence, and each keeps its own terms. A tenth file,
+`sf-eval-09.jpg`, was deleted on 2026-11-04 because its source could not be recovered — see below.
 
 **Correction to what this file said before:** it described all ten as CC BY-SA 4.0. That was wrong — the
 licences differ per file (CC0, CC BY 2.0, CC BY 4.0 and one CC BY-SA 4.0), and only the CC BY-SA item
@@ -131,25 +131,28 @@ nine rows below are therefore not guesses — the bytes are identical to the fil
 | `sf-eval-06.jpg` | [File:Castro Street, San Francisco, March 17, 2020.jpg](https://commons.wikimedia.org/wiki/File:Castro_Street%2C_San_Francisco%2C_March_17%2C_2020.jpg) | Christopher Michel | **CC BY 2.0** | yes |
 | `sf-eval-07.jpg` | [File:Market Street, San Francisco, California April 2022 - Sidewalk homelessness and drugs.jpg](https://commons.wikimedia.org/wiki/File:Market_Street%2C_San_Francisco%2C_California_April_2022_-_Sidewalk_homelessness_and_drugs.jpg) | Sharon Hahn Darlin | **CC BY 2.0** | yes — and see the privacy note below |
 | `sf-eval-08.jpg` | [File:North Beach, San Francisco (14731005196).jpg](https://commons.wikimedia.org/wiki/File:North_Beach%2C_San_Francisco_(14731005196).jpg) | Christopher Michel | **CC BY 2.0** | yes |
-| `sf-eval-09.jpg` | **not recovered** | — | — | **OPEN — see below** |
+| `sf-eval-09.jpg` | **deleted 2026-11-04** | — | — | no source found; file removed from the repository |
 | `sf-eval-10.jpg` | [File:San Francisco (17073829244).jpg](https://commons.wikimedia.org/wiki/File:San_Francisco_(17073829244).jpg) | Rodrigo Paredes (Ciudad Autónoma de Buenos Aires, Argentina) | **CC BY 2.0** | yes |
 
 The same data now lives in `evaluation/manifest.sf-real-eval.csv` as `sourcePage` / `author` / `license`
-columns, so the dataset and this ledger cannot drift. Verified parsing with `Import-Csv`: 10 rows, 11
-columns, 9 populated.
+columns, so the dataset and this ledger cannot drift. Verified parsing with `Import-Csv`: 9 rows, 11
+columns, every row populated.
 
 **Correct attribution form.** Reuse of these images must name the author, link the source page, state the
 licence, and note that the file was modified — ours was resized to 960 px and had EXIF stripped before
 storage. `sf-eval-03` and `sf-eval-05` are CC0 and need nothing, but crediting them anyway is harmless and
 is what the table above supports.
 
-**`sf-eval-09.jpg` is the one open item.** Nine candidates matched byte-for-byte; this file's source was not
-found in the candidate pool searched (18 queries, 99 aspect-ratio candidates). It is also the least costly
-row to lose: its upload failed against our own rate limiter, so **no evidence row exists for it on the live
-demo** and its report is marked Rejected. The correct action before any release beyond the hackathon is to
-**delete the file and re-run the evaluation without it** — an uncredited CC-licensed file is a licence
-breach, while a nine-image demo is simply a nine-image demo. That is a decision for the repository owner,
-not something to do silently, because it changes the "10 images" figure quoted across the docs.
+**`sf-eval-09.jpg` was deleted on 2026-11-04, not quietly kept.** Nine of the ten files matched a Commons
+thumbnail byte-for-byte; this one did not match anything in the pool searched (18 queries, 99 aspect-ratio
+candidates). An uncredited CC-licensed file is a licence breach, so the file is gone from the repository and
+from the manifest. What is deliberately **not** rewritten is `evaluation/results.sf-real-eval.json` — that is
+the machine record of the 2026-11-01 run, which covered ten images of which two failed at upload. The honest
+sentence is: *the run covered ten borrowed photos; the set now ships nine, all nine credited.*
+
+The live demo still shows the report `Demo evidence 09 - no photo uploaded (rejected)`. That is correct and
+is kept on purpose: it is the rejection path on screen, its description records that the source could not be
+recovered and the file was removed, and no image is served for it.
 
 **Privacy note.** `sf-eval-07` contains identifiable faces. It is CC BY 2.0, which permits reuse, but the
 report built on it was deliberately **never marked verified** — see `docs/AI_EVALUATION_SF_REAL.md`.

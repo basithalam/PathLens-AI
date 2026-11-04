@@ -5,7 +5,9 @@ mechanism behind each failure — including the failures in **our own labels, ou
 test harness**. Written from `evaluation/results.sf-real-eval.json` (the record) and from re-reading each
 photograph by hand.
 
-Run: 2026-11-01 against the live deployment, 10 images, provider `Meta` / `muse-spark-1.3`.
+Run: 2026-11-01 against the live deployment, 10 images, provider `Meta` / `muse-spark-1.3`. The set now ships
+**nine** — `sf-eval-09.jpg` was deleted on 2026-11-04 because its source could not be recovered
+(`docs/THIRD_PARTY.md` §6). The counts below describe the run as it happened.
 
 | | count |
 |---|---|

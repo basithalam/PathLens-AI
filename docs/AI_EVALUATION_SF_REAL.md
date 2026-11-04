@@ -4,8 +4,10 @@
 Supersedes the earlier "running / results pending" state of this file, which was written before the run
 finished and reported `totalCount 7` when the deployment now serves 13 reports.
 
-**Dataset:** `evaluation/sf-real-eval/` — 10 real SF footpath photos, `evaluation/manifest.sf-real-eval.csv`,
-ground truth recorded **before** any model output. Runner:
+**Dataset:** `evaluation/sf-real-eval/` — the 2026-11-01 run used **10** real SF footpath photos; the set now
+**ships 9**, because `sf-eval-09.jpg` was deleted on 2026-11-04 when its source could not be recovered (see
+`docs/THIRD_PARTY.md` §6). `evaluation/manifest.sf-real-eval.csv` lists the nine shipped images, each with
+`sourcePage` / `author` / `license`. Ground truth was recorded **before** any model output. Runner:
 `./evaluation/run-evaluation.ps1 -ManifestPath evaluation/manifest.sf-real-eval.csv -ApiBaseUrl https://pathlens.cognitivebd.com`
 
 ## Headline numbers (`evaluation/results.sf-real-eval.json`)
@@ -106,17 +108,18 @@ frame — the same reading that found three of our own labels wrong. The machine
 
 Every note is labelled as a hackathon demo review. `docs/JUDGE_GUIDE.md` states this too.
 
-## Still open
+## Dataset provenance, and what is still open
 
-- **Attribution — 9 of 10 recovered 2026-11-04.** The images are San Francisco street photos from Wikimedia
-  Commons. The credit is not stored inside the files (every `Copyright` string in them is colour-profile
-  boilerplate), but all ten are exactly 960 px wide — Commons' standard thumbnail width — so each was
-  identified by downloading candidate 960px thumbnails and comparing **SHA-256**: nine matched
-  byte-for-byte. Source page, author and licence are now recorded in `docs/THIRD_PARTY.md` §6 and in
-  `manifest.sf-real-eval.csv` (`sourcePage` / `author` / `license`). **The licences are not uniform** — CC BY
-  4.0, CC BY-SA 4.0, CC0 ×2 and CC BY 2.0 ×4 — so the earlier blanket "all CC BY-SA" description was wrong.
-  **`sf-eval-09.jpg` remains uncredited**: no source was found in the candidate pool searched, and since its
-  upload never reached the model anyway, the correct action is to delete it rather than ship it uncredited.
+- **Attribution — resolved 2026-11-04, nine credited and one file deleted.** The images are San Francisco
+  street photos from Wikimedia Commons. The credit is not stored inside the files (every `Copyright` string in
+  them is colour-profile boilerplate), but all of them are exactly 960 px wide — Commons' standard thumbnail
+  width — so each was identified by downloading candidate 960px thumbnails and comparing **SHA-256**: nine of
+  the ten matched byte-for-byte. Source page, author and licence are recorded in `docs/THIRD_PARTY.md` §6 and
+  in `manifest.sf-real-eval.csv` (`sourcePage` / `author` / `license`). **The licences are not uniform** — CC
+  BY 4.0, CC BY-SA 4.0, CC0 ×2 and CC BY 2.0 ×4 — so the earlier blanket "all CC BY-SA" description was wrong.
+  **`sf-eval-09.jpg` did not match anything** in the pool searched, so the file has been removed from the
+  repository and from the manifest rather than shipped uncredited; its report stays on the demo as the
+  rejection path, with no image behind it. `results.sf-real-eval.json` is left as the run produced it.
 - **No real comparison pairs.** 0 of the 10 images form a same-place old/new pair, so the comparison engine
   has no evidence from real photography — only the 5 synthetic Mock pairs in `manifest.sf.csv`.
 - **The 25-image SF set is synthetic** (`evaluation/sf-dataset/`, own-generated placeholders) and its

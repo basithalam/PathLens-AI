@@ -112,9 +112,14 @@ attached to have since been deleted, so they no longer open from a report page.
 
 ## What is NOT proven (our own limits, stated)
 
-- **Real-image accuracy is small and mixed.** 10 real SF footpath photos through `muse-spark-1.3`:
-  **3 correct, 3 incorrect, 2 inconclusive, 2 upload errors, 0 usable pairs.** 10 images is a demo, not
-  accuracy. See `evaluation/results.sf-real-eval.json`.
+- **Real-image accuracy is small and mixed.** The 2026-11-01 run covered ten borrowed SF footpath photos
+  through `muse-spark-1.3`: **3 correct, 3 incorrect, 2 inconclusive, 2 upload errors, 0 usable pairs.**
+  Re-scored against the photographs themselves — fairer, because three of our own labels were wrong — **6 of
+  the 8 images that reached the model hold up** (4 named correctly, 2 correctly abstained), 1 is a clear model
+  error and 1 has no ground truth to judge. Either way, ten images is a demo, not accuracy. See
+  `evaluation/results.sf-real-eval.json` (the machine record, left untouched) and
+  `docs/AI_EVALUATION_SF_REAL.md` for both readings. The set now **ships nine** images: `sf-eval-09.jpg` was
+  deleted because its source could not be recovered.
 - **The 25-image SF dataset is synthetic** (own-generated placeholders, no faces or plates) and its
   comparison pairs were run under the **Mock** provider — pipeline proof, not accuracy proof.
 - **The ground truth of that 10-image set is worse than the model's answer.** Re-reading every photo by hand,
@@ -127,11 +132,11 @@ attached to have since been deleted, so they no longer open from a report page.
   scoring rule that manufactured one "incorrect" and the fact that re-running one photo changed the model's
   answer — in `docs/ERROR_ANALYSIS.md`.
 - **The seeded evaluation rows are visible on the live demo and labelled as such.** The ten reports the
-  evaluation run created are titled `Demo evidence 01…10` and each description says plainly that the photo was
-  borrowed from Wikimedia Commons (credited per file in `docs/THIRD_PARTY.md` §6) and is **not** a community
-  submission.
-  Two of them have no photo at all and are marked **Rejected** — that is the rejection path on screen, not an
-  accident.
+  evaluation run created are titled `Demo evidence 01…10`, and each description carries the photo's Wikimedia
+  Commons file page, author and licence (same ledger as `docs/THIRD_PARTY.md` §6) plus the plain statement
+  that it is **not** a community submission. Two of them have no photo at all and are marked **Rejected** —
+  that is the rejection path on screen, not an accident; for `Demo evidence 09` the borrowed file itself has
+  since been deleted from the repository because its source could not be recovered.
 - **No real footpath camera exists for Sylhet yet**, so the automatic-update story runs on SF highway cameras,
   which show traffic, not footpaths.
 - **Reporter reputation is empty** on the live demo because the seeded reports were created anonymously; the
@@ -140,15 +145,14 @@ attached to have since been deleted, so they no longer open from a report page.
   so the 0-warning build is configured rather than clean. Upgrading was tried and measured, not assumed:
   3.1.12 lists **six** advisories instead of two, and 4.1.3 has none but **fails to build** without a
   purchased Six Labors licence file. `docs/THIRD_PARTY.md` §2 has the table.
-- **License is MIT** (`LICENSE`), covering code and docs. It does not relicense the ten borrowed Wikimedia
-  Commons street photos, which keep their own licences. **Nine of the ten are now credited**: the source page,
-  author and licence were recovered by matching each file byte-for-byte (SHA-256) against Commons' 960px
-  thumbnails — the licences turn out to differ per file (CC BY 4.0, CC BY-SA 4.0, CC0, CC BY 2.0), which is
-  why a blanket "CC BY-SA" line was wrong. The full inventory is `docs/THIRD_PARTY.md`: every dependency with
-  its version and licence, the Leaflet BSD-2 notice reproduced as that licence requires, the OpenStreetMap /
-  Nominatim / OSRM / Meta service terms, and the camera-feed terms we have *not* verified. **One item is
-  still open:** `sf-eval-09.jpg`'s source was not found, so it should be deleted rather than shipped
-  uncredited.
+- **License is MIT** (`LICENSE`), covering code and docs. It does not relicense the borrowed Wikimedia
+  Commons street photos, which keep their own licences. **All nine shipped images are credited**: source
+  page, author and licence were recovered by matching each file byte-for-byte (SHA-256) against Commons'
+  960px thumbnails — the licences turn out to differ per file (CC BY 4.0, CC BY-SA 4.0, CC0, CC BY 2.0),
+  which is why a blanket "CC BY-SA" line was wrong. A tenth file could not be traced and was **deleted on
+  2026-11-04** rather than shipped uncredited. The full inventory is `docs/THIRD_PARTY.md`: every dependency
+  with its version and licence, the Leaflet BSD-2 notice reproduced as that licence requires, the
+  OpenStreetMap / Nominatim / OSRM / Meta service terms, and the camera-feed terms we have *not* verified.
 - **The SAM 3.1 obstruction share is measured, not evaluated.** End-to-end on one real photo (three fallen
   e-scooters across a walkway): `muse-spark-1.3` returned `BlockedSidewalk 0.85`, `sam-3.1` returned 2
   obstacle boxes over 1 walkway box, and the computed share was **23% of the visible walkway** — verified by
