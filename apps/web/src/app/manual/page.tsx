@@ -12,7 +12,7 @@ export default function ManualPage() {
         </p>
         <div className="page-header__actions">
           <a href="/docs/user-manual.html" className="btn btn--primary btn--sm" target="_blank" rel="noreferrer">
-            Open printable manual
+            Open full manual (A report · B route · C review · D admin)
           </a>
           <Link href="/map" className="btn btn--ghost btn--sm">
             Start on the map
