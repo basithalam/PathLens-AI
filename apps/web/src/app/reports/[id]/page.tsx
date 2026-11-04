@@ -9,6 +9,7 @@ import {
   getReportReviews,
 } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
+import { formatDateET, formatDateTimeET } from "@/lib/format-time";
 import { EvidenceSection } from "@/components/evidence/EvidenceSection";
 import { ComparisonSection } from "@/components/comparisons/ComparisonSection";
 import { QuickFeedback } from "@/components/feedback/QuickFeedback";
@@ -105,8 +106,8 @@ export default async function ReportDetailsPage({ params }: ReportDetailsProps) 
         <div>
           <dt>Created</dt>
           <dd>
-            {new Date(report.createdAt).toLocaleString()}
-            <small>{new Date(report.createdAt).toLocaleDateString()}</small>
+            {formatDateTimeET(report.createdAt)}
+            <small>{formatDateET(report.createdAt)}</small>
           </dd>
         </div>
         <div>
@@ -128,7 +129,7 @@ export default async function ReportDetailsPage({ params }: ReportDetailsProps) 
           <dt>Last evidence</dt>
           <dd>
             {report.lastEvidenceAt ? (
-              new Date(report.lastEvidenceAt).toLocaleString()
+              formatDateTimeET(report.lastEvidenceAt)
             ) : (
               <span className="badge badge-unknown">No analysed photo yet</span>
             )}
@@ -169,12 +170,12 @@ export default async function ReportDetailsPage({ params }: ReportDetailsProps) 
           {latestCameraEvidence ? (
             <p>
               Last checked by camera:{" "}
-              <time className="mono">{new Date(latestCameraEvidence.uploadedAt).toLocaleString()}</time> —
+              <time className="mono">{formatDateTimeET(latestCameraEvidence.uploadedAt)}</time> —
               analysis <StatusBadge status={latestCameraEvidence.analysisStatus} />
               {latestCameraEvidence.analyzedAt ? (
                 <>
                   {" "}
-                  at <time className="mono">{new Date(latestCameraEvidence.analyzedAt).toLocaleString()}</time>
+                  at <time className="mono">{formatDateTimeET(latestCameraEvidence.analyzedAt)}</time>
                 </>
               ) : null}
               . A camera check is fresh evidence, not a guarantee that the path is now clear or blocked.
@@ -219,7 +220,7 @@ export default async function ReportDetailsPage({ params }: ReportDetailsProps) 
               {reviews.map((review) => (
                 <li key={review.id}>
                   <time className="audit-time" dateTime={review.createdAt}>
-                    {new Date(review.createdAt).toLocaleString()}
+                    {formatDateTimeET(review.createdAt)}
                   </time>
                   <span className="audit-flow">
                     <span className="from">{review.previousValue ?? "—"}</span>

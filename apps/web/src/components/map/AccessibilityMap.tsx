@@ -15,6 +15,7 @@ import {
 } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
 import { fixLeafletIcons } from "@/lib/leaflet-icons";
+import { formatDateTimeET } from "@/lib/format-time";
 
 const OBSTACLE_TYPES = [
   "BlockedSidewalk",
@@ -124,8 +125,8 @@ export function AccessibilityMap() {
         `<strong>Camera: ${escapeHtml(camera.label)}</strong><br/>${escapeHtml(camera.provider)} · ${escapeHtml(camera.city)}<br/>` +
           (camera.enabled
             ? camera.isStale
-              ? `Stale: no successful check recently${camera.lastSuccessAt ? ` (last success ${escapeHtml(new Date(camera.lastSuccessAt).toLocaleString())})` : " (never succeeded)"}. Treat its data as old.`
-              : `Last checked ${camera.lastSuccessAt ? escapeHtml(new Date(camera.lastSuccessAt).toLocaleString()) : "never"}${camera.lastChangeAt ? `; last change ${escapeHtml(new Date(camera.lastChangeAt).toLocaleString())}` : ""}.`
+              ? `Stale: no successful check recently${camera.lastSuccessAt ? ` (last success ${escapeHtml(formatDateTimeET(camera.lastSuccessAt))})` : " (never succeeded)"}. Treat its data as old.`
+              : `Last checked ${camera.lastSuccessAt ? escapeHtml(formatDateTimeET(camera.lastSuccessAt)) : "never"}${camera.lastChangeAt ? `; last change ${escapeHtml(formatDateTimeET(camera.lastChangeAt))}` : ""}.`
             : "This camera source is disabled.") +
           `<br/>A camera snapshot is evidence, not proof that a path is accessible.`,
       );
@@ -543,7 +544,7 @@ export function AccessibilityMap() {
                 {selected.severity}
               </p>
               <p>
-                Reported {new Date(selected.createdAt).toLocaleString()}. This is a user claim until a
+                Reported {formatDateTimeET(selected.createdAt)}. This is a user claim until a
                 reviewer verifies it.
               </p>
               <Link href={`/reports/${selected.id}`} className="btn btn--primary btn--sm">
@@ -575,8 +576,8 @@ export function AccessibilityMap() {
                     {!camera.enabled
                       ? "Disabled — it contributes no evidence at all."
                       : camera.isStale
-                        ? `Stale — last successful check ${camera.lastSuccessAt ? new Date(camera.lastSuccessAt).toLocaleString() : "never"}. Its data may be old.`
-                        : `Last checked ${camera.lastSuccessAt ? new Date(camera.lastSuccessAt).toLocaleString() : "never"}${camera.lastChangeAt ? `, last change ${new Date(camera.lastChangeAt).toLocaleString()}` : ""}.`}
+                        ? `Stale — last successful check ${camera.lastSuccessAt ? formatDateTimeET(camera.lastSuccessAt) : "never"}. Its data may be old.`
+                        : `Last checked ${camera.lastSuccessAt ? formatDateTimeET(camera.lastSuccessAt) : "never"}${camera.lastChangeAt ? `, last change ${formatDateTimeET(camera.lastChangeAt)}` : ""}.`}
                   </span>
                 </li>
               ))}
@@ -605,7 +606,7 @@ export function AccessibilityMap() {
                     <span className="meta-chip">
                       Severity <strong>{report.severity}</strong>
                     </span>
-                    <span className="meta-chip">{new Date(report.createdAt).toLocaleString()}</span>
+                    <span className="meta-chip">{formatDateTimeET(report.createdAt)}</span>
                   </span>
                 </li>
               ))}

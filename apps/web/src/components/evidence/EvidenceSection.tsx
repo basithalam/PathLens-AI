@@ -12,6 +12,7 @@ import {
   type EvidenceItem,
 } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
+import { formatDateTimeET } from "@/lib/format-time";
 import { compressImageFile } from "@/lib/offline-queue";
 
 const ACCEPTED = "image/jpeg,image/png,image/webp";
@@ -201,7 +202,7 @@ function EvidenceCard({
       <div>
         <p className="evidence-file">
           {item.fileName} · {(item.fileSize / 1024).toFixed(1)} KB · uploaded{" "}
-          {new Date(item.uploadedAt).toLocaleString()}
+          {formatDateTimeET(item.uploadedAt)}
         </p>
         <div className="list-row__meta">
           <StatusBadge status={item.analysisStatus} />

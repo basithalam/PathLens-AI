@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getReports } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
+import { formatDateTimeET } from "@/lib/format-time";
 
 export const dynamic = "force-dynamic";
 
@@ -141,7 +142,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
                       Severity <strong>{report.severity}</strong>
                     </span>
                     <span className="meta-chip">
-                      {new Date(report.createdAt).toLocaleString()}
+                      {formatDateTimeET(report.createdAt)}
                     </span>
                     <span className="meta-chip mono">{report.id.slice(0, 8)}</span>
                   </div>

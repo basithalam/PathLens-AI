@@ -115,7 +115,7 @@ export function AdminStatsPanel() {
                     title={`${d.date}: ${d.count}`}
                   />
                   <span className="chart__label">
-                    {new Date(d.date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                    {new Date(d.date).toLocaleDateString("en-US", { timeZone: "America/New_York", month: "short", day: "numeric" })}
                   </span>
                 </div>
               ))}

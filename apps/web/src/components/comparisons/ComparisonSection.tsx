@@ -10,6 +10,7 @@ import {
   type EvidenceItem,
 } from "@/lib/api-client";
 import { StatusBadge } from "@/components/StatusBadge";
+import { formatDateTimeET } from "@/lib/format-time";
 
 const OUTCOMES = [
   "LikelyStillPresent",
@@ -74,7 +75,7 @@ function ComparisonCard({
             {earlier && (
               <>
                 <br />
-                {new Date(earlier.captureTimeUtc ?? earlier.uploadedAt).toLocaleString()}
+                {formatDateTimeET(earlier.captureTimeUtc ?? earlier.uploadedAt)}
                 <br />
                 {parseAnalysisResult(earlier)?.obstacleType ?? earlier.analysisStatus}
               </>
@@ -94,7 +95,7 @@ function ComparisonCard({
             {later && (
               <>
                 <br />
-                {new Date(later.captureTimeUtc ?? later.uploadedAt).toLocaleString()}
+                {formatDateTimeET(later.captureTimeUtc ?? later.uploadedAt)}
                 <br />
                 {parseAnalysisResult(later)?.obstacleType ?? later.analysisStatus}
               </>
@@ -140,7 +141,7 @@ function ComparisonCard({
       )}
 
       <p className="status-source">
-        Compared {new Date(comparison.createdAt).toLocaleString()}
+        Compared {formatDateTimeET(comparison.createdAt)}
         {comparison.modelVersion ? ` · model ${comparison.modelVersion}` : ""}
       </p>
 
@@ -252,7 +253,7 @@ export function ComparisonSection({
             {timeline.map((item) => (
               <li key={item.id}>
                 <time className="mono" dateTime={item.captureTimeUtc ?? item.uploadedAt}>
-                  {new Date(item.captureTimeUtc ?? item.uploadedAt).toLocaleString()}
+                  {formatDateTimeET(item.captureTimeUtc ?? item.uploadedAt)}
                 </time>{" "}
                 — {item.fileName} · <StatusBadge status={item.analysisStatus} />
                 {item.captureTimeUtc ? "" : " (capture time not provided; upload time shown)"}
@@ -274,7 +275,7 @@ export function ComparisonSection({
             <select value={earlierId} onChange={(event) => setEarlierId(event.target.value)}>
               {completed.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.fileName} — {new Date(item.captureTimeUtc ?? item.uploadedAt).toLocaleString()}
+                  {item.fileName} — {formatDateTimeET(item.captureTimeUtc ?? item.uploadedAt)}
                 </option>
               ))}
             </select>
@@ -284,7 +285,7 @@ export function ComparisonSection({
             <select value={laterId} onChange={(event) => setLaterId(event.target.value)}>
               {completed.map((item) => (
                 <option key={item.id} value={item.id}>
-                  {item.fileName} — {new Date(item.captureTimeUtc ?? item.uploadedAt).toLocaleString()}
+                  {item.fileName} — {formatDateTimeET(item.captureTimeUtc ?? item.uploadedAt)}
                 </option>
               ))}
             </select>

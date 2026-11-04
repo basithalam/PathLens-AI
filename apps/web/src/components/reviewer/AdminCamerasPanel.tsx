@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { authFetch, getSessionUser, type SessionUser } from "@/lib/auth";
+import { formatDateTimeET } from "@/lib/format-time";
 
 type Cam = {
   id: string;
@@ -255,7 +256,7 @@ export function AdminCamerasPanel() {
                           <>
                             {c.feedImageUrl}
                             <span className="table-meta">
-                              last success: {c.lastSuccessAt ? new Date(c.lastSuccessAt).toLocaleString() : "never"}
+                              last success: {c.lastSuccessAt ? formatDateTimeET(c.lastSuccessAt) : "never"}
                             </span>
                           </>
                         )}

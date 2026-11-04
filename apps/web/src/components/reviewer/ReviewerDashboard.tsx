@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { authFetch, clearSession, getSessionUser, type SessionUser } from "@/lib/auth";
+import { formatDateTimeET } from "@/lib/format-time";
 import { SignInPanel, SessionBar } from "@/components/auth/SignInPanel";
 import { StatusBadge } from "@/components/StatusBadge";
 
@@ -58,7 +59,7 @@ const ACTION_CLASS: Record<string, string> = {
 };
 
 function formatStamp(value: string): string {
-  return new Date(value).toLocaleString();
+  return formatDateTimeET(value);
 }
 
 export function ReviewerDashboard() {

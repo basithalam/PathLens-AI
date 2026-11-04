@@ -5,6 +5,7 @@ import Link from "next/link";
 import "leaflet/dist/leaflet.css";
 import { fixLeafletIcons } from "@/lib/leaflet-icons";
 import { StatusBadge } from "@/components/StatusBadge";
+import { formatDateTimeET } from "@/lib/format-time";
 import {
   getCoverage,
   recommendRoutes,
@@ -624,7 +625,7 @@ function RouteCard({
       {route.newestEvidenceAt ? (
         <p className="hint">
           Newest evidence near this route:{" "}
-          <time className="mono">{new Date(route.newestEvidenceAt).toLocaleString()}</time>. Fresher evidence
+          <time className="mono">{formatDateTimeET(route.newestEvidenceAt)}</time>. Fresher evidence
           can come from people or from automatic camera checks; neither proves the whole route is accessible.
         </p>
       ) : (
