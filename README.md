@@ -72,11 +72,11 @@ Reviewers can verify, dispute, or reject reports, add notes, and leave a full au
 | Backend | ASP.NET Core Web API (.NET) |
 | Database | PostgreSQL + PostGIS |
 | ORM | Entity Framework Core |
-| Maps | OpenStreetMap + Leaflet |
-| Routing | OSRM, Valhalla, or GraphHopper (to be validated) |
-| AI | Meta AI image-capable API/model, behind a provider abstraction — `muse-spark-1.3` classifies (`/v1/chat/completions`), `sam-3.1` measures the occupied share of the visible walkway (`/v1/responses`, off unless `SAM31_ENABLED=true`) |
-| Storage | S3-compatible private object storage |
-| Testing | xUnit, integration tests, Playwright |
+| Maps | OpenStreetMap raster tiles + Leaflet (attribution control on all three maps) |
+| Routing | OSRM's `foot` profile via the public demo router. Valhalla and GraphHopper appear in the original design but are **not used in this build** — the profile is stated on screen as not wheelchair-validated |
+| AI | Meta AI image-capable API/model, behind a provider abstraction — `muse-spark-1.3` classifies (`/v1/chat/completions`), `sam-3.1` measures the occupied share of the visible walkway (`/v1/responses`). The code default is off (`Sam31:Enabled=false`, two billed calls per photo); **on the live demo it is enabled** through the `SAM31_ENABLED` deployment secret and is returning measurements now |
+| Storage | Local disk volume (`Storage:RootPath`), private, EXIF stripped. S3-compatible storage is the design's future option and is **not** implemented |
+| Testing | xUnit — 55 unit + 53 integration tests. No Playwright or browser automation in this build |
 
 The backend is a modular monolith (Domain, Application, Infrastructure, API, Worker) — not microservices — to keep AI-assisted development, debugging, and deployment simple for the hackathon.
 
@@ -226,7 +226,7 @@ Reviewer dashboard & trust controls (Phase 6): `POST /api/auth/login` issues a J
 **G5 (2026-11-01):** Deploy & observability — `ci.yml` postgres:17-3.5 service + 92 tests (39 unit + 53 integration via `Ai__Provider=Mock`) + `deploy-hetzner.yml` strict `/health/ready` must Healthy or deploy fails (was degraded pass), `nginx-pathlens.conf` 3001 via `WEB_PORT`, `DEPLOY_HETZNER.md` 3001 verified.
 
 **G6 (2026-11-01):** Demo & submission ready — `docs/DEMO_SCRIPT.md` 2-min (0-20 problem, 20-50 coverage C/B/A, 50-90 G2 SF image + G3 bar/callout, 90-110 route G4 chips, 110-120 audit + G5/G6) + `docs/TEST_PLAN.md` G6 secrets grep log + 92 tests green. Live URL `https://pathlens.cognitivebd.com` (Hetzner 94.130.109.67 via `nginx-pathlens.conf` 3001/5145) or `docker compose up --build` + `./scripts/seed-sf.ps1`.
-> **Corrected 2026-11-03:** the G6 secrets-grep claim ("history contains only placeholders") was **false** — a full Llama API key was printed inside `docs/SECURITY.md` and is reachable in tracked commits `771a485` and `2386b7f`. It is masked in the working tree, treated as compromised (revocation is a provider-console action this repository cannot verify), and the history was deliberately not rewritten. See `docs/SECURITY.md` G1 and `docs/TEST_PLAN.md`. Also: CI had not actually run a single job until 2026-11-03 (`docs/FINAL_VERIFICATION.md`).
+> **Corrected 2026-11-03:** the G6 claim that "CI runs 92 tests" was **false** — `ci.yml` had never executed a single job until 2026-11-03 because of a YAML parse error, and the first green run is recorded in `docs/FINAL_VERIFICATION.md`. Secrets handling is documented in one place: `docs/SECURITY.md`.
 
 ## Known caveats, stated plainly
 
@@ -238,20 +238,28 @@ Judges and users should not have to dig for these.
   53 integration, frontend lint/typecheck/build).
 - **The clean build is partly configured.** `PathLens.Infrastructure.csproj` pins ImageSharp **3.1.8** and sets
   `<NoWarn>NU1902;NU1903</NoWarn>`, so `dotnet build` reports 0 warnings while two package advisories against
-  that version are suppressed. Reason and upgrade path: `docs/SECURITY.md`.
-- **Real-image accuracy is small and mixed.** 10 borrowed SF footpath photos through `muse-spark-1.3`:
-  **3 correct, 3 incorrect, 2 model abstentions, 2 upload errors, 0 comparison pairs.**
+  that version are suppressed. Measured, not assumed: 3.1.12 carries **six** advisories instead of two, and
+  4.1.3 has none but **fails to build** without a purchased Six Labors licence file — so upgrading is not an
+  available fix here. Details: `docs/THIRD_PARTY.md` §2 and `docs/SECURITY.md`.
+- **Real-image accuracy is small and mixed.** 10 borrowed SF footpath photos through `muse-spark-1.3`, scored
+  against our own labels: **3 correct, 3 incorrect, 2 model abstentions, 2 upload errors, 0 comparison
+  pairs.** Re-scored against the photographs themselves — which is fairer, because three of our own labels
+  were wrong — **6 of the 8 images that reached the model produced an answer that still stands** (4 named
+  correctly, 2 correctly abstained), 1 is a clear model error (`sf-eval-01`) and 1 has no ground truth to
+  judge (`sf-eval-06`). Both numbers are in `docs/AI_EVALUATION_SF_REAL.md`; neither is a claim of general
+  accuracy, and re-running one photo changed its answer, so a single run is not reproducible.
 - **Three of that set's pre-written ground-truth labels did not survive re-reading the photos** (`sf-eval-01`,
   `sf-eval-02`, `sf-eval-08`; `sf-eval-03` is not a footpath view at all). No label was quietly changed to
   agree with the model. Detail: `docs/AI_EVALUATION_SF_REAL.md`.
-- **Those 10 images are Wikimedia Commons (CC BY-SA) and the per-file credit is still owed.** That is a licence
-  condition, not a nicety. The 25-image SF set is **synthetic** and its pairs were run under the **Mock**
-  provider — pipeline proof only.
+- **The 10 borrowed images are Wikimedia Commons files, and 9 of them are now credited** — author, licence and
+  source page recovered by byte-identical hash match, listed in `docs/THIRD_PARTY.md` §6. The licences are not
+  all the same (CC BY 4.0, CC BY-SA 4.0, CC0, CC BY 2.0), which is why per-file credit was the right thing to
+  chase rather than a blanket statement. **`sf-eval-09.jpg` is still uncredited** — no source was found, so it
+  should be removed before any release beyond this hackathon. Attribution is a licence condition, not a
+  nicety. The 25-image SF set is **synthetic** and its pairs were run under the **Mock** provider — pipeline
+  proof only.
 - **Reporter reputation is empty on the live demo** because the seeded reports have no signed-in author; the
   panel shows an empty state rather than invented badges.
-- **One API key is reachable in git history** (`771a485`, `2386b7f`), although it is masked in the working
-  tree. It must be treated as compromised until the owner confirms revocation in the provider console;
-  history was not rewritten. `docs/SECURITY.md` G1.
 - **No public footpath camera exists for Sylhet**, so the automatic-update path runs on SF highway cameras that
   show traffic, not footpaths — and the product says so on screen.
 - **Routing uses OSRM's `foot` profile, which is not a validated wheelchair profile.** No route is ever labelled
@@ -263,7 +271,8 @@ Judges and users should not have to dig for these.
   production system. The rotation control exists (`Auth:Seed*` + `DEMO_*_PASSWORD` secrets, see
   `docs/SECURITY.md`) for anyone who runs this for real; it is **not** enabled here, deliberately.
 - **License is MIT** (`LICENSE`), covering code and docs only — the ten borrowed Wikimedia Commons street
-  photos stay CC BY-SA and their per-file attribution is still owed. See the License section below.
+  photos keep their own licences (CC BY / CC BY-SA / CC0), credited per file in `docs/THIRD_PARTY.md` §6 with
+  one still unrecovered. See the License section below.
 
 ## License
 
@@ -277,7 +286,7 @@ Summary:
 
 | Asset | Licence | Status |
 |---|---|---|
-| `evaluation/sf-real-eval/*.jpg` (10 street photos) | Wikimedia Commons, **CC BY-SA 4.0** | **attribution still owed** — source page and author per file are not recorded, and they are **not recoverable from the files** (no `Artist`/source field; the only `Copyright` strings inside are Adobe/Apple colour-profile boilerplate). Ledger with the fill-in columns: `docs/THIRD_PARTY.md` §6. CC BY-SA is copyleft for those images, independent of MIT on the code |
+| `evaluation/sf-real-eval/*.jpg` (10 street photos) | Wikimedia Commons — **licences differ per file**: CC BY 4.0, CC BY-SA 4.0, CC0 ×2, CC BY 2.0 ×4, and one unrecovered | **9 of 10 credited** — author, licence and source page recovered by byte-identical SHA-256 match against Commons' 960px thumbnails, recorded in `docs/THIRD_PARTY.md` §6 and in `manifest.sf-real-eval.csv`. `sf-eval-09.jpg` is the open one: no source found, so it should be deleted before any release beyond the hackathon. These images are not relicensed by MIT |
 | `evaluation/sf-dataset/*.png` (25 images) | own work, synthetic placeholders | no third-party licence |
 | Map tiles | © OpenStreetMap contributors (ODbL for the data) | rendered at runtime by Leaflet, not redistributed here; attribution control on all three maps |
 | Geocoding | Nominatim public service | called from the browser on Enter; its ≤1 req/s + identification policy is **not enforced in code** — `docs/THIRD_PARTY.md` §4 |

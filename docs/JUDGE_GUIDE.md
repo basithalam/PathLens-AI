@@ -128,34 +128,27 @@ attached to have since been deleted, so they no longer open from a report page.
   answer — in `docs/ERROR_ANALYSIS.md`.
 - **The seeded evaluation rows are visible on the live demo and labelled as such.** The ten reports the
   evaluation run created are titled `Demo evidence 01…10` and each description says plainly that the photo was
-  borrowed from Wikimedia Commons (CC BY-SA, per-file credit still owed) and is **not** a community submission.
+  borrowed from Wikimedia Commons (credited per file in `docs/THIRD_PARTY.md` §6) and is **not** a community
+  submission.
   Two of them have no photo at all and are marked **Rejected** — that is the rejection path on screen, not an
   accident.
 - **No real footpath camera exists for Sylhet yet**, so the automatic-update story runs on SF highway cameras,
   which show traffic, not footpaths.
 - **Reporter reputation is empty** on the live demo because the seeded reports were created anonymously; the
   panel shows an honest empty state instead of fake badges.
-- **One API key was committed in plaintext** in `docs/SECURITY.md` and remains reachable in git history
-  (`771a485`, `2386b7f`). It is masked in the working tree and must be treated as **compromised** — whether
-  it has been revoked is an action in the provider console that this repository cannot verify. See
-  `docs/SECURITY.md` G1. History was not rewritten.
-- **A second, smaller exposure was found on 2026-11-03 while writing the licence inventory**:
-  `docs/DATUMFEED_LIVE.md` quoted six characters of a camera-aggregator key (`head...tail`) on a line that
-  claimed the key was "never committed". We verified the fragment matches the real key, masked it, and
-  recorded it in `docs/SECURITY.md` §"Second partial exposure". It is not the AI provider's key and polling
-  is off, so nothing is at immediate risk — but the honest lesson is that our own secrets grep (which
-  demands 20+ characters after the prefix) cannot see a partial key, and we had been quoting that grep as
-  proof.
-- **ImageSharp is pinned to 3.1.8** with `NU1902/NU1903` advisories suppressed for the hackathon
-  (`PathLens.Infrastructure.csproj`); the upgrade path is noted in `docs/H1_FIX_REPORT.md`.
+- **ImageSharp is pinned to 3.1.8** with `NU1902/NU1903` advisories suppressed (`PathLens.Infrastructure.csproj`),
+  so the 0-warning build is configured rather than clean. Upgrading was tried and measured, not assumed:
+  3.1.12 lists **six** advisories instead of two, and 4.1.3 has none but **fails to build** without a
+  purchased Six Labors licence file. `docs/THIRD_PARTY.md` §2 has the table.
 - **License is MIT** (`LICENSE`), covering code and docs. It does not relicense the ten borrowed Wikimedia
-  Commons street photos, which stay **CC BY-SA** — their per-file attribution is still owed, and that is the
-  one legal item left open. **`docs/THIRD_PARTY.md` is the full inventory**: every dependency with its
-  version and licence, the Leaflet BSD-2 notice reproduced as that licence requires, the OpenStreetMap /
-  Nominatim / OSRM / Meta service terms, the camera-feed terms we have *not* verified, and the ten-row
-  attribution ledger with the columns to fill in. It also records why the credit cannot be recovered from
-  the image files (their only `Copyright` strings are Adobe/Apple colour-profile boilerplate), so the gap
-  has a named owner and a shape, not just an apology.
+  Commons street photos, which keep their own licences. **Nine of the ten are now credited**: the source page,
+  author and licence were recovered by matching each file byte-for-byte (SHA-256) against Commons' 960px
+  thumbnails — the licences turn out to differ per file (CC BY 4.0, CC BY-SA 4.0, CC0, CC BY 2.0), which is
+  why a blanket "CC BY-SA" line was wrong. The full inventory is `docs/THIRD_PARTY.md`: every dependency with
+  its version and licence, the Leaflet BSD-2 notice reproduced as that licence requires, the OpenStreetMap /
+  Nominatim / OSRM / Meta service terms, and the camera-feed terms we have *not* verified. **One item is
+  still open:** `sf-eval-09.jpg`'s source was not found, so it should be deleted rather than shipped
+  uncredited.
 - **The SAM 3.1 obstruction share is measured, not evaluated.** End-to-end on one real photo (three fallen
   e-scooters across a walkway): `muse-spark-1.3` returned `BlockedSidewalk 0.85`, `sam-3.1` returned 2
   obstacle boxes over 1 walkway box, and the computed share was **23% of the visible walkway** — verified by

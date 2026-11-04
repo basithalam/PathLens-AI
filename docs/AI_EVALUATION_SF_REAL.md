@@ -60,8 +60,38 @@ A fourth image, **`sf-eval-03`**, is not a footpath view at all — it is a plan
 wooden structure and a solar light. Its label `Other` is harmless, but no footpath claim can be made from it,
 which is worth knowing before anyone quotes this set as a sidewalk benchmark.
 
-That is the honest state of a 10-image set: the model is wrong three times, **the ground truth is wrong at
-least three times**, and neither is quietly corrected to match the other.
+That is the honest state of a 10-image set: the model disagrees with our labels three times, **the ground
+truth is wrong at least three times**, and neither is quietly corrected to match the other.
+
+## Re-scored against the photograph, not the pre-written label
+
+The 3/3/2/2 headline compares the model with **our own labels** — and three of those labels do not survive
+looking at the image. Re-reading every photograph by hand gives a different, more accurate picture.
+`results.sf-real-eval.json` is left exactly as the run produced it; this table sits beside it, not on top of
+it.
+
+| id | pre-written label | model said | what the photograph actually shows | on re-reading |
+|---|---|---|---|---|
+| 01 | BlockedSidewalk (planters) | StairsOrStep 0.70 | clear steep hillside walkway, nothing on the line | **label wrong and model wrong** — recorded Disputed |
+| 02 | BlockedSidewalk (scooters) | Unknown 0.30 | close-up of tactile paving at Stockton St, no obstruction | label wrong; **abstention was the right answer** |
+| 03 | Other | Unknown 0.15 | a planted garden strip — not a footpath at all | label meaningless; **abstention was the right answer** |
+| 04 | BrokenSurface | BrokenSurface 0.65 | broken curb seam with a void, ribbed joint across the path | **model right** |
+| 05 | BlockedSidewalk | BlockedSidewalk 0.90 | three e-scooters lying across the walkway | **model right** |
+| 06 | Unknown | Other 0.30 | Castro St sidewalk | no ground truth exists; scored "incorrect" by **a defect in our own rule** |
+| 07 | BlockedSidewalk | BlockedSidewalk 0.60 | Market St, obstruction across the walking line | **model right** |
+| 08 | Unknown ("clear") | BlockedSidewalk 0.60 | café table, two chairs and a walking cane on the path | label wrong; **model right** |
+| 09 | Unknown | — | never analysed | our own upload rate limit (`429`) |
+| 10 | Unknown | — | never analysed | our own upload rate limit (`429`) |
+
+**Of the eight photographs that reached the model, six produced an answer that still stands when the
+photograph is re-read** — four named the obstacle correctly, and two abstained on images where abstaining was
+the right call. One did not stand (`sf-eval-01`). One cannot be judged either way (`sf-eval-06`, no ground
+truth to compare against). Two never reached the model because of our own rate limiter.
+
+What this is **not**: a claim that the model is accurate, or that every image was answered correctly. It is
+ten images, one city that is not our pilot city, and a re-scoring that depends on our own reading of each
+frame — the same reading that found three of our own labels wrong. The machine record still says 3 correct /
+3 incorrect / 2 inconclusive / 2 errors, and both numbers have to be quoted together to be honest.
 
 ## Reviewer decisions recorded on the live demo
 
@@ -78,12 +108,15 @@ Every note is labelled as a hackathon demo review. `docs/JUDGE_GUIDE.md` states 
 
 ## Still open
 
-- **Attribution.** The 10 images are San Francisco street photos sourced from Wikimedia Commons under
-  **CC BY-SA**, but neither `manifest.sf-real-eval.csv` nor this file records the source page, author or
-  licence notice per image. That credit is a licence condition and **must be added before submission**.
-  The fill-in ledger is `docs/THIRD_PARTY.md` §6, which also records that the credit **cannot be recovered
-  from the files themselves** — every `Copyright` string inside them is colour-profile boilerplate — so only
-  the download history can supply it.
+- **Attribution — 9 of 10 recovered 2026-11-04.** The images are San Francisco street photos from Wikimedia
+  Commons. The credit is not stored inside the files (every `Copyright` string in them is colour-profile
+  boilerplate), but all ten are exactly 960 px wide — Commons' standard thumbnail width — so each was
+  identified by downloading candidate 960px thumbnails and comparing **SHA-256**: nine matched
+  byte-for-byte. Source page, author and licence are now recorded in `docs/THIRD_PARTY.md` §6 and in
+  `manifest.sf-real-eval.csv` (`sourcePage` / `author` / `license`). **The licences are not uniform** — CC BY
+  4.0, CC BY-SA 4.0, CC0 ×2 and CC BY 2.0 ×4 — so the earlier blanket "all CC BY-SA" description was wrong.
+  **`sf-eval-09.jpg` remains uncredited**: no source was found in the candidate pool searched, and since its
+  upload never reached the model anyway, the correct action is to delete it rather than ship it uncredited.
 - **No real comparison pairs.** 0 of the 10 images form a same-place old/new pair, so the comparison engine
   has no evidence from real photography — only the 5 synthetic Mock pairs in `manifest.sf.csv`.
 - **The 25-image SF set is synthetic** (`evaluation/sf-dataset/`, own-generated placeholders) and its

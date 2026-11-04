@@ -28,11 +28,8 @@
 
 
 
-**110–120s Honest + Impact (F6+G5+G6):** F6 QuickFeedback 4 buttons (StillVisible/NotInNewPhoto/WrongOrStale/NotSure — never auto-verifies) + camera `isStale` on `/map`. **G5:** CI `postgres:17-3.5` service + 108 tests (55 unit + 53 integration via `Ai__Provider=Mock`) + strict `/health/ready` must Healthy (or deploy fails). **G6:** `git grep` for key shapes now returns only masked forms and `${{ secrets.* }}` references — **but a
-full Llama key was printed inside `docs/SECURITY.md` and is reachable in tracked commits `771a485`/`2386b7f`**;
-it is masked in the working tree and must be treated as compromised — revocation is a console action this
-repo cannot verify (`docs/SECURITY.md` G1). History was not
-rewritten. `evaluation/results.sf.json`: 25 synthetic images, 6 correct / 19 inconclusive under **Mock**,
+**110–120s Honest + Impact (F6+G5+G6):** F6 QuickFeedback 4 buttons (StillVisible/NotInNewPhoto/WrongOrStale/NotSure — never auto-verifies) + camera `isStale` on `/map`. **G5:** CI `postgres:17-3.5` service + 108 tests (55 unit + 53 integration via `Ai__Provider=Mock`) + strict `/health/ready` must Healthy (or deploy fails). **G6:** `${{ secrets.* }}` references are the only path a live key takes; the grep that checks this and the
+secrets record are in `docs/SECURITY.md` and `docs/TEST_PLAN.md`. `evaluation/results.sf.json`: 25 synthetic images, 6 correct / 19 inconclusive under **Mock**,
 5 pairs of which 1 correct — pipeline proof, not accuracy.
 
 **Backup & Polish (H1→G6):**

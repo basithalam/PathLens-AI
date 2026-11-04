@@ -1,11 +1,11 @@
-id,image,expectedObstacle,latitude,longitude,captureTimeUtc,pairId,expectedOutcome
-sf-real-eval-01,sf-real-eval/sf-eval-01.jpg,BlockedSidewalk,37.7749,-122.4194,2026-11-02T10:00:00Z,,
-sf-real-eval-02,sf-real-eval/sf-eval-02.jpg,BlockedSidewalk,37.7755,-122.418,2026-11-03T10:00:00Z,,
-sf-real-eval-03,sf-real-eval/sf-eval-03.jpg,Other,37.776,-122.417,2026-11-04T10:00:00Z,,
-sf-real-eval-04,sf-real-eval/sf-eval-04.jpg,BrokenSurface,37.7765,-122.4165,2026-11-05T10:00:00Z,,
-sf-real-eval-05,sf-real-eval/sf-eval-05.jpg,BlockedSidewalk,37.774,-122.42,2026-11-06T10:00:00Z,,
-sf-real-eval-06,sf-real-eval/sf-eval-06.jpg,Unknown,37.7735,-122.421,2026-11-07T10:00:00Z,,
-sf-real-eval-07,sf-real-eval/sf-eval-07.jpg,BlockedSidewalk,37.7729,-122.4205,2026-11-08T10:00:00Z,,
-sf-real-eval-08,sf-real-eval/sf-eval-08.jpg,Unknown,37.778,-122.415,2026-11-09T10:00:00Z,,
-sf-real-eval-09,sf-real-eval/sf-eval-09.jpg,Unknown,37.7785,-122.414,2026-11-10T10:00:00Z,,
-sf-real-eval-10,sf-real-eval/sf-eval-10.jpg,Unknown,37.779,-122.4135,2026-11-11T10:00:00Z,,
+id,image,expectedObstacle,latitude,longitude,captureTimeUtc,pairId,expectedOutcome,sourcePage,author,license
+sf-real-eval-01,sf-real-eval/sf-eval-01.jpg,BlockedSidewalk,37.7749,-122.4194,2026-11-02T10:00:00Z,,,https://commons.wikimedia.org/wiki/File:Sidewalk_in_San_Francisco.jpg,Alex Sirac,CC BY 4.0
+sf-real-eval-02,sf-real-eval/sf-eval-02.jpg,BlockedSidewalk,37.7755,-122.418,2026-11-03T10:00:00Z,,,https://commons.wikimedia.org/wiki/File:Stockton_street_sidewalk.jpg,Aatu Dorochenko,CC BY-SA 4.0
+sf-real-eval-03,sf-real-eval/sf-eval-03.jpg,Other,37.776,-122.417,2026-11-04T10:00:00Z,,,https://commons.wikimedia.org/wiki/File:Sidewalk_plantings_-_San_Francisco%2C_CA.jpg,Daderot,CC0
+sf-real-eval-04,sf-real-eval/sf-eval-04.jpg,BrokenSurface,37.7765,-122.4165,2026-11-05T10:00:00Z,,,https://commons.wikimedia.org/wiki/File:Uneven%2C_two_lines_-_Mission_St_San_Francisco.jpg,Marcin Wichary,CC BY 2.0
+sf-real-eval-05,sf-real-eval/sf-eval-05.jpg,BlockedSidewalk,37.774,-122.42,2026-11-06T10:00:00Z,,,https://commons.wikimedia.org/wiki/File:LimeBike_scooters_-_August_2025_-_Sarah_Stierch.jpg,Missvain,CC0
+sf-real-eval-06,sf-real-eval/sf-eval-06.jpg,Unknown,37.7735,-122.421,2026-11-07T10:00:00Z,,,https://commons.wikimedia.org/wiki/File:Castro_Street%2C_San_Francisco%2C_March_17%2C_2020.jpg,Christopher Michel,CC BY 2.0
+sf-real-eval-07,sf-real-eval/sf-eval-07.jpg,BlockedSidewalk,37.7729,-122.4205,2026-11-08T10:00:00Z,,,https://commons.wikimedia.org/wiki/File:Market_Street%2C_San_Francisco%2C_California_April_2022_-_Sidewalk_homelessness_and_drugs.jpg,Sharon Hahn Darlin,CC BY 2.0
+sf-real-eval-08,sf-real-eval/sf-eval-08.jpg,Unknown,37.778,-122.415,2026-11-09T10:00:00Z,,,https://commons.wikimedia.org/wiki/File:North_Beach%2C_San_Francisco_(14731005196).jpg,Christopher Michel,CC BY 2.0
+sf-real-eval-09,sf-real-eval/sf-eval-09.jpg,Unknown,37.7785,-122.414,2026-11-10T10:00:00Z,,,,NOT RECOVERED - no source found by hash match,NOT RECOVERED
+sf-real-eval-10,sf-real-eval/sf-eval-10.jpg,Unknown,37.779,-122.4135,2026-11-11T10:00:00Z,,,https://commons.wikimedia.org/wiki/File:San_Francisco_(17073829244).jpg,"Rodrigo Paredes (Ciudad Autonoma de Buenos Aires, Argentina)",CC BY 2.0

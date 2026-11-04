@@ -11,7 +11,7 @@ source call sites — not from memory.
 
 | # | Obligation | Status |
 |---|---|---|
-| 1 | Per-file CC BY-SA credit for the 10 borrowed street photos in `evaluation/sf-real-eval/` | **OPEN — blocks submission.** Author and source page are not recorded anywhere in the repo and are not recoverable from the files (§6) |
+| 1 | Per-file attribution for the 10 borrowed street photos in `evaluation/sf-real-eval/` | **9 of 10 DONE** — author, licence and source page recovered by byte-identical SHA-256 match and recorded in §6 and in the manifest. **`sf-eval-09.jpg` still OPEN**: its source was not found, so it should be deleted before any release beyond the hackathon |
 | 2 | Reproduce the Leaflet BSD-2-Clause copyright notice in documentation | **DONE** — §5 |
 | 3 | Keep the OpenStreetMap attribution control visible on every map | **DONE** — present on all three maps (§4) |
 | 4 | Honour the Nominatim usage policy (rate + identification) | **PARTIAL — documented, not enforced in code** (§4) |
@@ -106,37 +106,53 @@ documentation) are met. The full text is in `node_modules/leaflet/LICENSE`.
 ## 6. The ten borrowed street photographs — attribution ledger
 
 `evaluation/sf-real-eval/sf-eval-01.jpg` … `sf-eval-10.jpg` are San Francisco street photographs downloaded
-from **Wikimedia Commons** and used under **CC BY-SA 4.0**. CC BY-SA is copyleft and is *not* covered by
-this project's MIT licence.
+from **Wikimedia Commons**. They are *not* covered by this project's MIT licence, and each keeps its own
+terms.
 
-**The per-file credit is owed and is not yet recorded.** We checked whether it could be recovered from the
-files themselves: every `Copyright` string inside the JPEGs is colour-profile boilerplate
-(`Copyright 1999 Adobe Systems Incorporated` in 02/06/08/10, `Copyright Apple Inc., 2017` in 07) — there is
-no `Artist`, no source URL and no licence field in any of the ten. The attribution therefore has to come
-from the download history, and **only the author can supply it**.
+**Correction to what this file said before:** it described all ten as CC BY-SA 4.0. That was wrong — the
+licences differ per file (CC0, CC BY 2.0, CC BY 4.0 and one CC BY-SA 4.0), and only the CC BY-SA item
+carries a share-alike obligation. The per-file table below is now the authority.
 
-| File | Source page URL | Author as credited on the page | Licence | Status |
+**How the sources were recovered.** The credit is not stored inside the files — every `Copyright` string in
+them is colour-profile boilerplate (`Copyright 1999 Adobe Systems Incorporated`, `Copyright Apple Inc.,
+2017`), with no `Artist`, source URL or licence field. What *is* recoverable is geometry: all ten are
+exactly **960 px wide**, which is the standard Commons thumbnail width, so each file is a 960px render of a
+Commons original. Searching Commons by scene, pre-filtering candidates to the same aspect ratio, downloading
+each candidate's 960px thumbnail and comparing **SHA-256** identified **9 of the 10 byte-for-byte**. Those
+nine rows below are therefore not guesses — the bytes are identical to the file served by that Commons page.
+
+| File | Commons file | Author as credited | Licence | Attribution required |
 |---|---|---|---|---|
-| `sf-eval-01.jpg` | _fill in_ | _fill in_ | CC BY-SA 4.0 | **UNKNOWN** |
-| `sf-eval-02.jpg` | _fill in_ | _fill in_ | CC BY-SA 4.0 | **UNKNOWN** |
-| `sf-eval-03.jpg` | _fill in_ | _fill in_ | CC BY-SA 4.0 | **UNKNOWN** |
-| `sf-eval-04.jpg` | _fill in_ | _fill in_ | CC BY-SA 4.0 | **UNKNOWN** |
-| `sf-eval-05.jpg` | _fill in_ | _fill in_ | CC BY-SA 4.0 | **UNKNOWN** |
-| `sf-eval-06.jpg` | _fill in_ | _fill in_ | CC BY-SA 4.0 | **UNKNOWN** |
-| `sf-eval-07.jpg` | _fill in_ | _fill in_ | CC BY-SA 4.0 | **UNKNOWN** |
-| `sf-eval-08.jpg` | _fill in_ | _fill in_ | CC BY-SA 4.0 | **UNKNOWN** |
-| `sf-eval-09.jpg` | _fill in_ | _fill in_ | CC BY-SA 4.0 | **UNKNOWN** |
-| `sf-eval-10.jpg` | _fill in_ | _fill in_ | CC BY-SA 4.0 | **UNKNOWN** |
+| `sf-eval-01.jpg` | [File:Sidewalk in San Francisco.jpg](https://commons.wikimedia.org/wiki/File:Sidewalk_in_San_Francisco.jpg) | Alex Sirac | **CC BY 4.0** | yes |
+| `sf-eval-02.jpg` | [File:Stockton street sidewalk.jpg](https://commons.wikimedia.org/wiki/File:Stockton_street_sidewalk.jpg) | Aatu Dorochenko | **CC BY-SA 4.0** | yes, and share-alike applies to this image |
+| `sf-eval-03.jpg` | [File:Sidewalk plantings - San Francisco, CA.jpg](https://commons.wikimedia.org/wiki/File:Sidewalk_plantings_-_San_Francisco%2C_CA.jpg) | Daderot | **CC0** | no — public domain dedication |
+| `sf-eval-04.jpg` | [File:Uneven, two lines - Mission St San Francisco.jpg](https://commons.wikimedia.org/wiki/File:Uneven%2C_two_lines_-_Mission_St_San_Francisco.jpg) | Marcin Wichary | **CC BY 2.0** | yes |
+| `sf-eval-05.jpg` | [File:LimeBike scooters - August 2025 - Sarah Stierch.jpg](https://commons.wikimedia.org/wiki/File:LimeBike_scooters_-_August_2025_-_Sarah_Stierch.jpg) | Missvain (Sarah Stierch) | **CC0** | no — public domain dedication |
+| `sf-eval-06.jpg` | [File:Castro Street, San Francisco, March 17, 2020.jpg](https://commons.wikimedia.org/wiki/File:Castro_Street%2C_San_Francisco%2C_March_17%2C_2020.jpg) | Christopher Michel | **CC BY 2.0** | yes |
+| `sf-eval-07.jpg` | [File:Market Street, San Francisco, California April 2022 - Sidewalk homelessness and drugs.jpg](https://commons.wikimedia.org/wiki/File:Market_Street%2C_San_Francisco%2C_California_April_2022_-_Sidewalk_homelessness_and_drugs.jpg) | Sharon Hahn Darlin | **CC BY 2.0** | yes — and see the privacy note below |
+| `sf-eval-08.jpg` | [File:North Beach, San Francisco (14731005196).jpg](https://commons.wikimedia.org/wiki/File:North_Beach%2C_San_Francisco_(14731005196).jpg) | Christopher Michel | **CC BY 2.0** | yes |
+| `sf-eval-09.jpg` | **not recovered** | — | — | **OPEN — see below** |
+| `sf-eval-10.jpg` | [File:San Francisco (17073829244).jpg](https://commons.wikimedia.org/wiki/File:San_Francisco_(17073829244).jpg) | Rodrigo Paredes (Ciudad Autónoma de Buenos Aires, Argentina) | **CC BY 2.0** | yes |
 
-How to fill it: open the Commons file page you downloaded from (`https://commons.wikimedia.org/wiki/File:`
-+ the original filename), copy the **Author** line and the **License** line verbatim, and add the file-page
-URL. Then re-add the same block to `evaluation/manifest.sf-real-eval.csv` as `sourceUrl` / `author` /
-`license` columns so the dataset and the ledger cannot drift.
+The same data now lives in `evaluation/manifest.sf-real-eval.csv` as `sourcePage` / `author` / `license`
+columns, so the dataset and this ledger cannot drift. Verified parsing with `Import-Csv`: 10 rows, 11
+columns, 9 populated.
 
-If any single file cannot be traced, the correct move is to **delete that image and re-run the evaluation
-without it** — an uncredited CC BY-SA file is a licence breach, while a seven-image demo is simply a
-seven-image demo. Note also that `sf-eval-07` contains identifiable faces, which is why that report was
-deliberately never marked verified (`docs/AI_EVALUATION_SF_REAL.md`).
+**Correct attribution form.** Reuse of these images must name the author, link the source page, state the
+licence, and note that the file was modified — ours was resized to 960 px and had EXIF stripped before
+storage. `sf-eval-03` and `sf-eval-05` are CC0 and need nothing, but crediting them anyway is harmless and
+is what the table above supports.
+
+**`sf-eval-09.jpg` is the one open item.** Nine candidates matched byte-for-byte; this file's source was not
+found in the candidate pool searched (18 queries, 99 aspect-ratio candidates). It is also the least costly
+row to lose: its upload failed against our own rate limiter, so **no evidence row exists for it on the live
+demo** and its report is marked Rejected. The correct action before any release beyond the hackathon is to
+**delete the file and re-run the evaluation without it** — an uncredited CC-licensed file is a licence
+breach, while a nine-image demo is simply a nine-image demo. That is a decision for the repository owner,
+not something to do silently, because it changes the "10 images" figure quoted across the docs.
+
+**Privacy note.** `sf-eval-07` contains identifiable faces. It is CC BY 2.0, which permits reuse, but the
+report built on it was deliberately **never marked verified** — see `docs/AI_EVALUATION_SF_REAL.md`.
 
 ## 7. Camera feeds
 

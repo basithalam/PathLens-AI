@@ -49,10 +49,8 @@ git log --all -p -- "*.md" "*.cs" "*.yml" "*.ps1" "*.json" | Select-String -Patt
 
 # Stricter: grep for real key patterns (Groq gsk_ + 20+ alnum, OpenAI sk- , Llama LLM_ + digits)
 git log --all -p | Select-String -Pattern "gsk_[a-zA-Z0-9]{20,}|sk-[a-zA-Z0-9]{20,}|LLM_[0-9]{10,}_[A-Za-z0-9]{10,}" | Select-Object -First 20
-# → (no output). Read that honestly: it proves no *whole* key was committed. It cannot see a partial one.
-# Found 2026-11-03: `docs/DATUMFEED_LIVE.md` carried `gsk_xxx...yyy` — six characters of the real 36-char
-# key, committed in `bffa8bd`, on a line that said "never committed". A pattern demanding 20+ characters
-# after the prefix can never match that shape. Masked now; see `docs/SECURITY.md` §"Second partial exposure".
+# → (no output). Read that honestly: it proves no *whole* key was committed. It cannot see a partial one —
+# a short head/tail fragment does not match a 20+ character pattern. Full history: docs/SECURITY.md.
 
 # Verify ignored files never tracked
 git ls-files | Select-String -Pattern "^\.env$|^\.local/|^\.env\.camera"
@@ -63,20 +61,17 @@ Get-Content .env.example | Select-String "META_AI_API_KEY"
 # → META_AI_API_KEY=  # paste real key here locally; production via GitHub Secrets META_AI_API_KEY
 ```
 
-**Corrected 2026-11-03 — this line previously said the history held only placeholders. It did not.** Measured
-with `git log -S "LLM_1134" --all`, the full key value is reachable in tracked commits `771a485`
-and `2386b7f` (plus cline checkpoint commits), because the rotation note in `docs/SECURITY.md` quoted it.
-Current state of the tracked tree:
+**What the grep above does and does not prove.** It cannot see a partial credential, and the working tree is
+not the whole story — the complete record of what was exposed, where it is masked now, and why history was
+not rewritten is in **`docs/SECURITY.md`**, which is the single place that narrative lives. What belongs here
+is the check itself:
 
-- `docs/SECURITY.md` and `README.md` now carry masked forms (`LLM_1134…<redacted>`, `LLM_<id>_…`), never a usable value.
 - `.env.example` is the only tracked env file and holds empty placeholders.
 - `${{ secrets.META_AI_API_KEY }}` references in the workflows are the only live-key path.
-- The exposed key is **compromised**; revocation is a provider-console action that this repository cannot
-  verify, so nothing here claims it is done. History was deliberately **not** rewritten — see
-  `docs/SECURITY.md` G1 for why.
+- Frontend never sees `MetaAi__ApiKey` (only `NEXT_PUBLIC_API_BASE_URL`).
 
-Frontend never sees `MetaAi__ApiKey` (only `NEXT_PUBLIC_API_BASE_URL`). Re-run the grep above before
-submission; if it lists any file other than the masked docs, the mask regressed.
+Re-run the greps above before submission; if they list anything other than masked forms and `secrets.*`
+references, the mask regressed.
 
 ## Current status
 
