@@ -1,0 +1,24 @@
+{
+  "summary": {
+    "generatedAt": "2026-11-04T19:50:00Z",
+    "apiBaseUrl": "https://pathlens.cognitivebd.com",
+    "manifest": "evaluation/manifest.world20-batch12.csv",
+    "set": "World20 batches 1+2 — 12 verified single-city photos, each own GPS + attribution. No Before/After pairs (all singles). w12 at 0,0 is reference-only, excluded from city counts. Hawaii OSM #9 + Geograph Leeds excluded (license/fetch unclear).",
+    "images": { "total": 12, "correct": 11, "pending": 1, "incorrect": 0, "errors": 0 },
+    "note": "Clear accessible ramps score Correct when the model abstains (Unknown) — a ramp is not an obstacle. Named barrier/ramp-gap photos must name the type."
+  },
+  "images": [
+    { "id": "w01", "reportId": "26d6f9fd-ad3a-4044-bf4f-e5b57c665f10", "expected": "MissingOrBlockedRamp", "actual": "MissingOrBlockedRamp", "confidence": 0.70, "verdict": "Correct" },
+    { "id": "w02", "reportId": "1cee2e95-fac8-4fe9-94ab-5a58a7cdaad4", "expected": "MissingOrBlockedRamp", "actual": "MissingOrBlockedRamp", "confidence": 0.80, "verdict": "Correct" },
+    { "id": "w03", "reportId": "c1e3f390-ada4-4fcf-b3cd-c9e19a50b069", "expected": "ConstructionBarrier", "actual": "ConstructionBarrier", "confidence": 0.85, "verdict": "Correct" },
+    { "id": "w04", "reportId": "594550a5-f730-4567-805f-3796c4ede4bb", "expected": "ConstructionBarrier", "actual": "ConstructionBarrier", "confidence": 0.85, "verdict": "Correct" },
+    { "id": "w05", "reportId": "def7b125-0672-4c83-8ab9-1dedf100cabb", "expected": "Abstain-Unknown", "actual": "Unknown", "confidence": 0.30, "verdict": "Correct" },
+    { "id": "w06", "reportId": "17f70280-ad82-409e-9957-aa8a1702b4ae", "expected": "Abstain-Unknown", "actual": "Unknown", "confidence": 0.20, "verdict": "Correct" },
+    { "id": "w07", "reportId": "eca06f8e-2c05-4151-9f7a-1bae89284b70", "expected": "MissingOrBlockedRamp", "actual": "MissingOrBlockedRamp", "confidence": 0.72, "verdict": "Correct" },
+    { "id": "w08", "reportId": "85a14b42-bb86-425e-b8c0-19771f03efa7", "expected": "Abstain-Unknown", "actual": "Unknown", "confidence": 0.20, "verdict": "Correct" },
+    { "id": "w11", "reportId": "371be5b8-0e37-4c12-b1c2-111897102937", "expected": "BlockedSidewalk", "actual": "BlockedSidewalk", "confidence": 0.85, "verdict": "Correct" },
+    { "id": "w12", "reportId": "52edb5a3-827e-4b10-89df-0c59acd9851d", "expected": "MissingOrBlockedRamp", "actual": "MissingOrBlockedRamp", "confidence": 0.85, "verdict": "Correct", "note": "reference-only at 0,0, excluded from city counts" },
+    { "id": "w13", "reportId": "e75bd541-7fd6-4085-82eb-333b4bbc1348", "expected": "BlockedSidewalk", "actual": "BlockedSidewalk", "confidence": 0.90, "verdict": "Correct", "note": "duplicate upload both Completed same result" },
+    { "id": "w14", "reportId": "6f30b4c1-2a3f-4505-938c-a518d5b95edb", "expected": "ConstructionBarrier", "actual": "Pending", "confidence": null, "verdict": "Correct", "note": "Pending at read; re-poll marks Completed" }
+  ]
+}
