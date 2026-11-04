@@ -15,8 +15,8 @@
 | w11 | Sidewalk obstructions, Pristina Kosovo | 42.658203,21.154769 | CC BY 2.0 Erica Fischer | BlockedSidewalk 0.85 | Correct (car+scooter) |
 | w12 | Curb cut reference, 2005 | 0,0 reference-only | CC BY-SA 3.0 James Yolkowski | MissingOrBlockedRamp 0.85 | Correct but excluded from city counts |
 | w13 | Sidewalk blocked by tunnel works, Helsinki | 60.162394,24.934916 | CC BY 2.0 Eric Fischer | BlockedSidewalk 0.90 | Correct (rubble — dup upload same) |
-| w14 | Sidewalk fenced off, Pohjoisranta Helsinki | 60.167,24.968 approx | CC BY-SA 4.0 JIP | Pending | Correct (re-poll completes) |
+| w14 | Sidewalk fenced off, Pohjoisranta Helsinki | 60.167,24.968 approx | CC BY-SA 4.0 JIP | ConstructionBarrier 0.90 | Correct (fenced closure; Completed live) |
 
-**11 correct-or-right-abstention + 1 pending, 0 incorrect, 0 errors. All `Meta / muse-spark-1.3` live.** SAM: `MissingOrBlockedRamp` unmeasured by design (not an area share). Files: `evaluation/world20/` (960px) — w10 Leeds file is a 5KB error page, deleted, not committed. Manifest/results: `manifest.world20-batch12.csv` + `results.world20-batch12.json` (supersede batch-1 files, kept beside them).
+**12/12 correct-or-right-abstention, 0 incorrect, 0 errors. All `Meta / muse-spark-1.3` live.** SAM: `MissingOrBlockedRamp` unmeasured by design (not an area share). Files: `evaluation/world20/` (960px) — w10 Leeds file is a 5KB error page, deleted, not committed. Manifest/results: `manifest.world20-batch12.csv` + `results.world20-batch12.json` (supersede batch-1 files, kept beside them).
 
 **Batch 3 (your 11–20 source list):** each needs its own file-page check (author/license/GPS/face-free) before posting. Pexels Savar: people visible + unclear re-upload license — not used without consent + license proof.
