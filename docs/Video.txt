@@ -1,0 +1,66 @@
+# PathLens AI — Demo Video Script (3-min Full + 60-sec Short)
+
+Target: Meta Global AI Developer Hackathon 2026, Indie Track (Solo dev)
+Live: https://pathlens.cognitivebd.com | Health: https://pathlens.cognitivebd.com/health/ready
+Voiceover: ENGLISH. Length: Full 3:00 (must), Short 0:60 (backup).
+
+One-line pitch (say first + last):
+"PathLens AI tells a wheelchair user whether a footpath is likely usable BEFORE travel — with age, source and verification on every claim, and unknown stated as unknown, never safe."
+
+Must-say lines (champion points):
+- "Open globally — works in any city. Sylhet is only the demo seed."
+- "muse-spark-1.3 classifies, sam-3.1 measures walkway share."
+- "No report does not mean clear. Not observed never means removed."
+- "OSRM foot profile — not wheelchair-validated, never labelled safe."
+- "Most cities have no footpath camera yet — map says so."
+
+PRE-SHOOT (5 min):
+- Chrome 1920x1080, 100% zoom, light theme. Hide bookmarks.
+- Tabs order: / | /map | /report/new | /routes | /reviewer | /admin | /health/ready
+- Login ready: reviewer@pathlens.local / Reviewer@123 (one-tap Sign in card).
+- 2 photos ready on desktop: footpath photo + 2nd photo same place for Compare.
+- OBS 1080p30, mic test, fan off, phone silent. Record window only.
+- Fail fallback: localhost http://localhost:3000 + say "local fallback, same build".
+
+SCENE 0 — HOOK 0:00-0:20 (Home /)
+[Show] Hero "Can this path be used right now — and how sure are we?"
+[VO] "I built PathLens AI solo for the Meta hackathon. A normal map shows the road. It never tells a wheelchair user — is the ramp blocked today? How old is that info? PathLens makes that gap visible."
+[Do] Scroll pipeline 1-6 fast, click Explore the map.
+
+SCENE 1 — MAP 0:20-0:50 (/map)
+[Show] Map opens Sylhet seed. Letters ! V ? X, square C cameras. Coverage ON.
+[VO] "Map is OSM + Leaflet, works in any city. Letters work without colour. Grey hatched C means nobody reported here — explicitly not clear. Where no camera exists, it says so."
+[Do] Pan once to another city (e.g. Dhaka) to prove global, show empty-state "unknown, not clear".
+
+SCENE 2 — REPORT + AI 0:50-1:30 (/report/new -> /reports/id)
+[Show] Create: title, BlockedSidewalk, Use my location, consent, Create. Upload photo, Run analysis.
+[VO] "Report from any city with GPS or map pin. EXIF stripped. Live Meta AI returns type, evidence, confidence and limitations — never a verdict. SAM 3.1 adds N% of walkway occupied in this photo — not metres, no confidence score. Not measured means unknown, not clear."
+[Do] Point confidence bar (red<40 orange40-70 green>70), Live Meta badge, Human review required.
+
+SCENE 3 — COMPARISON 1:30-1:55 (same report)
+[Show] Upload 2nd photo -> Compare photos -> result card.
+[VO] "Same place old vs new. Four outcomes only — LikelyStillPresent, NotObservedInNewImage, ConflictingEvidence, Inconclusive — always with explanation. Not observed never becomes removed."
+[Do] Show timeline + explanation text.
+
+SCENE 4 — ROUTES 1:55-2:30 (/routes)
+[Show] Origin 24.9116,91.8498 Dest 24.9248,91.8698 (or any 2 points) -> Plan routes.
+[VO] "Real OSRM foot geometry, ranked by fewest known obstacles, not distance. Unknown %, stale flag, Certain vs Uncertain split. Avoid stairs reorders, never hides. Foot is not wheelchair-validated — so no route is ever safe-labelled."
+[Do] Toggle Avoid stairs ON, point SAM line "covers about X% in its photo" or "not measured".
+
+SCENE 5 — REVIEW 2:30-2:50 (/reviewer)
+[Show] One-tap Reviewer sign in -> queue -> HumanVerified + note -> audit.
+[VO] "Human decides, audit remembers. Verify, dispute or reject with note. AI outcome never overwritten. Plain user gets 403 — try it, that is the point."
+
+SCENE 6 — CLOSE 2:50-3:00
+[Show] /health/ready all Healthy + footer "Unknown means unknown."
+[VO] "Solo-built, live today, open globally. Unknown is unknown. That is PathLens AI."
+[End card] Live URL + GitHub + "Built solo — Indie 2026".
+
+60-SEC SHORT:
+0:00-0:10 Hook + global line / 0:10-0:25 Map coverage unknown / 0:25-0:40 Upload + Live Meta + SAM% / 0:40-0:50 Routes + foot disclaimer / 0:50-0:60 Review + Unknown is unknown + URL.
+
+NEVER SAY: "wheelchair-safe route", "accurate", "covers Sylhet city", "real-time cameras everywhere".
+IF FAILS: 429 = "10/hour limit protects demo". AI slow = show Demo evidence 01 (1% negative control). OSRM slow = open cached recommendation by id.
+
+UPLOAD: file pathlens-demo-3min-1080p30.mp4, captions ON, fix model names. Title: PathLens AI — Evidence-Aware Accessibility Intelligence (Meta Hackathon 2026, Indie/Solo). Desc: Live https://pathlens.cognitivebd.com | Solo | muse-spark-1.3 + sam-3.1 | OSRM foot (not wheelchair-validated) | Open globally, seed Sylhet | Code github.com/basithalam/PathLens-AI | Judge docs/JUDGE_GUIDE.md. Unlisted first, test phone + mute, then Public/Unlisted per form.
+

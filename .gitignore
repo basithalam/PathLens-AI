@@ -4,6 +4,7 @@ Blueprint*.md
 *blueprint*
 idea.txt
 .qwen
+/Video.txt
 
 # Environment & secrets
 .env
