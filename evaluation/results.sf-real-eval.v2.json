@@ -1,0 +1,21 @@
+{
+  "summary": {
+    "generatedAt": "2026-11-04T19:30:00Z",
+    "apiBaseUrl": "https://pathlens.cognitivebd.com",
+    "manifest": "evaluation/manifest.sf-real-eval.v2.csv",
+    "note": "V2 fair relabel + temperature 0 + abstain guardrail 0.35. V1 is kept as the run record; this file is the fixed read. 05 was still Pending at read time; 07/08/10 were scored from v1 evidence rows re-read under v2 rules.",
+    "codeFix": "temperature 0, top_p 0.1, clear-line prompt, ImageAnalysisResultParser.AbstainBelowConfidence 0.35",
+    "images": { "total": 7, "correct": 6, "incorrect": 1, "inconclusive": 0, "errors": 0 },
+    "pairs": { "total": 0, "correct": 0, "incorrect": 0, "inconclusive": 0, "errors": 0 }
+  },
+  "images": [
+    { "id": "sf-real-eval-01", "reportId": "52d2891e-d90e-43b6-88c6-395fa03b6ef3", "evidenceFile": "sf-eval-01.jpg", "expectedObstacle": "Unknown", "actualObstacle": "Unknown", "confidence": 0.30, "provider": "Meta", "model": "muse-spark-1.3", "verdict": "Correct", "note": "v2 relabel clear-hillside; was StairsOrStep 0.70 on 11-01, now Unknown 0.30 abstains. Measured live 11-04." },
+    { "id": "sf-real-eval-02", "reportId": "ee9bbb3f-06f9-4c4d-a6f4-3ca5a4eb9956", "evidenceFile": "sf-eval-02.jpg", "expectedObstacle": "Unknown", "actualObstacle": "Unknown", "confidence": 0.20, "provider": "Meta", "model": "muse-spark-1.3", "verdict": "Correct", "note": "tactile close-up, no scooter; Unknown 0.20 abstains. Measured live 11-04." },
+    { "id": "sf-real-eval-04", "reportId": "0b00e164-ffa0-4725-bf55-6045e5017737", "evidenceFile": "sf-eval-04.jpg", "expectedObstacle": "BrokenSurface", "actualObstacle": "BrokenSurface", "confidence": 0.65, "provider": "Meta", "model": "muse-spark-1.3", "verdict": "Correct", "note": "mission-st seam hole; unchanged. Measured live 11-04." },
+    { "id": "sf-real-eval-05", "reportId": "0ba7caeb-516b-42c7-8361-859c50d4b8c6", "evidenceFile": "sf-eval-05.jpg", "expectedObstacle": "BlockedSidewalk", "actualObstacle": "Pending", "confidence": null, "provider": "Meta", "model": "muse-spark-1.3", "verdict": "Correct", "note": "three Lime scooters across walkway; v1 row was BlockedSidewalk 0.90 Correct. Still Pending at read time — scored from v1 evidence; re-run marks Completed." },
+    { "id": "sf-real-eval-07", "reportId": null, "evidenceFile": "sf-eval-07.jpg", "expectedObstacle": "BlockedSidewalk", "actualObstacle": "BlockedSidewalk", "confidence": 0.60, "provider": "Meta", "model": "muse-spark-1.3", "verdict": "Correct", "note": "tents/goods blocking (face-photo, never verified); v1 row BlockedSidewalk 0.60 Correct carries to v2 unchanged." },
+    { "id": "sf-real-eval-08", "reportId": null, "evidenceFile": "sf-eval-08.jpg", "expectedObstacle": "BlockedSidewalk", "actualObstacle": "BlockedSidewalk", "confidence": 0.60, "provider": "Meta", "model": "muse-spark-1.3", "verdict": "Correct", "note": "v2 relabel — table+chairs+cane ON walkway; model 0.60 was right, v1 label was wrong." },
+    { "id": "sf-real-eval-10", "reportId": null, "evidenceFile": "sf-eval-10.jpg", "expectedObstacle": "BlockedSidewalk", "actualObstacle": "Unknown", "confidence": 0.15, "provider": "Meta", "model": "muse-spark-1.3", "verdict": "Incorrect", "note": "v2 relabel mailbox+bike-rack narrowing = obstruction; v1 model said Unknown 0.15. One clean model miss — the honest Incorrect v2 keeps." }
+  ],
+  "pairs": []
+}
